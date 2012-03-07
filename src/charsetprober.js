@@ -27,6 +27,8 @@
  * 02110-1301  USA
  */
 
+module.exports = function(jschardet) {
+    
 jschardet.CharSetProber = function() {
     this.reset = function() {
         this._mState = jschardet.Constants.detecting;
@@ -61,4 +63,6 @@ jschardet.CharSetProber = function() {
         // TODO
         return aBuf;
     }
+}
+
 }

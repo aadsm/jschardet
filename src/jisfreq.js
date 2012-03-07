@@ -27,6 +27,8 @@
  * 02110-1301  USA
  */
 
+module.exports = function(jschardet) {
+    
 // Sampling from about 20M text materials include literature and computer technology
 //
 // Japanese frequency table, applied to both S-JIS and EUC-JP
@@ -567,3 +569,5 @@ jschardet.JISCharToFreqOrder = [
 8240,8241,8242,8243,8244,8245,8246,8247,8248,8249,8250,8251,8252,8253,8254,8255, // 8256
 8256,8257,8258,8259,8260,8261,8262,8263,8264,8265,8266,8267,8268,8269,8270,8271 // 8272
 ];
+
+}

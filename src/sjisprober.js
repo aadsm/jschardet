@@ -27,6 +27,8 @@
  * 02110-1301  USA
  */
 
+module.exports = function(jschardet) {
+    
 jschardet.SJISProber = function() {
     jschardet.MultiByteCharSetProber.apply(this);
     
@@ -95,3 +97,5 @@ jschardet.SJISProber = function() {
     init();
 }
 jschardet.SJISProber.prototype = new jschardet.MultiByteCharSetProber();
+
+}

@@ -27,6 +27,8 @@
  * 02110-1301  USA
  */
 
+module.exports = function(jschardet) {
+    
 // 255: Control characters that usually does not exist in any text
 // 254: Carriage/Return
 // 253: symbol (punctuation) that does not belong to word
@@ -223,3 +225,5 @@ jschardet.Win1253GreekModel = {
     "keepEnglishLetter"     : false,
     "charsetName"           : "windows-1253"
 };
+
+}

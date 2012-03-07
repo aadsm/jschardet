@@ -27,6 +27,8 @@
  * 02110-1301  USA
  */
 
+module.exports = function(jschardet) {
+    
 // Sampling from about 20M text materials include literature and computer technology
 
 // 128  --> 0.79
@@ -595,3 +597,5 @@ jschardet.EUCKRCharToFreqOrder = [
 8720,8721,8722,8723,8724,8725,8726,8727,8728,8729,8730,8731,8732,8733,8734,8735,
 8736,8737,8738,8739,8740,8741
 ];
+
+}

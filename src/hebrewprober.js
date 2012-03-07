@@ -27,6 +27,8 @@
  * 02110-1301  USA
  */
 
+module.exports = function(jschardet) {
+    
 // This prober doesn't actually recognize a language or a charset.
 // It is a helper prober for the use of the Hebrew model probers
 
@@ -315,4 +317,6 @@ if (!Array.prototype.indexOf)
         }
         return -1;
     };
+}
+
 }

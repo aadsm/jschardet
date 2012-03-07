@@ -27,15 +27,54 @@
  * 02110-1301  USA
  */
 
-var jschardet = {};
+var jschardet = exports;
+
+require('./constants')(jschardet);
+require('./codingstatemachine')(jschardet);
+require('./escsm')(jschardet);
+require('./mbcssm')(jschardet);
+require('./charsetprober')(jschardet);
+require('./mbcharsetprober')(jschardet);
+require('./jisfreq')(jschardet);
+require('./gb2312freq')(jschardet);
+require('./euckrfreq')(jschardet);
+require('./big5freq')(jschardet);
+require('./euctwfreq')(jschardet);
+require('./chardistribution')(jschardet);
+require('./jpcntx')(jschardet);
+require('./sjisprober')(jschardet);
+require('./utf8prober')(jschardet);
+require('./charsetgroupprober')(jschardet);
+require('./eucjpprober')(jschardet);
+require('./gb2312prober')(jschardet);
+require('./euckrprober')(jschardet);
+require('./big5prober')(jschardet);
+require('./euctwprober')(jschardet);
+require('./mbcsgroupprober')(jschardet);
+require('./sbcharsetprober')(jschardet);
+require('./langgreekmodel')(jschardet);
+require('./langthaimodel')(jschardet);
+require('./langbulgarianmodel')(jschardet);
+require('./langcyrillicmodel')(jschardet);
+require('./hebrewprober')(jschardet);
+require('./langhebrewmodel')(jschardet);
+require('./langhungarianmodel')(jschardet);
+require('./sbcsgroupprober')(jschardet);
+require('./latin1prober')(jschardet);
+require('./escprober')(jschardet);
+require('./universaldetector')(jschardet);
+
 jschardet.VERSION = "0.1";
-jschardet.detect = function(aBuf) {
+jschardet.detect = function(buffer) {
     var u = new jschardet.UniversalDetector();
     u.reset();
-    if( aBuf instanceof Array ) {
-        u.feed(String.fromCharCode.apply(String, aBuf));
+    if( buffer instanceof Buffer ) {
+        var str = "";
+        for (var i = 0; i < buffer.length; ++i)
+            str += String.fromCharCode(buffer[i])
+        u.feed(str);
     } else {
-        u.feed(aBuf);
+        u.feed(buffer);
     }
     u.close();
     return u.result;

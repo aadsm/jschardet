@@ -27,6 +27,8 @@
  * 02110-1301  USA
  */
  
+module.exports = function(jschardet) {
+    
 jschardet.SingleByteCharSetProber = function(model, reversed, nameProber) {
     jschardet.CharSetProber.apply(this);
     
@@ -133,3 +135,5 @@ jschardet.SingleByteCharSetProber = function(model, reversed, nameProber) {
     init(model, reversed, nameProber);
 }
 jschardet.SingleByteCharSetProber.prototype = new jschardet.CharSetProber();
+
+}

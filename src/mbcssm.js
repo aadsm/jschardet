@@ -27,6 +27,8 @@
  * 02110-1301  USA
  */
 
+module.exports = function(jschardet) {
+    
 // BIG5 
 
 jschardet.BIG5_cls = [
@@ -557,3 +559,5 @@ jschardet.UTF8SMModel = {
     "charLenTable"  : jschardet.UTF8CharLenTable,
     "name"          : "UTF-8"
 };
+
+}

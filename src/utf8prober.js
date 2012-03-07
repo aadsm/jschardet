@@ -27,6 +27,8 @@
  * 02110-1301  USA
  */
 
+module.exports = function(jschardet) {
+
 jschardet.UTF8Prober = function() {
     jschardet.CharSetProber.apply(this);
     
@@ -89,3 +91,5 @@ jschardet.UTF8Prober = function() {
     init();
 }
 jschardet.UTF8Prober.prototype = new jschardet.CharSetProber();
+
+}

@@ -27,6 +27,8 @@
  * 02110-1301  USA
  */
 
+module.exports = function(jschardet) {
+    
 jschardet.CodingStateMachine = function(sm) {
     var self = this;
     
@@ -64,4 +66,6 @@ jschardet.CodingStateMachine = function(sm) {
     }
     
     init(sm);
+}
+
 }

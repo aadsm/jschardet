@@ -27,6 +27,8 @@
  * 02110-1301  USA
  */
 
+module.exports = function(jschardet) {
+    
 jschardet.EscCharSetProber = function() {
     jschardet.CharSetProber.apply(this);
     
@@ -92,3 +94,5 @@ jschardet.EscCharSetProber = function() {
     init();
 }
 jschardet.EscCharSetProber.prototype = new jschardet.CharSetProber();
+
+}

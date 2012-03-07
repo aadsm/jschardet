@@ -27,6 +27,8 @@
  * 02110-1301  USA
  */
 
+module.exports = function(jschardet) {
+    
 jschardet.MultiByteCharSetProber = function() {
     jschardet.CharSetProber.apply(this);
     
@@ -95,3 +97,5 @@ jschardet.MultiByteCharSetProber = function() {
     }
 }
 jschardet.MultiByteCharSetProber.prototype = new jschardet.CharSetProber();
+
+}

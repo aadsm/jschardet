@@ -6,13 +6,21 @@ Port of python's charset (http://chardet.feedparser.org/).
 How To Use It
 -------------
 
-    >// "àíàçã" in UTF-8
-    >jschardet.detect("\xc3\xa0\xc3\xad\xc3\xa0\xc3\xa7\xc3\xa3")
-    {encoding: "utf-8", confidence: 0.9690625}
 
-    >// "次常用國字標準字體表" in Big5 
-    >jschardet.detect("\xa6\xb8\xb1\x60\xa5\xce\xb0\xea\xa6\x72\xbc\xd0\xb7\xc7\xa6\x72\xc5\xe9\xaa\xed")
-    {encoding: "Big5", confidence: 0.99}
+```   
+npm install jschardet
+```
+
+    var jschardet = require("jschardet")
+    
+    // "àíàçã" in UTF-8
+    jschardet.detect("\xc3\xa0\xc3\xad\xc3\xa0\xc3\xa7\xc3\xa3")
+    // { encoding: "utf-8", confidence: 0.9690625 }
+
+    // "次常用國字標準字體表" in Big5 
+    jschardet.detect("\xa6\xb8\xb1\x60\xa5\xce\xb0\xea\xa6\x72\xbc\xd0\xb7\xc7\xa6\x72\xc5\xe9\xaa\xed")
+    // { encoding: "Big5", confidence: 0.99 }
+
 
 Supported Charsets
 ------------------
@@ -48,4 +56,4 @@ A one-file minimized version is missing.
 Authors
 -------
 
-Ported from python to JavaScript by António Afonso (antonio.afonso gmail.com)
+Ported from python to JavaScript by António Afonso (https://github.com/aadsm/jschardet)
