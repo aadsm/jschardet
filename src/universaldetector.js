@@ -172,7 +172,9 @@ jschardet.UniversalDetector = function() {
                     maxProberConfidence = proberConfidence;
                     maxProber = prober;
                 }
-                console.log(prober.getCharsetName() + " confidence " + prober.getConfidence())
+                if( jschardet.Constants._debug ) {
+                    console.log(prober.getCharsetName() + " confidence " + prober.getConfidence());
+                }
             }
             if( maxProber && maxProberConfidence > MINIMUM_THRESHOLD ) {
                 this.result = {
