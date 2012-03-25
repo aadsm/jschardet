@@ -3,6 +3,11 @@ JsChardet
 
 Port of python's charset (http://chardet.feedparser.org/).
 
+License
+-------
+
+LGPL
+
 How To Use It
 -------------
 
