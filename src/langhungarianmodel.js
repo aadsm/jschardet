@@ -27,7 +27,7 @@
  * 02110-1301  USA
  */
 
-module.exports = function(jschardet) {
+!function(jschardet) {
     
 // 255: Control characters that usually does not exist in any text
 // 254: Carriage/Return
@@ -226,4 +226,4 @@ jschardet.Win1250HungarianModel = {
     "charsetName"           : "windows-1250"
 };
 
-}
+}((typeof process !== 'undefined' && typeof process.title !== 'undefined') ? module.parent.exports : jschardet);

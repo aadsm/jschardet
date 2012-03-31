@@ -27,7 +27,7 @@
  * 02110-1301  USA
  */
 
-module.exports = function(jschardet) {
+!function(jschardet) {
     
 // This is hiragana 2-char sequence table, the number in each cell represents its frequency category
 jschardet.jp2CharContext = [
@@ -239,4 +239,4 @@ jschardet.EUCJPContextAnalysis = function() {
 }
 jschardet.EUCJPContextAnalysis.prototype = new jschardet.JapaneseContextAnalysis();
 
-}
+}((typeof process !== 'undefined' && typeof process.title !== 'undefined') ? module.parent.exports : jschardet);

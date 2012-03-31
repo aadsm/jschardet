@@ -27,7 +27,7 @@
  * 02110-1301  USA
  */
 
-module.exports = function(jschardet) {
+!function(jschardet) {
     
 // 255: Control characters that usually does not exist in any text
 // 254: Carriage/Return
@@ -201,4 +201,4 @@ jschardet.TIS620ThaiModel = {
     "charsetName"           : "TIS-620"
 };
 
-}
+}((typeof process !== 'undefined' && typeof process.title !== 'undefined') ? module.parent.exports : jschardet);

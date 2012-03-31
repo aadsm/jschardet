@@ -27,48 +27,52 @@
  * 02110-1301  USA
  */
 
-var jschardet = exports;
+var jschardet = {};
 
-require('./constants')(jschardet);
-require('./codingstatemachine')(jschardet);
-require('./escsm')(jschardet);
-require('./mbcssm')(jschardet);
-require('./charsetprober')(jschardet);
-require('./mbcharsetprober')(jschardet);
-require('./jisfreq')(jschardet);
-require('./gb2312freq')(jschardet);
-require('./euckrfreq')(jschardet);
-require('./big5freq')(jschardet);
-require('./euctwfreq')(jschardet);
-require('./chardistribution')(jschardet);
-require('./jpcntx')(jschardet);
-require('./sjisprober')(jschardet);
-require('./utf8prober')(jschardet);
-require('./charsetgroupprober')(jschardet);
-require('./eucjpprober')(jschardet);
-require('./gb2312prober')(jschardet);
-require('./euckrprober')(jschardet);
-require('./big5prober')(jschardet);
-require('./euctwprober')(jschardet);
-require('./mbcsgroupprober')(jschardet);
-require('./sbcharsetprober')(jschardet);
-require('./langgreekmodel')(jschardet);
-require('./langthaimodel')(jschardet);
-require('./langbulgarianmodel')(jschardet);
-require('./langcyrillicmodel')(jschardet);
-require('./hebrewprober')(jschardet);
-require('./langhebrewmodel')(jschardet);
-require('./langhungarianmodel')(jschardet);
-require('./sbcsgroupprober')(jschardet);
-require('./latin1prober')(jschardet);
-require('./escprober')(jschardet);
-require('./universaldetector')(jschardet);
+if (typeof process !== 'undefined' && typeof process.title !== 'undefined')
+{
+    jschardet = exports;
+    require('./constants');
+    require('./codingstatemachine');
+    require('./escsm');
+    require('./mbcssm');
+    require('./charsetprober');
+    require('./mbcharsetprober');
+    require('./jisfreq');
+    require('./gb2312freq');
+    require('./euckrfreq');
+    require('./big5freq');
+    require('./euctwfreq');
+    require('./chardistribution');
+    require('./jpcntx');
+    require('./sjisprober');
+    require('./utf8prober');
+    require('./charsetgroupprober');
+    require('./eucjpprober');
+    require('./gb2312prober');
+    require('./euckrprober');
+    require('./big5prober');
+    require('./euctwprober');
+    require('./mbcsgroupprober');
+    require('./sbcharsetprober');
+    require('./langgreekmodel');
+    require('./langthaimodel');
+    require('./langbulgarianmodel');
+    require('./langcyrillicmodel');
+    require('./hebrewprober');
+    require('./langhebrewmodel');
+    require('./langhungarianmodel');
+    require('./sbcsgroupprober');
+    require('./latin1prober');
+    require('./escprober');
+    require('./universaldetector');
+}
 
 jschardet.VERSION = "0.1";
 jschardet.detect = function(buffer) {
     var u = new jschardet.UniversalDetector();
     u.reset();
-    if( buffer instanceof Buffer ) {
+    if( typeof Buffer == 'function' && buffer instanceof Buffer ) {
         var str = "";
         for (var i = 0; i < buffer.length; ++i)
             str += String.fromCharCode(buffer[i])

@@ -27,7 +27,7 @@
  * 02110-1301  USA
  */
 
-module.exports = function(jschardet) {
+!function(jschardet) {
     
 // KOI8-R language model
 // Character Mapping Table:
@@ -330,4 +330,4 @@ jschardet.Ibm855Model = {
     "charsetName"             : "IBM855"
 };
 
-}
+}((typeof process !== 'undefined' && typeof process.title !== 'undefined') ? module.parent.exports : jschardet);

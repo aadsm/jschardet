@@ -27,7 +27,7 @@
  * 02110-1301  USA
  */
 
-module.exports = function(jschardet) {
+!function(jschardet) {
     
 // Big5 frequency table
 // by Taiwan's Mandarin Promotion Council 
@@ -926,4 +926,4 @@ jschardet.Big5CharToFreqOrder = [
 13952,13953,13954,13955,13956,13957,13958,13959,13960,13961,13962,13963,13964,13965,13966,13967, //13968
 13968,13969,13970,13971,13972]; //13973
 
-}
+}((typeof process !== 'undefined' && typeof process.title !== 'undefined') ? module.parent.exports : jschardet);

@@ -31,7 +31,7 @@
  * This is a port from the python port, version "2.0.1"
  */
 
-module.exports = function(jschardet) {
+!function(jschardet) {
 
 jschardet.UniversalDetector = function() {
     var MINIMUM_THRESHOLD = 0.20;
@@ -200,4 +200,4 @@ jschardet.UniversalDetector = function() {
     init();
 }
 
-};
+}((typeof process !== 'undefined' && typeof process.title !== 'undefined') ? module.parent.exports : jschardet);

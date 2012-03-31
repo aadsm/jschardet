@@ -27,7 +27,7 @@
  * 02110-1301  USA
  */
 
-module.exports = function(jschardet) {
+!function(jschardet) {
     
 jschardet.Constants = {
     _debug      : false,
@@ -43,4 +43,4 @@ jschardet.Constants = {
     SHORTCUT_THRESHOLD  : 0.95
 };
 
-}
+}((typeof process !== 'undefined' && typeof process.title !== 'undefined') ? module.parent.exports : jschardet);

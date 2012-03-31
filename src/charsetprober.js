@@ -27,7 +27,7 @@
  * 02110-1301  USA
  */
 
-module.exports = function(jschardet) {
+!function(jschardet) {  
     
 jschardet.CharSetProber = function() {
     this.reset = function() {
@@ -65,4 +65,4 @@ jschardet.CharSetProber = function() {
     }
 }
 
-}
+}((typeof process !== 'undefined' && typeof process.title !== 'undefined') ? module.parent.exports : jschardet);

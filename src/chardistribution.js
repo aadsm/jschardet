@@ -27,7 +27,7 @@
  * 02110-1301  USA
  */
 
-module.exports = function(jschardet) {
+!function(jschardet) {
     
 jschardet.CharDistributionAnalysis = function() {
     var ENOUGH_DATA_THRESHOLD = 1024;
@@ -280,4 +280,4 @@ jschardet.EUCJPDistributionAnalysis = function() {
 }
 jschardet.EUCJPDistributionAnalysis.prototype = new jschardet.CharDistributionAnalysis();
 
-}
+}((typeof process !== 'undefined' && typeof process.title !== 'undefined') ? module.parent.exports : jschardet);

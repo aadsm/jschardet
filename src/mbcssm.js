@@ -27,7 +27,7 @@
  * 02110-1301  USA
  */
 
-module.exports = function(jschardet) {
+!function(jschardet) {
     
 // BIG5 
 
@@ -560,4 +560,4 @@ jschardet.UTF8SMModel = {
     "name"          : "UTF-8"
 };
 
-}
+}((typeof process !== 'undefined' && typeof process.title !== 'undefined') ? module.parent.exports : jschardet);

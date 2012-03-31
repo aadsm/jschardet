@@ -27,7 +27,7 @@
  * 02110-1301  USA
  */
 
-module.exports = function(jschardet) {
+!function(jschardet) {
     
 jschardet.Big5Prober = function() {
     jschardet.MultiByteCharSetProber.apply(this);
@@ -48,4 +48,4 @@ jschardet.Big5Prober = function() {
 }
 jschardet.Big5Prober.prototype = new jschardet.MultiByteCharSetProber();
 
-}
+}((typeof process !== 'undefined' && typeof process.title !== 'undefined') ? module.parent.exports : jschardet);

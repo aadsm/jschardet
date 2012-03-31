@@ -27,7 +27,7 @@
  * 02110-1301  USA
  */
 
-module.exports = function(jschardet) {
+!function(jschardet) {
     
 jschardet.HZ_cls = [
     1,0,0,0,0,0,0,0,  // 00 - 07 
@@ -253,4 +253,4 @@ jschardet.ISO2022KRSMModel = {
     "name"          : "ISO-2022-KR"
 };
 
-}
+}((typeof process !== 'undefined' && typeof process.title !== 'undefined') ? module.parent.exports : jschardet);
