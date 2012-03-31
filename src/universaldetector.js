@@ -156,7 +156,9 @@ jschardet.UniversalDetector = function() {
         this.done = true;
         
         if( this._mInputState == _state.pureAscii ) {
-            console.log("pure ascii")
+            if( jschardet.Constants._debug ) {
+                console.log("pure ascii")
+            }
             this.result = {"encoding": "ascii", "confidence": 1.0};
             return this.result;
         }
