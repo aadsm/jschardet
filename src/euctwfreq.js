@@ -27,6 +27,8 @@
  * 02110-1301  USA
  */
 
+!function(jschardet) {
+    
 // EUCTW frequency table
 // Converted from big5 work 
 // by Taiwan's Mandarin Promotion Council 
@@ -427,3 +429,5 @@ jschardet.EUCTWCharToFreqOrder = [
 8710,8711,8712,8713,8714,8715,8716,8717,8718,8719,8720,8721,8722,8723,8724,8725, // 8726
 8726,8727,8728,8729,8730,8731,8732,8733,8734,8735,8736,8737,8738,8739,8740,8741
 ]; // 8742
+
+}((typeof process !== 'undefined' && typeof process.title !== 'undefined') ? module.parent.exports : jschardet);

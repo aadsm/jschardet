@@ -27,6 +27,8 @@
  * 02110-1301  USA
  */
 
+!function(jschardet) {
+    
 // Big5 frequency table
 // by Taiwan's Mandarin Promotion Council 
 // <http://www.edu.tw:81/mandr/>
@@ -923,3 +925,5 @@ jschardet.Big5CharToFreqOrder = [
 13936,13937,13938,13939,13940,13941,13942,13943,13944,13945,13946,13947,13948,13949,13950,13951, //13952
 13952,13953,13954,13955,13956,13957,13958,13959,13960,13961,13962,13963,13964,13965,13966,13967, //13968
 13968,13969,13970,13971,13972]; //13973
+
+}((typeof process !== 'undefined' && typeof process.title !== 'undefined') ? module.parent.exports : jschardet);

@@ -27,6 +27,8 @@
  * 02110-1301  USA
  */
 
+!function(jschardet) {
+    
 // KOI8-R language model
 // Character Mapping Table:
 jschardet.KOI8R_CharToOrderMap = [
@@ -327,3 +329,5 @@ jschardet.Ibm855Model = {
     "keepEnglishLetter"       : false,
     "charsetName"             : "IBM855"
 };
+
+}((typeof process !== 'undefined' && typeof process.title !== 'undefined') ? module.parent.exports : jschardet);

@@ -27,6 +27,8 @@
  * 02110-1301  USA
  */
 
+!function(jschardet) {
+    
 jschardet.EUCKRProber = function() {
     jschardet.MultiByteCharSetProber.apply(this);
     
@@ -45,3 +47,5 @@ jschardet.EUCKRProber = function() {
     init();
 }
 jschardet.EUCKRProber.prototype = new jschardet.MultiByteCharSetProber();
+
+}((typeof process !== 'undefined' && typeof process.title !== 'undefined') ? module.parent.exports : jschardet);

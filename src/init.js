@@ -28,14 +28,57 @@
  */
 
 var jschardet = {};
+
+if (typeof process !== 'undefined' && typeof process.title !== 'undefined')
+{
+    jschardet = exports;
+    require('./constants');
+    require('./codingstatemachine');
+    require('./escsm');
+    require('./mbcssm');
+    require('./charsetprober');
+    require('./mbcharsetprober');
+    require('./jisfreq');
+    require('./gb2312freq');
+    require('./euckrfreq');
+    require('./big5freq');
+    require('./euctwfreq');
+    require('./chardistribution');
+    require('./jpcntx');
+    require('./sjisprober');
+    require('./utf8prober');
+    require('./charsetgroupprober');
+    require('./eucjpprober');
+    require('./gb2312prober');
+    require('./euckrprober');
+    require('./big5prober');
+    require('./euctwprober');
+    require('./mbcsgroupprober');
+    require('./sbcharsetprober');
+    require('./langgreekmodel');
+    require('./langthaimodel');
+    require('./langbulgarianmodel');
+    require('./langcyrillicmodel');
+    require('./hebrewprober');
+    require('./langhebrewmodel');
+    require('./langhungarianmodel');
+    require('./sbcsgroupprober');
+    require('./latin1prober');
+    require('./escprober');
+    require('./universaldetector');
+}
+
 jschardet.VERSION = "0.1";
-jschardet.detect = function(aBuf) {
+jschardet.detect = function(buffer) {
     var u = new jschardet.UniversalDetector();
     u.reset();
-    if( aBuf instanceof Array ) {
-        u.feed(String.fromCharCode.apply(String, aBuf));
+    if( typeof Buffer == 'function' && buffer instanceof Buffer ) {
+        var str = "";
+        for (var i = 0; i < buffer.length; ++i)
+            str += String.fromCharCode(buffer[i])
+        u.feed(str);
     } else {
-        u.feed(aBuf);
+        u.feed(buffer);
     }
     u.close();
     return u.result;

@@ -30,6 +30,9 @@
 /**
  * This is a port from the python port, version "2.0.1"
  */
+
+!function(jschardet) {
+
 jschardet.UniversalDetector = function() {
     var MINIMUM_THRESHOLD = 0.20;
     var _state = {
@@ -146,13 +149,16 @@ jschardet.UniversalDetector = function() {
         if( this.done ) return;
         if( !this._mGotData ) {
             if( jschardet.Constants._debug ) {
-                log("no data received!\n");
+                console.log("no data received!\n");
             }
             return;
         }
         this.done = true;
         
         if( this._mInputState == _state.pureAscii ) {
+            if( jschardet.Constants._debug ) {
+                console.log("pure ascii")
+            }
             this.result = {"encoding": "ascii", "confidence": 1.0};
             return this.result;
         }
@@ -168,7 +174,9 @@ jschardet.UniversalDetector = function() {
                     maxProberConfidence = proberConfidence;
                     maxProber = prober;
                 }
-                log(prober.getCharsetName() + " confidence " + prober.getConfidence())
+                if( jschardet.Constants._debug ) {
+                    console.log(prober.getCharsetName() + " confidence " + prober.getConfidence());
+                }
             }
             if( maxProber && maxProberConfidence > MINIMUM_THRESHOLD ) {
                 this.result = {
@@ -180,10 +188,10 @@ jschardet.UniversalDetector = function() {
         }
         
         if( jschardet.Constants._debug ) {
-            log("no probers hit minimum threshhold\n");
+            console.log("no probers hit minimum threshhold\n");
             for( var i = 0, prober; prober = this._mCharsetProbers[i]; i++ ) {
                 if( !prober ) continue;
-                log(prober.getCharsetName() + " confidence = " +
+                console.log(prober.getCharsetName() + " confidence = " +
                     prober.getConfidence() + "\n");
             }
         }
@@ -191,3 +199,5 @@ jschardet.UniversalDetector = function() {
     
     init();
 }
+
+}((typeof process !== 'undefined' && typeof process.title !== 'undefined') ? module.parent.exports : jschardet);

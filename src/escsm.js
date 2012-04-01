@@ -27,6 +27,8 @@
  * 02110-1301  USA
  */
 
+!function(jschardet) {
+    
 jschardet.HZ_cls = [
     1,0,0,0,0,0,0,0,  // 00 - 07 
     0,0,0,0,0,0,0,0,  // 08 - 0f 
@@ -250,3 +252,5 @@ jschardet.ISO2022KRSMModel = {
     "charLenTable"  : jschardet.ISO2022KRCharLenTable,
     "name"          : "ISO-2022-KR"
 };
+
+}((typeof process !== 'undefined' && typeof process.title !== 'undefined') ? module.parent.exports : jschardet);

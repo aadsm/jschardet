@@ -26,6 +26,9 @@
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301  USA
  */
+
+!function(jschardet) {
+    
 jschardet.Constants = {
     _debug      : false,
     
@@ -39,3 +42,5 @@ jschardet.Constants = {
     
     SHORTCUT_THRESHOLD  : 0.95
 };
+
+}((typeof process !== 'undefined' && typeof process.title !== 'undefined') ? module.parent.exports : jschardet);

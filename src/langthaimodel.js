@@ -27,6 +27,8 @@
  * 02110-1301  USA
  */
 
+!function(jschardet) {
+    
 // 255: Control characters that usually does not exist in any text
 // 254: Carriage/Return
 // 253: symbol (punctuation) that does not belong to word
@@ -198,3 +200,5 @@ jschardet.TIS620ThaiModel = {
     "keepEnglishLetter"     : false,
     "charsetName"           : "TIS-620"
 };
+
+}((typeof process !== 'undefined' && typeof process.title !== 'undefined') ? module.parent.exports : jschardet);

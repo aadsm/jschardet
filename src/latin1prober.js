@@ -27,6 +27,8 @@
  * 02110-1301  USA
  */
 
+!function(jschardet) {
+    
 (function() {
     var UDF = 0; // undefined
     var OTH = 1; // other
@@ -157,3 +159,5 @@ jschardet.Latin1Prober = function() {
     init();
 }
 jschardet.Latin1Prober.prototype = new jschardet.CharSetProber();
+
+}((typeof process !== 'undefined' && typeof process.title !== 'undefined') ? module.parent.exports : jschardet);

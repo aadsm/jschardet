@@ -27,6 +27,8 @@
  * 02110-1301  USA
  */
 
+!function(jschardet) {
+    
 jschardet.SBCSGroupProber = function() {
     jschardet.CharSetGroupProber.apply(this);
     
@@ -60,3 +62,5 @@ jschardet.SBCSGroupProber = function() {
     init();
 }
 jschardet.SBCSGroupProber.prototype = new jschardet.CharSetGroupProber();
+
+}((typeof process !== 'undefined' && typeof process.title !== 'undefined') ? module.parent.exports : jschardet);
