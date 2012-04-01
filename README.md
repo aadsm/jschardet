@@ -62,3 +62,4 @@ Authors
 -------
 
 Ported from python to JavaScript by António Afonso (https://github.com/aadsm/jschardet)
+Transformed into an npm package by Markus Ast (https://github.com/brainafk)
