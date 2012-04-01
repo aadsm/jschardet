@@ -1,13 +1,13 @@
 {
     "name": "jschardet",
-    "version": "1.0.1",
+    "version": "1.0.2",
     "description": "Character encoding auto-detection in JavaScript (port of python's chardet)",
     "main": "src/init",
     "author": "António Afonso",
     "keywords": ["encoding", "charset"],
     "repository" : {
         "type": "git",
-        "url": "https://brainafk@github.com/brainafk/node-jschardet.git"
+        "url": "https://github.com/aadsm/jschardet.git"
     },
     "directories": { "lib": "./lib", "test": "./test" },
     "dependencies": {},
