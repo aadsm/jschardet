@@ -33,6 +33,15 @@ test("UTF-8", function() {
     equals( jschardet.detect(str).encoding, "UTF-8" );
 });
 
+test("UTF-8 stream", function() {
+    var u = new jschardet.UniversalDetector();
+    u.reset();
+    u.feed("\xEF");
+    u.feed("\xBB\xBFutf8 string");
+    u.close();
+    equals( u.result.encoding, "UTF-8" );
+});
+
 test("UTF-16BE", function() {
     var str = "\xFE\xFFutf16be string";
     equals( jschardet.detect(str).encoding, "UTF-16BE" );

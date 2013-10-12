@@ -57,6 +57,7 @@ jschardet.UniversalDetector = function() {
         this._mGotData = false;
         this._mInputState = _state.pureAscii;
         this._mLastChar = "";
+        this._mBOM = "";
         if( this._mEscCharsetProber ) {
             this._mEscCharsetProber.reset();
         }
@@ -72,32 +73,38 @@ jschardet.UniversalDetector = function() {
         if( !aLen ) return;
         
         if( !this._mGotData ) {
+            this._mBOM += aBuf;
             // If the data starts with BOM, we know it is UTF
-            if( aBuf.slice(0,3) == "\xEF\xBB\xBF" ) {
+            if( this._mBOM.slice(0,3) == "\xEF\xBB\xBF" ) {
                 // EF BB BF  UTF-8 with BOM
                 this.result = {"encoding": "UTF-8", "confidence": 1.0};
-            } else if( aBuf.slice(0,4) == "\xFF\xFE\x00\x00" ) {
+            } else if( this._mBOM.slice(0,4) == "\xFF\xFE\x00\x00" ) {
                 // FF FE 00 00  UTF-32, little-endian BOM
                 this.result = {"encoding": "UTF-32LE", "confidence": 1.0};
-            } else if( aBuf.slice(0,4) == "\x00\x00\xFE\xFF" ) {
+            } else if( this._mBOM.slice(0,4) == "\x00\x00\xFE\xFF" ) {
                 // 00 00 FE FF  UTF-32, big-endian BOM
                 this.result = {"encoding": "UTF-32BE", "confidence": 1.0};
-            } else if( aBuf.slice(0,4) == "\xFE\xFF\x00\x00" ) {
+            } else if( this._mBOM.slice(0,4) == "\xFE\xFF\x00\x00" ) {
                 // FE FF 00 00  UCS-4, unusual octet order BOM (3412)
                 this.result = {"encoding": "X-ISO-10646-UCS-4-3412", "confidence": 1.0};
-            } else if( aBuf.slice(0,4) == "\x00\x00\xFF\xFE" ) {
+            } else if( this._mBOM.slice(0,4) == "\x00\x00\xFF\xFE" ) {
                 // 00 00 FF FE  UCS-4, unusual octet order BOM (2143)
                 this.result = {"encoding": "X-ISO-10646-UCS-4-2143", "confidence": 1.0};
-            } else if( aBuf.slice(0,2) == "\xFF\xFE" ) {
+            } else if( this._mBOM.slice(0,2) == "\xFF\xFE" ) {
                 // FF FE  UTF-16, little endian BOM
                 this.result = {"encoding": "UTF-16LE", "confidence": 1.0};
-            } else if( aBuf.slice(0,2) == "\xFE\xFF" ) {
+            } else if( this._mBOM.slice(0,2) == "\xFE\xFF" ) {
                 // FE FF  UTF-16, big endian BOM
                 this.result = {"encoding": "UTF-16BE", "confidence": 1.0};
             }
+
+            // If we got to 4 chars without being able to detect a BOM we
+            // stop trying.
+            if( this._mBOM.length > 3 ) {
+                this._mGotData = true;
+            }
         }
-        
-        this._mGotData = true;
+
         if( this.result.encoding && (this.result.confidence > 0.0) ) {
             this.done = true;
             return;
@@ -147,7 +154,7 @@ jschardet.UniversalDetector = function() {
     
     this.close = function() {
         if( this.done ) return;
-        if( !this._mGotData ) {
+        if( this._mBOM.length === 0 ) {
             if( jschardet.Constants._debug ) {
                 console.log("no data received!\n");
             }
