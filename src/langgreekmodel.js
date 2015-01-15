@@ -226,4 +226,4 @@ jschardet.Win1253GreekModel = {
     "charsetName"           : "windows-1253"
 };
 
-}((typeof process !== 'undefined' && typeof process.title !== 'undefined') ? module.parent.exports : jschardet);
+}((typeof process !== 'undefined' && typeof process.title !== 'undefined') ? require('./init') : jschardet);

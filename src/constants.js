@@ -43,4 +43,4 @@ jschardet.Constants = {
     SHORTCUT_THRESHOLD  : 0.95
 };
 
-}((typeof process !== 'undefined' && typeof process.title !== 'undefined') ? module.parent.exports : jschardet);
+}((typeof process !== 'undefined' && typeof process.title !== 'undefined') ? require('./init') : jschardet);

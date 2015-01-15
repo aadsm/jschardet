@@ -239,4 +239,4 @@ jschardet.EUCJPContextAnalysis = function() {
 }
 jschardet.EUCJPContextAnalysis.prototype = new jschardet.JapaneseContextAnalysis();
 
-}((typeof process !== 'undefined' && typeof process.title !== 'undefined') ? module.parent.exports : jschardet);
+}((typeof process !== 'undefined' && typeof process.title !== 'undefined') ? require('./init') : jschardet);
