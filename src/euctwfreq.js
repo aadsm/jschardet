@@ -430,4 +430,4 @@ jschardet.EUCTWCharToFreqOrder = [
 8726,8727,8728,8729,8730,8731,8732,8733,8734,8735,8736,8737,8738,8739,8740,8741
 ]; // 8742
 
-}((typeof process !== 'undefined' && typeof process.title !== 'undefined') ? module.parent.exports : jschardet);
+}((typeof process !== 'undefined' && typeof process.title !== 'undefined') ? require('./init') : jschardet);

@@ -226,4 +226,4 @@ jschardet.Win1250HungarianModel = {
     "charsetName"           : "windows-1250"
 };
 
-}((typeof process !== 'undefined' && typeof process.title !== 'undefined') ? module.parent.exports : jschardet);
+}((typeof process !== 'undefined' && typeof process.title !== 'undefined') ? require('./init') : jschardet);

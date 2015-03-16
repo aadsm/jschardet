@@ -598,4 +598,4 @@ jschardet.EUCKRCharToFreqOrder = [
 8736,8737,8738,8739,8740,8741
 ];
 
-}((typeof process !== 'undefined' && typeof process.title !== 'undefined') ? module.parent.exports : jschardet);
+}((typeof process !== 'undefined' && typeof process.title !== 'undefined') ? require('./init') : jschardet);

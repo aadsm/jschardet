@@ -92,4 +92,4 @@ jschardet.UTF8Prober = function() {
 }
 jschardet.UTF8Prober.prototype = new jschardet.CharSetProber();
 
-}((typeof process !== 'undefined' && typeof process.title !== 'undefined') ? module.parent.exports : jschardet);
+}((typeof process !== 'undefined' && typeof process.title !== 'undefined') ? require('./init') : jschardet);

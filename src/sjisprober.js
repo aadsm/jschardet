@@ -98,4 +98,4 @@ jschardet.SJISProber = function() {
 }
 jschardet.SJISProber.prototype = new jschardet.MultiByteCharSetProber();
 
-}((typeof process !== 'undefined' && typeof process.title !== 'undefined') ? module.parent.exports : jschardet);
+}((typeof process !== 'undefined' && typeof process.title !== 'undefined') ? require('./init') : jschardet);

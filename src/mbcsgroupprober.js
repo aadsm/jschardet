@@ -44,4 +44,4 @@ jschardet.MBCSGroupProber = function() {
 }
 jschardet.MBCSGroupProber.prototype = new jschardet.CharSetGroupProber();
 
-}((typeof process !== 'undefined' && typeof process.title !== 'undefined') ? module.parent.exports : jschardet);
+}((typeof process !== 'undefined' && typeof process.title !== 'undefined') ? require('./init') : jschardet);

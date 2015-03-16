@@ -474,4 +474,4 @@ jschardet.GB2312CharToFreqOrder = [
 4866,4899,6099,6100,5559,6478,6765,3599,5868,6101,5869,5870,6275,6766,4527,6767
 ];
 
-}((typeof process !== 'undefined' && typeof process.title !== 'undefined') ? module.parent.exports : jschardet);
+}((typeof process !== 'undefined' && typeof process.title !== 'undefined') ? require('./init') : jschardet);

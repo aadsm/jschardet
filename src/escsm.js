@@ -253,4 +253,4 @@ jschardet.ISO2022KRSMModel = {
     "name"          : "ISO-2022-KR"
 };
 
-}((typeof process !== 'undefined' && typeof process.title !== 'undefined') ? module.parent.exports : jschardet);
+}((typeof process !== 'undefined' && typeof process.title !== 'undefined') ? require('./init') : jschardet);

@@ -48,4 +48,4 @@ jschardet.Big5Prober = function() {
 }
 jschardet.Big5Prober.prototype = new jschardet.MultiByteCharSetProber();
 
-}((typeof process !== 'undefined' && typeof process.title !== 'undefined') ? module.parent.exports : jschardet);
+}((typeof process !== 'undefined' && typeof process.title !== 'undefined') ? require('./init') : jschardet);
