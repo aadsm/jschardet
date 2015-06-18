@@ -47,7 +47,7 @@ jschardet.UTF8Prober = function() {
     }
     
     this.getCharsetName = function() {
-        return "utf-8";
+        return "UTF-8";
     }
     
     this.feed = function(aBuf) {

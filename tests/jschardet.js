@@ -25,7 +25,7 @@ test("ASCII", function() {
 test("UTF-8 w/o BOM", function() {
     // àíàçã
     var str = "\xc3\xa0\xc3\xad\xc3\xa0\xc3\xa7\xc3\xa3";
-    equals( jschardet.detect(str).encoding, "utf-8" );
+    equals( jschardet.detect(str).encoding, "UTF-8" );
 });
 
 test("UTF-8", function() {
