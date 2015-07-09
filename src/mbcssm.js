@@ -28,6 +28,8 @@
  */
 
 !function(jschardet) {
+
+var consts = jschardet.Constants;
     
 // BIG5 
 
@@ -66,11 +68,10 @@ jschardet.BIG5_cls = [
     3,3,3,3,3,3,3,0   // f8 - ff 
 ];
 
-with( jschardet.Constants )
 jschardet.BIG5_st = [
-    error,start,start,    3,error,error,error,error, //00-07 
-    error,error,itsMe,itsMe,itsMe,itsMe,itsMe,error, //08-0f 
-    error,start,start,start,start,start,start,start  //10-17 
+    consts.error,consts.start,consts.start,    3,consts.error,consts.error,consts.error,consts.error, //00-07
+    consts.error,consts.error,consts.itsMe,consts.itsMe,consts.itsMe,consts.itsMe,consts.itsMe,consts.error, //08-0f
+    consts.error,consts.start,consts.start,consts.start,consts.start,consts.start,consts.start,consts.start  //10-17
 ];
 
 jschardet.Big5CharLenTable = [0, 1, 1, 2, 0];
@@ -120,13 +121,12 @@ jschardet.EUCJP_cls = [
     0,0,0,0,0,0,0,5   // f8 - ff 
 ];
 
-with( jschardet.Constants )
 jschardet.EUCJP_st = [
-         3,    4,    3,    5,start,error,error,error, //00-07 
-     error,error,error,error,itsMe,itsMe,itsMe,itsMe, //08-0f 
-     itsMe,itsMe,start,error,start,error,error,error, //10-17 
-     error,error,start,error,error,error,    3,error, //18-1f 
-         3,error,error,error,start,start,start,start  //20-27 
+         3,    4,    3,    5,consts.start,consts.error,consts.error,consts.error, //00-07
+     consts.error,consts.error,consts.error,consts.error,consts.itsMe,consts.itsMe,consts.itsMe,consts.itsMe, //08-0f
+     consts.itsMe,consts.itsMe,consts.start,consts.error,consts.start,consts.error,consts.error,consts.error, //10-17
+     consts.error,consts.error,consts.start,consts.error,consts.error,consts.error,    3,consts.error, //18-1f
+         3,consts.error,consts.error,consts.error,consts.start,consts.start,consts.start,consts.start  //20-27
 ];
 
 jschardet.EUCJPCharLenTable = [2, 2, 2, 3, 1, 0];
@@ -176,10 +176,9 @@ jschardet.EUCKR_cls  = [
     2,2,2,2,2,2,2,0   // f8 - ff 
 ];
 
-with( jschardet.Constants )
 jschardet.EUCKR_st = [
-    error,start,    3,error,error,error,error,error, //00-07 
-    itsMe,itsMe,itsMe,itsMe,error,error,start,start  //08-0f 
+    consts.error,consts.start,    3,consts.error,consts.error,consts.error,consts.error,consts.error, //00-07
+    consts.itsMe,consts.itsMe,consts.itsMe,consts.itsMe,consts.error,consts.error,consts.start,consts.start  //08-0f
 ];
 
 jschardet.EUCKRCharLenTable = [0, 1, 2, 0];
@@ -229,14 +228,13 @@ jschardet.EUCTW_cls = [
     3,3,3,3,3,3,3,0   // f8 - ff 
 ];
 
-with( jschardet.Constants )
 jschardet.EUCTW_st = [
-    error,error,start,    3,    3,    3,    4,error, //00-07 
-    error,error,error,error,error,error,itsMe,itsMe, //08-0f 
-    itsMe,itsMe,itsMe,itsMe,itsMe,error,start,error, //10-17 
-    start,start,start,error,error,error,error,error, //18-1f 
-        5,error,error,error,start,error,start,start, //20-27 
-    start,error,start,start,start,start,start,start  //28-2f 
+    consts.error,consts.error,consts.start,    3,    3,    3,    4,consts.error, //00-07
+    consts.error,consts.error,consts.error,consts.error,consts.error,consts.error,consts.itsMe,consts.itsMe, //08-0f
+    consts.itsMe,consts.itsMe,consts.itsMe,consts.itsMe,consts.itsMe,consts.error,consts.start,consts.error, //10-17
+    consts.start,consts.start,consts.start,consts.error,consts.error,consts.error,consts.error,consts.error, //18-1f
+        5,consts.error,consts.error,consts.error,consts.start,consts.error,consts.start,consts.start, //20-27
+    consts.start,consts.error,consts.start,consts.start,consts.start,consts.start,consts.start,consts.start  //28-2f
 ];
 
 jschardet.EUCTWCharLenTable = [0, 0, 1, 2, 2, 2, 3];
@@ -286,14 +284,13 @@ jschardet.GB2312_cls = [
     6,6,6,6,6,6,6,0   // f8 - ff 
 ];
 
-with( jschardet.Constants )
 jschardet.GB2312_st = [
-    error,start,start,start,start,start,    3,error, //00-07 
-    error,error,error,error,error,error,itsMe,itsMe, //08-0f 
-    itsMe,itsMe,itsMe,itsMe,itsMe,error,error,start, //10-17 
-        4,error,start,start,error,error,error,error, //18-1f 
-    error,error,    5,error,error,error,itsMe,error, //20-27 
-    error,error,start,start,start,start,start,start  //28-2f 
+    consts.error,consts.start,consts.start,consts.start,consts.start,consts.start,    3,consts.error, //00-07
+    consts.error,consts.error,consts.error,consts.error,consts.error,consts.error,consts.itsMe,consts.itsMe, //08-0f
+    consts.itsMe,consts.itsMe,consts.itsMe,consts.itsMe,consts.itsMe,consts.error,consts.error,consts.start, //10-17
+        4,consts.error,consts.start,consts.start,consts.error,consts.error,consts.error,consts.error, //18-1f
+    consts.error,consts.error,    5,consts.error,consts.error,consts.error,consts.itsMe,consts.error, //20-27
+    consts.error,consts.error,consts.start,consts.start,consts.start,consts.start,consts.start,consts.start  //28-2f
 ];
 
 // To be accurate, the length of class 6 can be either 2 or 4. 
@@ -335,7 +332,7 @@ jschardet.SJIS_cls = [
     3,3,3,3,3,3,3,3,  // 90 - 97 
     3,3,3,3,3,3,3,3,  // 98 - 9f 
     // 0xa0 is illegal in sjis encoding, but some pages does 
-    // contain such byte. We need to be more error forgiven.
+    // contain such byte. We need to be more consts.error forgiven.
     2,2,2,2,2,2,2,2,  // a0 - a7     
     2,2,2,2,2,2,2,2,  // a8 - af 
     2,2,2,2,2,2,2,2,  // b0 - b7 
@@ -350,11 +347,10 @@ jschardet.SJIS_cls = [
     4,4,4,4,4,0,0,0   // f8 - ff 
 ];
 
-with( jschardet.Constants )
 jschardet.SJIS_st = [
-    error,start,start,    3,error,error,error,error, //00-07 
-    error,error,error,error,itsMe,itsMe,itsMe,itsMe, //08-0f 
-    itsMe,itsMe,error,error,start,start,start,start  //10-17 
+    consts.error,consts.start,consts.start,    3,consts.error,consts.error,consts.error,consts.error, //00-07
+    consts.error,consts.error,consts.error,consts.error,consts.itsMe,consts.itsMe,consts.itsMe,consts.itsMe, //08-0f
+    consts.itsMe,consts.itsMe,consts.error,consts.error,consts.start,consts.start,consts.start,consts.start  //10-17
 ];
 
 jschardet.SJISCharLenTable = [0, 1, 1, 2, 0, 0];
@@ -369,7 +365,7 @@ jschardet.SJISSMModel = {
 
 //UCS2-BE
 
-UCS2BE_cls = [
+jschardet.UCS2BE_cls = [
     0,0,0,0,0,0,0,0,  // 00 - 07 
     0,0,1,0,0,2,0,0,  // 08 - 0f 
     0,0,0,0,0,0,0,0,  // 10 - 17 
@@ -404,15 +400,14 @@ UCS2BE_cls = [
     0,0,0,0,0,0,4,5   // f8 - ff 
 ];
 
-with( jschardet.Constants )
 jschardet.UCS2BE_st  = [
-         5,    7,    7,error,    4,    3,error,error, //00-07 
-     error,error,error,error,itsMe,itsMe,itsMe,itsMe, //08-0f 
-     itsMe,itsMe,    6,    6,    6,    6,error,error, //10-17 
-         6,    6,    6,    6,    6,itsMe,    6,    6, //18-1f 
-         6,    6,    6,    6,    5,    7,    7,error, //20-27 
-         5,    8,    6,    6,error,    6,    6,    6, //28-2f 
-         6,    6,    6,    6,error,error,start,start  //30-37 
+         5,    7,    7,consts.error,    4,    3,consts.error,consts.error, //00-07
+     consts.error,consts.error,consts.error,consts.error,consts.itsMe,consts.itsMe,consts.itsMe,consts.itsMe, //08-0f
+     consts.itsMe,consts.itsMe,    6,    6,    6,    6,consts.error,consts.error, //10-17
+         6,    6,    6,    6,    6,consts.itsMe,    6,    6, //18-1f
+         6,    6,    6,    6,    5,    7,    7,consts.error, //20-27
+         5,    8,    6,    6,consts.error,    6,    6,    6, //28-2f
+         6,    6,    6,    6,consts.error,consts.error,consts.start,consts.start  //30-37
 ];
 
 jschardet.UCS2BECharLenTable = [2, 2, 2, 0, 2, 2];
@@ -462,15 +457,14 @@ jschardet.UCS2LE_cls = [
     0,0,0,0,0,0,4,5   // f8 - ff 
 ];
 
-with( jschardet.Constants )
 jschardet.UCS2LE_st = [
-         6,    6,    7,    6,    4,    3,error,error, //00-07 
-     error,error,error,error,itsMe,itsMe,itsMe,itsMe, //08-0f 
-     itsMe,itsMe,    5,    5,    5,error,itsMe,error, //10-17 
-         5,    5,    5,error,    5,error,    6,    6, //18-1f 
-         7,    6,    8,    8,    5,    5,    5,error, //20-27 
-         5,    5,    5,error,error,error,    5,    5, //28-2f 
-         5,    5,    5,error,    5,error,start,start  //30-37 
+         6,    6,    7,    6,    4,    3,consts.error,consts.error, //00-07
+     consts.error,consts.error,consts.error,consts.error,consts.itsMe,consts.itsMe,consts.itsMe,consts.itsMe, //08-0f
+     consts.itsMe,consts.itsMe,    5,    5,    5,consts.error,consts.itsMe,consts.error, //10-17
+         5,    5,    5,consts.error,    5,consts.error,    6,    6, //18-1f
+         7,    6,    8,    8,    5,    5,    5,consts.error, //20-27
+         5,    5,    5,consts.error,consts.error,consts.error,    5,    5, //28-2f
+         5,    5,    5,consts.error,    5,consts.error,consts.start,consts.start  //30-37
 ];
 
 jschardet.UCS2LECharLenTable = [2, 2, 2, 2, 2, 2];
@@ -520,34 +514,33 @@ jschardet.UTF8_cls = [
     12,13,13,13,14,15,0,0    // f8 - ff 
 ];
 
-with( jschardet.Constants )
 jschardet.UTF8_st = [
-    error,start,error,error,error,error,    12,  10, //00-07 
+    consts.error,consts.start,consts.error,consts.error,consts.error,consts.error,    12,  10, //00-07
         9,    11,    8,    7,    6,    5,    4,   3, //08-0f 
-    error,error,error,error,error,error,error,error, //10-17 
-    error,error,error,error,error,error,error,error, //18-1f 
-    itsMe,itsMe,itsMe,itsMe,itsMe,itsMe,itsMe,itsMe, //20-27 
-    itsMe,itsMe,itsMe,itsMe,itsMe,itsMe,itsMe,itsMe, //28-2f 
-    error,error,    5,    5,    5,    5,error,error, //30-37 
-    error,error,error,error,error,error,error,error, //38-3f 
-    error,error,error,    5,    5,    5,error,error, //40-47 
-    error,error,error,error,error,error,error,error, //48-4f 
-    error,error,    7,    7,    7,    7,error,error, //50-57 
-    error,error,error,error,error,error,error,error, //58-5f 
-    error,error,error,error,    7,    7,error,error, //60-67 
-    error,error,error,error,error,error,error,error, //68-6f 
-    error,error,    9,    9,    9,    9,error,error, //70-77 
-    error,error,error,error,error,error,error,error, //78-7f 
-    error,error,error,error,error,    9,error,error, //80-87 
-    error,error,error,error,error,error,error,error, //88-8f 
-    error,error,   12,   12,   12,   12,error,error, //90-97 
-    error,error,error,error,error,error,error,error, //98-9f 
-    error,error,error,error,error,   12,error,error, //a0-a7 
-    error,error,error,error,error,error,error,error, //a8-af 
-    error,error,   12,   12,   12,error,error,error, //b0-b7 
-    error,error,error,error,error,error,error,error, //b8-bf 
-    error,error,start,start,start,start,error,error, //c0-c7 
-    error,error,error,error,error,error,error,error  //c8-cf 
+    consts.error,consts.error,consts.error,consts.error,consts.error,consts.error,consts.error,consts.error, //10-17
+    consts.error,consts.error,consts.error,consts.error,consts.error,consts.error,consts.error,consts.error, //18-1f
+    consts.itsMe,consts.itsMe,consts.itsMe,consts.itsMe,consts.itsMe,consts.itsMe,consts.itsMe,consts.itsMe, //20-27
+    consts.itsMe,consts.itsMe,consts.itsMe,consts.itsMe,consts.itsMe,consts.itsMe,consts.itsMe,consts.itsMe, //28-2f
+    consts.error,consts.error,    5,    5,    5,    5,consts.error,consts.error, //30-37
+    consts.error,consts.error,consts.error,consts.error,consts.error,consts.error,consts.error,consts.error, //38-3f
+    consts.error,consts.error,consts.error,    5,    5,    5,consts.error,consts.error, //40-47
+    consts.error,consts.error,consts.error,consts.error,consts.error,consts.error,consts.error,consts.error, //48-4f
+    consts.error,consts.error,    7,    7,    7,    7,consts.error,consts.error, //50-57
+    consts.error,consts.error,consts.error,consts.error,consts.error,consts.error,consts.error,consts.error, //58-5f
+    consts.error,consts.error,consts.error,consts.error,    7,    7,consts.error,consts.error, //60-67
+    consts.error,consts.error,consts.error,consts.error,consts.error,consts.error,consts.error,consts.error, //68-6f
+    consts.error,consts.error,    9,    9,    9,    9,consts.error,consts.error, //70-77
+    consts.error,consts.error,consts.error,consts.error,consts.error,consts.error,consts.error,consts.error, //78-7f
+    consts.error,consts.error,consts.error,consts.error,consts.error,    9,consts.error,consts.error, //80-87
+    consts.error,consts.error,consts.error,consts.error,consts.error,consts.error,consts.error,consts.error, //88-8f
+    consts.error,consts.error,   12,   12,   12,   12,consts.error,consts.error, //90-97
+    consts.error,consts.error,consts.error,consts.error,consts.error,consts.error,consts.error,consts.error, //98-9f
+    consts.error,consts.error,consts.error,consts.error,consts.error,   12,consts.error,consts.error, //a0-a7
+    consts.error,consts.error,consts.error,consts.error,consts.error,consts.error,consts.error,consts.error, //a8-af
+    consts.error,consts.error,   12,   12,   12,consts.error,consts.error,consts.error, //b0-b7
+    consts.error,consts.error,consts.error,consts.error,consts.error,consts.error,consts.error,consts.error, //b8-bf
+    consts.error,consts.error,consts.start,consts.start,consts.start,consts.start,consts.error,consts.error, //c0-c7
+    consts.error,consts.error,consts.error,consts.error,consts.error,consts.error,consts.error,consts.error  //c8-cf
 ];
 
 jschardet.UTF8CharLenTable = [0, 1, 0, 0, 0, 0, 2, 3, 3, 3, 4, 4, 5, 5, 6, 6];

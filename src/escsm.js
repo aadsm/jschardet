@@ -28,6 +28,8 @@
  */
 
 !function(jschardet) {
+
+var consts = jschardet.Constants;
     
 jschardet.HZ_cls = [
     1,0,0,0,0,0,0,0,  // 00 - 07 
@@ -64,14 +66,13 @@ jschardet.HZ_cls = [
     1,1,1,1,1,1,1,1   // f8 - ff 
 ];
 
-with( jschardet.Constants )
 jschardet.HZ_st = [
-    start,error,    3,start,start,start,error,error, // 00-07 
-    error,error,error,error,itsMe,itsMe,itsMe,itsMe, // 08-0f 
-    itsMe,itsMe,error,error,start,start,    4,error, // 10-17 
-        5,error,    6,error,    5,    5,    4,error, // 18-1f 
-        4,error,    4,    4,    4,error,    4,error, // 20-27 
-        4,itsMe,start,start,start,start,start,start  // 28-2f 
+    consts.start,consts.error,    3,consts.start,consts.start,consts.start,consts.error,consts.error, // 00-07
+    consts.error,consts.error,consts.error,consts.error,consts.itsMe,consts.itsMe,consts.itsMe,consts.itsMe, // 08-0f
+    consts.itsMe,consts.itsMe,consts.error,consts.error,consts.start,consts.start,    4,consts.error, // 10-17
+        5,consts.error,    6,consts.error,    5,    5,    4,consts.error, // 18-1f
+        4,consts.error,    4,    4,    4,consts.error,    4,consts.error, // 20-27
+        4,consts.itsMe,consts.start,consts.start,consts.start,consts.start,consts.start,consts.start  // 28-2f
 ];
     
 jschardet.HZCharLenTable = [0, 0, 0, 0, 0, 0];
@@ -119,16 +120,15 @@ jschardet.ISO2022CN_cls = [
     2,2,2,2,2,2,2,2   // f8 - ff 
 ];
 
-with( jschardet.Constants )
 jschardet.ISO2022CN_st = [
-    start,    3,error,start,start,start,start,start, // 00-07 
-    start,error,error,error,error,error,error,error, // 08-0f 
-    error,error,itsMe,itsMe,itsMe,itsMe,itsMe,itsMe, // 10-17 
-    itsMe,itsMe,itsMe,error,error,error,    4,error, // 18-1f 
-    error,error,error,itsMe,error,error,error,error, // 20-27 
-        5,    6,error,error,error,error,error,error, // 28-2f 
-    error,error,error,itsMe,error,error,error,error, // 30-37 
-    error,error,error,error,error,itsMe,error,start  // 38-3f 
+    consts.start,    3,consts.error,consts.start,consts.start,consts.start,consts.start,consts.start, // 00-07
+    consts.start,consts.error,consts.error,consts.error,consts.error,consts.error,consts.error,consts.error, // 08-0f
+    consts.error,consts.error,consts.itsMe,consts.itsMe,consts.itsMe,consts.itsMe,consts.itsMe,consts.itsMe, // 10-17
+    consts.itsMe,consts.itsMe,consts.itsMe,consts.error,consts.error,consts.error,    4,consts.error, // 18-1f
+    consts.error,consts.error,consts.error,consts.itsMe,consts.error,consts.error,consts.error,consts.error, // 20-27
+        5,    6,consts.error,consts.error,consts.error,consts.error,consts.error,consts.error, // 28-2f
+    consts.error,consts.error,consts.error,consts.itsMe,consts.error,consts.error,consts.error,consts.error, // 30-37
+    consts.error,consts.error,consts.error,consts.error,consts.error,consts.itsMe,consts.error,consts.start  // 38-3f
 ];
 
 jschardet.ISO2022CNCharLenTable = [0, 0, 0, 0, 0, 0, 0, 0, 0];
@@ -176,17 +176,16 @@ jschardet.ISO2022JP_cls = [
     2,2,2,2,2,2,2,2   // f8 - ff 
 ];
 
-with( jschardet.Constants )
 jschardet.ISO2022JP_st = [
-    start,    3,error,start,start,start,start,start, // 00-07 
-    start,start,error,error,error,error,error,error, // 08-0f 
-    error,error,error,error,itsMe,itsMe,itsMe,itsMe, // 10-17 
-    itsMe,itsMe,itsMe,itsMe,itsMe,itsMe,error,error, // 18-1f 
-    error,    5,error,error,error,    4,error,error, // 20-27 
-    error,error,error,    6,itsMe,error,itsMe,error, // 28-2f 
-    error,error,error,error,error,error,itsMe,itsMe, // 30-37 
-    error,error,error,itsMe,error,error,error,error, // 38-3f 
-    error,error,error,error,itsMe,error,start,start  // 40-47 
+    consts.start,    3,consts.error,consts.start,consts.start,consts.start,consts.start,consts.start, // 00-07
+    consts.start,consts.start,consts.error,consts.error,consts.error,consts.error,consts.error,consts.error, // 08-0f
+    consts.error,consts.error,consts.error,consts.error,consts.itsMe,consts.itsMe,consts.itsMe,consts.itsMe, // 10-17
+    consts.itsMe,consts.itsMe,consts.itsMe,consts.itsMe,consts.itsMe,consts.itsMe,consts.error,consts.error, // 18-1f
+    consts.error,    5,consts.error,consts.error,consts.error,    4,consts.error,consts.error, // 20-27
+    consts.error,consts.error,consts.error,    6,consts.itsMe,consts.error,consts.itsMe,consts.error, // 28-2f
+    consts.error,consts.error,consts.error,consts.error,consts.error,consts.error,consts.itsMe,consts.itsMe, // 30-37
+    consts.error,consts.error,consts.error,consts.itsMe,consts.error,consts.error,consts.error,consts.error, // 38-3f
+    consts.error,consts.error,consts.error,consts.error,consts.itsMe,consts.error,consts.start,consts.start  // 40-47
 ];
 
 jschardet.ISO2022JPCharLenTable = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
@@ -234,13 +233,12 @@ jschardet.ISO2022KR_cls = [
     2,2,2,2,2,2,2,2   // f8 - ff 
 ];
 
-with( jschardet.Constants )
 jschardet.ISO2022KR_st = [
-    start,    3,error,start,start,start,error,error, // 00-07 
-    error,error,error,error,itsMe,itsMe,itsMe,itsMe, // 08-0f 
-    itsMe,itsMe,error,error,error,    4,error,error, // 10-17 
-    error,error,error,error,    5,error,error,error, // 18-1f 
-    error,error,error,itsMe,start,start,start,start  // 20-27 
+    consts.start,    3,consts.error,consts.start,consts.start,consts.start,consts.error,consts.error, // 00-07
+    consts.error,consts.error,consts.error,consts.error,consts.itsMe,consts.itsMe,consts.itsMe,consts.itsMe, // 08-0f
+    consts.itsMe,consts.itsMe,consts.error,consts.error,consts.error,    4,consts.error,consts.error, // 10-17
+    consts.error,consts.error,consts.error,consts.error,    5,consts.error,consts.error,consts.error, // 18-1f
+    consts.error,consts.error,consts.error,consts.itsMe,consts.start,consts.start,consts.start,consts.start  // 20-27
 ];
 
 jschardet.ISO2022KRCharLenTable = [0, 0, 0, 0, 0, 0];
