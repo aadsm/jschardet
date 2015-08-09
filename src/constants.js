@@ -40,6 +40,7 @@ jschardet.Constants = {
     error       : 1,
     itsMe       : 2,
     
+    MINIMUM_THRESHOLD   : 0.20,
     SHORTCUT_THRESHOLD  : 0.95
 };
 
