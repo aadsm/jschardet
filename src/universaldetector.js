@@ -34,7 +34,7 @@
 !function(jschardet) {
 
 jschardet.UniversalDetector = function() {
-    var MINIMUM_THRESHOLD = 0.20;
+    var MINIMUM_THRESHOLD = jschardet.Constants.MINIMUM_THRESHOLD;
     var _state = {
         pureAscii   : 0,
         escAscii    : 1,
