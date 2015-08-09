@@ -26,6 +26,20 @@ npm install jschardet
     jschardet.detect("\xa6\xb8\xb1\x60\xa5\xce\xb0\xea\xa6\x72\xbc\xd0\xb7\xc7\xa6\x72\xc5\xe9\xaa\xed")
     // { encoding: "Big5", confidence: 0.99 }
 
+Options
+-------
+
+```javascript
+// See all information related to the confidence levels of each encoding.
+// This is useful to see why you're not getting the expected encoding.
+jschardet.Constants._debug = true;
+
+// Default minimum accepted confidence level is 0.20 but sometimes this is not
+// enough, specially when dealing with files mostly with numbers.
+// To change this to 0 to always get something or any other value that can
+// work for you.
+jschardet.Constants.MINIMUM_THRESHOLD = 0;
+```
 
 Supported Charsets
 ------------------
