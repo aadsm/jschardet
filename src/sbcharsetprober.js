@@ -102,11 +102,11 @@ jschardet.SingleByteCharSetProber = function(model, reversed, nameProber) {
                 var cf = this.getConfidence();
                 if( cf > POSITIVE_SHORTCUT_THRESHOLD ) {
                     if( jschardet.Constants._debug ) {
-                        log(this._mModel.charsetName + " confidence = " + cf + ", we have a winner\n");
+                        jschardet.log(this._mModel.charsetName + " confidence = " + cf + ", we have a winner\n");
                     }
                 } else if( cf < NEGATIVE_SHORTCUT_THRESHOLD ) {
                     if( jschardet.Constants._debug ) {
-                        log(this._mModel.charsetName + " confidence = " + cf + ", below negative shortcut threshhold " + NEGATIVE_SHORTCUT_THRESHOLD + "\n");
+                        jschardet.log(this._mModel.charsetName + " confidence = " + cf + ", below negative shortcut threshhold " + NEGATIVE_SHORTCUT_THRESHOLD + "\n");
                     }
                     this._mState = jschardet.Constants.notMe;
                 }
@@ -119,9 +119,9 @@ jschardet.SingleByteCharSetProber = function(model, reversed, nameProber) {
     this.getConfidence = function() {
         var r = 0.01;
         if( this._mTotalSeqs > 0 ) {
-            //log(this._mSeqCounters[POSITIVE_CAT] + " " + this._mTotalSeqs + " " + this._mModel.mTypicalPositiveRatio);
+            //jschardet.log(this._mSeqCounters[POSITIVE_CAT] + " " + this._mTotalSeqs + " " + this._mModel.mTypicalPositiveRatio);
             r = (1.0 * this._mSeqCounters[POSITIVE_CAT]) / this._mTotalSeqs / this._mModel.mTypicalPositiveRatio;
-            //log(r + " " + this._mFreqChar + " " + this._mTotalChar);
+            //jschardet.log(r + " " + this._mFreqChar + " " + this._mTotalChar);
             r *= this._mFreqChar / this._mTotalChar;
             if( r >= 1.0 ) {
                 r = 0.99;

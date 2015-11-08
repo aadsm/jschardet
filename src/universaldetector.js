@@ -156,7 +156,7 @@ jschardet.UniversalDetector = function() {
         if( this.done ) return;
         if( this._mBOM.length === 0 ) {
             if( jschardet.Constants._debug ) {
-                console.log("no data received!\n");
+                jschardet.log("no data received!\n");
             }
             return;
         }
@@ -164,7 +164,7 @@ jschardet.UniversalDetector = function() {
         
         if( this._mInputState == _state.pureAscii ) {
             if( jschardet.Constants._debug ) {
-                console.log("pure ascii")
+                jschardet.log("pure ascii")
             }
             this.result = {"encoding": "ascii", "confidence": 1.0};
             return this.result;
@@ -182,7 +182,7 @@ jschardet.UniversalDetector = function() {
                     maxProber = prober;
                 }
                 if( jschardet.Constants._debug ) {
-                    console.log(prober.getCharsetName() + " confidence " + prober.getConfidence());
+                    jschardet.log(prober.getCharsetName() + " confidence " + prober.getConfidence());
                 }
             }
             if( maxProber && maxProberConfidence > MINIMUM_THRESHOLD ) {
@@ -195,10 +195,10 @@ jschardet.UniversalDetector = function() {
         }
         
         if( jschardet.Constants._debug ) {
-            console.log("no probers hit minimum threshhold\n");
+            jschardet.log("no probers hit minimum threshhold\n");
             for( var i = 0, prober; prober = this._mCharsetProbers[i]; i++ ) {
                 if( !prober ) continue;
-                console.log(prober.getCharsetName() + " confidence = " +
+                jschardet.log(prober.getCharsetName() + " confidence = " +
                     prober.getConfidence() + "\n");
             }
         }

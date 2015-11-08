@@ -94,13 +94,13 @@ jschardet.CharSetGroupProber = function() {
             if( !prober ) continue;
             if( !prober.active ) {
                 if( jschardet.Constants._debug ) {
-                    log(prober.getCharsetName() + " not active\n");
+                    jschardet.log(prober.getCharsetName() + " not active\n");
                 }
                 continue;
             }
             var cf = prober.getConfidence();
             if( jschardet.Constants._debug ) {
-                log(prober.getCharsetName() + " confidence = " + cf + "\n");
+                jschardet.log(prober.getCharsetName() + " confidence = " + cf + "\n");
             }
             if( bestConf < cf ) {
                 bestConf = cf;

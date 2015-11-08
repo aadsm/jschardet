@@ -56,7 +56,7 @@ jschardet.SJISProber = function() {
             var codingState = this._mCodingSM.nextState(aBuf[i]);
             if( codingState == jschardet.Constants.error ) {
                 if( jschardet.Constants._debug ) {
-                    log(this.getCharsetName() + " prober hit error at byte " + i + "\n");
+                    jschardet.log(this.getCharsetName() + " prober hit error at byte " + i + "\n");
                 }
                 this._mState = jschardet.Constants.notMe;
                 break;
