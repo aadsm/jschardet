@@ -1,7 +1,7 @@
 JsChardet
 =========
 
-Port of python's chardet (http://chardet.feedparser.org/).
+Port of python's chardet (https://github.com/chardet/chardet).
 
 License
 -------
