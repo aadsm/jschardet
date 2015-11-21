@@ -1,3 +1,5 @@
+[![NPM](https://nodei.co/npm/jschardet.png?downloads=true&downloadRank=true)](https://nodei.co/npm/jschardet/)
+
 JsChardet
 =========
 
