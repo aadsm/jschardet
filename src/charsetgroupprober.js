@@ -15,12 +15,12 @@
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
@@ -28,18 +28,18 @@
  */
 
 !function(jschardet) {
-    
+
 jschardet.CharSetGroupProber = function() {
     jschardet.CharSetProber.apply(this);
-    
+
     var self = this;
-    
+
     function init() {
         self._mActiveNum = 0;
         self._mProbers = [];
         self._mBestGuessProber = null;
     }
-    
+
     this.reset = function() {
         jschardet.CharSetGroupProber.prototype.reset.apply(this);
         this._mActiveNum = 0;
@@ -52,7 +52,7 @@ jschardet.CharSetGroupProber = function() {
         }
         this._mBestGuessProber = null;
     }
-    
+
     this.getCharsetName = function() {
         if( !this._mBestGuessProber ) {
             this.getConfidence();
@@ -60,7 +60,7 @@ jschardet.CharSetGroupProber = function() {
         }
         return this._mBestGuessProber.getCharsetName();
     }
-    
+
     this.feed = function(aBuf) {
         for( var i = 0, prober; prober = this._mProbers[i]; i++ ) {
             if( !prober || !prober.active ) continue;
@@ -80,7 +80,7 @@ jschardet.CharSetGroupProber = function() {
         }
         return this.getState();
     }
-    
+
     this.getConfidence = function() {
         var st = this.getState();
         if( st == jschardet.Constants.foundIt ) {
@@ -110,9 +110,9 @@ jschardet.CharSetGroupProber = function() {
         if( !this._mBestGuessProber ) return 0.0;
         return bestConf;
     }
-    
+
     init();
 }
 jschardet.CharSetGroupProber.prototype = new jschardet.CharSetProber();
 
-}((typeof process !== 'undefined' && typeof process.title !== 'undefined') ? require('./init') : jschardet);
+}(require('./init'));

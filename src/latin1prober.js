@@ -15,12 +15,12 @@
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
@@ -28,7 +28,7 @@
  */
 
 !function(jschardet) {
-    
+
 (function() {
     var UDF = 0; // undefined
     var OTH = 1; // other
@@ -75,9 +75,9 @@
       ASV, ASV, ASV, ASV, ASV, ASO, ASO, ASO    // F8 - FF
     ];
 
-    // 0 : illegal 
-    // 1 : very unlikely 
-    // 2 : normal 
+    // 0 : illegal
+    // 1 : very unlikely
+    // 2 : normal
     // 3 : very likely
     jschardet.Latin1ClassModel = [
     // UDF OTH ASC ASS ACV ACO ASV ASO
@@ -89,31 +89,31 @@
        0,  3,  3,  3,  3,  3,  3,  3,  // ACO
        0,  3,  1,  3,  1,  1,  1,  3,  // ASV
        0,  3,  1,  3,  1,  1,  3,  3   // ASO
-    ];    
+    ];
 })();
 
 jschardet.Latin1Prober = function() {
     jschardet.CharSetProber.apply(this);
-    
+
     var FREQ_CAT_NUM = 4;
     var CLASS_NUM = 8; // total classes
     var self = this;
-    
+
     function init() {
         self.reset();
     }
-    
+
     this.reset = function() {
         this._mLastCharClass = jschardet.OTH;
         this._mFreqCounter = [];
         for( var i = 0; i < FREQ_CAT_NUM; this._mFreqCounter[i++] = 0 );
         jschardet.Latin1Prober.prototype.reset.apply(this);
     }
-    
+
     this.getCharsetName = function() {
         return "windows-1252";
     }
-    
+
     this.feed = function(aBuf) {
         aBuf = this.filterWithEnglishLetters(aBuf);
         for( var i = 0; i < aBuf.length; i++ ) {
@@ -127,7 +127,7 @@ jschardet.Latin1Prober = function() {
             this._mFreqCounter[freq]++;
             this._mLastCharClass = charClass;
         }
-        
+
         return this.getState();
     }
 
@@ -135,7 +135,7 @@ jschardet.Latin1Prober = function() {
         if( this.getState() == jschardet.Constants.notMe ) {
             return 0.01;
         }
-        
+
         var total = 0;
         for( var i = 0; i < this._mFreqCounter.length; i++ ) {
             total += this._mFreqCounter[i];
@@ -148,7 +148,7 @@ jschardet.Latin1Prober = function() {
         if( confidence < 0 ) {
             confidence = 0.0;
         }
-        // lower the confidence of latin1 so that other more accurate detector 
+        // lower the confidence of latin1 so that other more accurate detector
         // can take priority.
         //
         // antonio.afonso: need to change this otherwise languages like pt, es, fr using latin1 will never be detected.
@@ -160,4 +160,4 @@ jschardet.Latin1Prober = function() {
 }
 jschardet.Latin1Prober.prototype = new jschardet.CharSetProber();
 
-}((typeof process !== 'undefined' && typeof process.title !== 'undefined') ? require('./init') : jschardet);
+}(require('./init'));

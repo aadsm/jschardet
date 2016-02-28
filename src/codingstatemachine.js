@@ -15,12 +15,12 @@
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
@@ -28,21 +28,21 @@
  */
 
 !function(jschardet) {
-    
+
 jschardet.CodingStateMachine = function(sm) {
     var self = this;
-    
+
     function init(sm) {
         self._mModel = sm;
         self._mCurrentBytePos = 0;
         self._mCurrentCharLen = 0;
         self.reset();
     }
-    
+
     this.reset = function() {
         this._mCurrentState = jschardet.Constants.start;
     }
-    
+
     this.nextState = function(c) {
         // for each byte we get its class
         // if it is first byte, we also get byte length
@@ -56,16 +56,16 @@ jschardet.CodingStateMachine = function(sm) {
         this._mCurrentBytePos++;
         return this._mCurrentState;
     }
-    
+
     this.getCurrentCharLen = function() {
         return this._mCurrentCharLen;
     }
-    
+
     this.getCodingStateMachine = function() {
         return this._mModel.name;
     }
-    
+
     init(sm);
 }
 
-}((typeof process !== 'undefined' && typeof process.title !== 'undefined') ? require('./init') : jschardet);
+}(require('./init'));

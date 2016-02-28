@@ -15,12 +15,12 @@
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
@@ -41,7 +41,7 @@ jschardet.UniversalDetector = function() {
         highbyte    : 2
     };
     var self = this;
-    
+
     function init() {
         self._highBitDetector = /[\x80-\xFF]/;
         self._escDetector = /(\x1B|~\{)/;
@@ -49,7 +49,7 @@ jschardet.UniversalDetector = function() {
         self._mCharsetProbers = [];
         self.reset();
     }
-    
+
     this.reset = function() {
         this.result = {"encoding": null, "confidence": 0.0};
         this.done = false;
@@ -65,13 +65,13 @@ jschardet.UniversalDetector = function() {
             prober.reset();
         }
     }
-    
+
     this.feed = function(aBuf) {
         if( this.done ) return;
-        
+
         var aLen = aBuf.length;
         if( !aLen ) return;
-        
+
         if( !this._mGotData ) {
             this._mBOM += aBuf;
             // If the data starts with BOM, we know it is UTF
@@ -109,7 +109,7 @@ jschardet.UniversalDetector = function() {
             this.done = true;
             return;
         }
-        
+
         if( this._mInputState == _state.pureAscii ) {
             if( this._highBitDetector.test(aBuf) ) {
                 this._mInputState = _state.highbyte;
@@ -117,9 +117,9 @@ jschardet.UniversalDetector = function() {
                 this._mInputState = _state.escAscii;
             }
         }
-        
+
         this._mLastChar = aBuf.slice(-1);
-        
+
         if( this._mInputState == _state.escAscii ) {
             if( !this._mEscCharsetProber ) {
                 this._mEscCharsetProber = new jschardet.EscCharSetProber();
@@ -151,7 +151,7 @@ jschardet.UniversalDetector = function() {
             }
         }
     }
-    
+
     this.close = function() {
         if( this.done ) return;
         if( this._mBOM.length === 0 ) {
@@ -161,7 +161,7 @@ jschardet.UniversalDetector = function() {
             return;
         }
         this.done = true;
-        
+
         if( this._mInputState == _state.pureAscii ) {
             if( jschardet.Constants._debug ) {
                 jschardet.log("pure ascii")
@@ -169,7 +169,7 @@ jschardet.UniversalDetector = function() {
             this.result = {"encoding": "ascii", "confidence": 1.0};
             return this.result;
         }
-        
+
         if( this._mInputState == _state.highbyte ) {
             var proberConfidence = null;
             var maxProberConfidence = 0.0;
@@ -193,7 +193,7 @@ jschardet.UniversalDetector = function() {
                 return this.result;
             }
         }
-        
+
         if( jschardet.Constants._debug ) {
             jschardet.log("no probers hit minimum threshhold\n");
             for( var i = 0, prober; prober = this._mCharsetProbers[i]; i++ ) {
@@ -203,8 +203,8 @@ jschardet.UniversalDetector = function() {
             }
         }
     }
-    
+
     init();
 }
 
-}((typeof process !== 'undefined' && typeof process.title !== 'undefined') ? require('./init') : jschardet);
+}(require('./init'));

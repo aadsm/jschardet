@@ -15,12 +15,12 @@
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
@@ -28,7 +28,7 @@
  */
 
 !function(jschardet) {
-    
+
 // KOI8-R language model
 // Character Mapping Table:
 jschardet.KOI8R_CharToOrderMap = [
@@ -145,12 +145,12 @@ jschardet.IBM866_CharToOrderMap = [
 239, 68,240,241,242,243,244,245,246,247,248,249,250,251,252,255
 ];
 
-// Model Table: 
+// Model Table:
 // total sequences: 100%
 // first 512 sequences: 97.6601%
 // first 1024 sequences: 2.3389%
 // rest  sequences:      0.1237%
-// negative sequences:   0.0009% 
+// negative sequences:   0.0009%
 jschardet.RussianLangModel = [
 0,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,1,1,3,3,3,3,1,3,3,3,2,3,2,3,3,
 3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,0,3,2,2,2,2,2,0,0,2,
@@ -330,4 +330,4 @@ jschardet.Ibm855Model = {
     "charsetName"             : "IBM855"
 };
 
-}((typeof process !== 'undefined' && typeof process.title !== 'undefined') ? require('./init') : jschardet);
+}(require('./init'));

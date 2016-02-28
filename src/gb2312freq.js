@@ -15,12 +15,12 @@
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
@@ -28,7 +28,7 @@
  */
 
 !function(jschardet) {
-    
+
 // GB2312 most frequently used character table
 //
 // Char to FreqOrder table , from hz6763
@@ -40,7 +40,7 @@
 //
 // Ideal Distribution Ratio = 0.79135/(1-0.79135) = 3.79
 // Random Distribution Ration = 512 / (3755 - 512) = 0.157
-// 
+//
 // Typical Distribution Ratio about 25% of Ideal one, still much higher that RDR
 
 jschardet.GB2312_TYPICAL_DISTRIBUTION_RATIO = 0.9;
@@ -474,4 +474,4 @@ jschardet.GB2312CharToFreqOrder = [
 4866,4899,6099,6100,5559,6478,6765,3599,5868,6101,5869,5870,6275,6766,4527,6767
 ];
 
-}((typeof process !== 'undefined' && typeof process.title !== 'undefined') ? require('./init') : jschardet);
+}(require('./init'));

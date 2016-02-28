@@ -15,12 +15,12 @@
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
@@ -28,19 +28,19 @@
  */
 
 !function(jschardet) {
-    
+
 jschardet.MultiByteCharSetProber = function() {
     jschardet.CharSetProber.apply(this);
-    
+
     var self = this;
-    
+
     function init() {
         self._mDistributionAnalyzer = null;
         self._mCodingSM = null;
         //self._mLastChar = ["\x00", "\x00"];
         self._mLastChar = "\x00\x00";
     }
-    
+
     this.reset = function() {
         jschardet.MultiByteCharSetProber.prototype.reset.apply(this);
         if( this._mCodingSM ) {
@@ -52,10 +52,10 @@ jschardet.MultiByteCharSetProber = function() {
         //this._mLastChar = ["\x00", "\x00"];
         this._mLastChar = "\x00\x00";
     }
-    
+
     this.getCharsetName = function() {
     }
-    
+
     this.feed = function(aBuf) {
         var aLen = aBuf.length;
         for( var i = 0; i < aLen; i++ ) {
@@ -79,23 +79,23 @@ jschardet.MultiByteCharSetProber = function() {
                 }
             }
         }
-        
+
         this._mLastChar[0] = aBuf[aLen - 1];
-        
+
         if( this.getState() == jschardet.Constants.detecting ) {
             if( this._mDistributionAnalyzer.gotEnoughData() &&
                 this.getConfidence() > jschardet.Constants.SHORTCUT_THRESHOLD ) {
                 this._mState = jschardet.Constants.foundIt;
             }
         }
-        
+
         return this.getState();
     }
-    
+
     this.getConfidence = function() {
         return this._mDistributionAnalyzer.getConfidence();
     }
 }
 jschardet.MultiByteCharSetProber.prototype = new jschardet.CharSetProber();
 
-}((typeof process !== 'undefined' && typeof process.title !== 'undefined') ? require('./init') : jschardet);
+}(require('./init'));

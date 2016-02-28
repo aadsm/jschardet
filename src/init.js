@@ -27,48 +27,44 @@
  * 02110-1301  USA
  */
 
-var jschardet = {};
+var jschardet = exports;
 
-if (typeof process !== 'undefined' && typeof process.title !== 'undefined')
-{
-    jschardet = exports;
-    require('./constants');
-    require('./codingstatemachine');
-    require('./escsm');
-    require('./mbcssm');
-    require('./charsetprober');
-    require('./mbcharsetprober');
-    require('./jisfreq');
-    require('./gb2312freq');
-    require('./euckrfreq');
-    require('./big5freq');
-    require('./euctwfreq');
-    require('./chardistribution');
-    require('./jpcntx');
-    require('./sjisprober');
-    require('./utf8prober');
-    require('./charsetgroupprober');
-    require('./eucjpprober');
-    require('./gb2312prober');
-    require('./euckrprober');
-    require('./big5prober');
-    require('./euctwprober');
-    require('./mbcsgroupprober');
-    require('./sbcharsetprober');
-    require('./langgreekmodel');
-    require('./langthaimodel');
-    require('./langbulgarianmodel');
-    require('./langcyrillicmodel');
-    require('./hebrewprober');
-    require('./langhebrewmodel');
-    require('./langhungarianmodel');
-    require('./sbcsgroupprober');
-    require('./latin1prober');
-    require('./escprober');
-    require('./universaldetector');
-}
+require('./constants');
+require('./codingstatemachine');
+require('./escsm');
+require('./mbcssm');
+require('./charsetprober');
+require('./mbcharsetprober');
+require('./jisfreq');
+require('./gb2312freq');
+require('./euckrfreq');
+require('./big5freq');
+require('./euctwfreq');
+require('./chardistribution');
+require('./jpcntx');
+require('./sjisprober');
+require('./utf8prober');
+require('./charsetgroupprober');
+require('./eucjpprober');
+require('./gb2312prober');
+require('./euckrprober');
+require('./big5prober');
+require('./euctwprober');
+require('./mbcsgroupprober');
+require('./sbcharsetprober');
+require('./langgreekmodel');
+require('./langthaimodel');
+require('./langbulgarianmodel');
+require('./langcyrillicmodel');
+require('./hebrewprober');
+require('./langhebrewmodel');
+require('./langhungarianmodel');
+require('./sbcsgroupprober');
+require('./latin1prober');
+require('./escprober');
+require('./universaldetector');
 
-jschardet.VERSION = "0.1";
+jschardet.VERSION = "1.4.1";
 jschardet.detect = function(buffer) {
     var u = new jschardet.UniversalDetector();
     u.reset();

@@ -10,7 +10,20 @@
         "type": "git",
         "url": "https://github.com/aadsm/jschardet.git"
     },
-    "directories": { "lib": "./lib", "test": "./test" },
+    "directories": {
+        "lib": "./lib",
+        "test": "./test"
+    },
     "dependencies": {},
-    "engines": { "node": "*" }
+    "devDependencies": {
+        "browserify": "~12.0.1",
+        "google-closure-compiler": "20151015.0.0"
+    },
+    "scripts": {
+        "dist-dev": "mkdir -p dist && browserify index.js -s jschardet --detect-globals false -o dist/jschardet.js",
+        "dist": "npm run dist-dev && java -jar node_modules/google-closure-compiler/compiler.jar --warning_level QUIET --compilation_level SIMPLE_OPTIMIZATIONS --js dist/jschardet.js > dist/jschardet.min.js"
+    },
+    "engines": {
+        "node": "*"
+    }
 }

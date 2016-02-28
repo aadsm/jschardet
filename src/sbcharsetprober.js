@@ -15,23 +15,23 @@
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301  USA
  */
- 
+
 !function(jschardet) {
-    
+
 jschardet.SingleByteCharSetProber = function(model, reversed, nameProber) {
     jschardet.CharSetProber.apply(this);
-    
+
     var SAMPLE_SIZE = 64;
     var SB_ENOUGH_REL_THRESHOLD = 1024;
     var POSITIVE_SHORTCUT_THRESHOLD = 0.95;
@@ -40,16 +40,16 @@ jschardet.SingleByteCharSetProber = function(model, reversed, nameProber) {
     var NUMBER_OF_SEQ_CAT = 4;
     var POSITIVE_CAT = NUMBER_OF_SEQ_CAT - 1;
     //var NEGATIVE_CAT = 0;
-    
+
     var self = this;
-    
+
     function init(model, reversed, nameProber) {
         self._mModel = model;
         self._mReversed = reversed; // "true" if we need to reverse every pair in the model lookup
         self._mNameProber = nameProber; // Optional auxiliary prober for name decision
         self.reset();
     }
-    
+
     this.reset = function() {
         jschardet.SingleByteCharSetProber.prototype.reset.apply(this);
         this._mLastOrder = 255; // char order of last character
@@ -59,7 +59,7 @@ jschardet.SingleByteCharSetProber = function(model, reversed, nameProber) {
         this._mTotalChar = 0;
         this._mFreqChar = 0; // characters that fall in our sampling range
     }
-    
+
     this.getCharsetName = function() {
         if( this._mNameProber ) {
             return this._mNameProber.getCharsetName();
@@ -67,7 +67,7 @@ jschardet.SingleByteCharSetProber = function(model, reversed, nameProber) {
             return this._mModel.charsetName;
         }
     }
-    
+
     this.feed = function(aBuf) {
         if( ! this._mModel.keepEnglishLetter ) {
             aBuf = this.filterWithoutEnglishLetters(aBuf);
@@ -96,7 +96,7 @@ jschardet.SingleByteCharSetProber = function(model, reversed, nameProber) {
             }
             this._mLastOrder = order;
         }
-        
+
         if( this.getState() == jschardet.Constants.detecting ) {
             if( self._mTotalSeqs > SB_ENOUGH_REL_THRESHOLD ) {
                 var cf = this.getConfidence();
@@ -112,10 +112,10 @@ jschardet.SingleByteCharSetProber = function(model, reversed, nameProber) {
                 }
             }
         }
-        
+
         return this.getState();
     }
-    
+
     this.getConfidence = function() {
         var r = 0.01;
         if( this._mTotalSeqs > 0 ) {
@@ -129,11 +129,11 @@ jschardet.SingleByteCharSetProber = function(model, reversed, nameProber) {
         }
         return r;
     }
-    
+
     reversed = reversed !== undefined ? reversed : false;
     nameProber = nameProber !== undefined ? nameProber : null;
     init(model, reversed, nameProber);
 }
 jschardet.SingleByteCharSetProber.prototype = new jschardet.CharSetProber();
 
-}((typeof process !== 'undefined' && typeof process.title !== 'undefined') ? require('./init') : jschardet);
+}(require('./init'));

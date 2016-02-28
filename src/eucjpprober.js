@@ -15,12 +15,12 @@
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
@@ -28,28 +28,28 @@
  */
 
 !function(jschardet) {
-    
+
 jschardet.EUCJPProber = function() {
     jschardet.MultiByteCharSetProber.apply(this);
-    
+
     var self = this;
-    
+
     function init() {
         self._mCodingSM = new jschardet.CodingStateMachine(jschardet.EUCJPSMModel);
         self._mDistributionAnalyzer = new jschardet.EUCJPDistributionAnalysis();
         self._mContextAnalyzer = new jschardet.EUCJPContextAnalysis();
         self.reset();
     }
-    
+
     this.reset = function() {
         jschardet.EUCJPProber.prototype.reset.apply(this);
         this._mContextAnalyzer.reset();
     }
-    
+
     this.getCharsetName = function() {
         return "EUC-JP";
     }
-    
+
     this.feed = function(aBuf) {
         var aLen = aBuf.length;
         for( var i = 0; i < aLen; i++ ) {
@@ -75,28 +75,28 @@ jschardet.EUCJPProber = function() {
                 }
             }
         }
-        
+
         this._mLastChar[0] = aBuf[aLen - 1];
-        
+
         if( this.getState() == jschardet.Constants.detecting ) {
-            if( this._mContextAnalyzer.gotEnoughData() && 
+            if( this._mContextAnalyzer.gotEnoughData() &&
                 this.getConfidence() > jschardet.Constants.SHORTCUT_THRESHOLD ) {
                 this._mState = jschardet.Constants.foundIt;
             }
         }
-        
+
         return this.getState();
     }
-    
+
     this.getConfidence = function() {
         var contxtCf = this._mContextAnalyzer.getConfidence();
         var distribCf = this._mDistributionAnalyzer.getConfidence();
-        
+
         return Math.max(contxtCf, distribCf);
     }
-    
+
     init();
 }
 jschardet.EUCJPProber.prototype = new jschardet.MultiByteCharSetProber();
 
-}((typeof process !== 'undefined' && typeof process.title !== 'undefined') ? require('./init') : jschardet);
+}(require('./init'));

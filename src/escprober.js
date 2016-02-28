@@ -15,12 +15,12 @@
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
@@ -28,12 +28,12 @@
  */
 
 !function(jschardet) {
-    
+
 jschardet.EscCharSetProber = function() {
     jschardet.CharSetProber.apply(this);
-    
+
     var self = this;
-    
+
     function init() {
         self._mCodingSM = [
             new jschardet.CodingStateMachine(jschardet.HZSMModel),
@@ -43,7 +43,7 @@ jschardet.EscCharSetProber = function() {
         ];
         self.reset();
     }
-    
+
     this.reset = function() {
         jschardet.EscCharSetProber.prototype.reset.apply(this);
         for( var i = 0, codingSM; codingSM = this._mCodingSM[i]; i++ ) {
@@ -54,11 +54,11 @@ jschardet.EscCharSetProber = function() {
         this._mActiveSM = self._mCodingSM.length;
         this._mDetectedCharset = null;
     }
-    
+
     this.getCharsetName = function() {
         return this._mDetectedCharset;
     }
-    
+
     this.getConfidence = function() {
         if( this._mDetectedCharset ) {
             return 0.99;
@@ -66,7 +66,7 @@ jschardet.EscCharSetProber = function() {
             return 0.00;
         }
     }
-    
+
     this.feed = function(aBuf) {
         for( var i = 0, c; i < aBuf.length; i++ ) {
             c = aBuf[i];
@@ -87,12 +87,12 @@ jschardet.EscCharSetProber = function() {
                 }
             }
         }
-        
+
         return this.getState();
     }
-    
+
     init();
 }
 jschardet.EscCharSetProber.prototype = new jschardet.CharSetProber();
 
-}((typeof process !== 'undefined' && typeof process.title !== 'undefined') ? require('./init') : jschardet);
+}(require('./init'));

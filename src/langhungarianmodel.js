@@ -15,12 +15,12 @@
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
@@ -28,7 +28,7 @@
  */
 
 !function(jschardet) {
-    
+
 // 255: Control characters that usually does not exist in any text
 // 254: Carriage/Return
 // 253: symbol (punctuation) that does not belong to word
@@ -70,15 +70,15 @@ jschardet.win1250HungarianCharToOrderMap = [
 221, 51, 83,222, 80,223,224,225,226, 44,227,228,229, 61,230,231,
 232,233,234, 58,235, 66, 59,236,237,238, 60, 70, 63,239,240,241,
  84, 14, 75,242, 71, 82,243, 73,244, 15, 85, 79, 86, 30, 77, 87,
-245,246,247, 25, 74, 42, 24,248,249,250, 31, 56, 29,251,252,253 
+245,246,247, 25, 74, 42, 24,248,249,250, 31, 56, 29,251,252,253
 ];
 
-// Model Table: 
+// Model Table:
 // total sequences: 100%
 // first 512 sequences: 94.7368%
 // first 1024 sequences:5.2623%
 // rest  sequences:     0.8894%
-// negative sequences:  0.0009% 
+// negative sequences:  0.0009%
 jschardet.HungarianLangModel = [
 0,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,1,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,
 3,3,3,3,3,3,3,3,3,3,2,3,3,3,3,3,3,3,3,2,2,3,3,1,1,2,2,2,2,2,1,2,
@@ -226,4 +226,4 @@ jschardet.Win1250HungarianModel = {
     "charsetName"           : "windows-1250"
 };
 
-}((typeof process !== 'undefined' && typeof process.title !== 'undefined') ? require('./init') : jschardet);
+}(require('./init'));

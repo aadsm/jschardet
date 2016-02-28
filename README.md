@@ -13,20 +13,23 @@ LGPL
 How To Use It
 -------------
 
-
+### Node
 ```   
 npm install jschardet
 ```
 
     var jschardet = require("jschardet")
-    
+
     // "àíàçã" in UTF-8
     jschardet.detect("\xc3\xa0\xc3\xad\xc3\xa0\xc3\xa7\xc3\xa3")
     // { encoding: "UTF-8", confidence: 0.9690625 }
 
-    // "次常用國字標準字體表" in Big5 
+    // "次常用國字標準字體表" in Big5
     jschardet.detect("\xa6\xb8\xb1\x60\xa5\xce\xb0\xea\xa6\x72\xbc\xd0\xb7\xc7\xa6\x72\xc5\xe9\xaa\xed")
     // { encoding: "Big5", confidence: 0.99 }
+
+### Browser
+Copy and include [jschardet.min.js](https://github.com/aadsm/jschardet/tree/master/dist/jschardet.min.js) in your web page.
 
 Options
 -------
@@ -74,8 +77,13 @@ I haven't been able to create tests to correctly detect:
 
 A one-file minimized version is missing.
 
+Development
+-----------
+Use `npm run dist` to update the distribution files. They're available at https://github.com/aadsm/jschardet/tree/master/dist.
+
 Authors
 -------
 
 Ported from python to JavaScript by António Afonso (https://github.com/aadsm/jschardet)
+
 Transformed into an npm package by Markus Ast (https://github.com/brainafk)

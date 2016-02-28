@@ -15,12 +15,12 @@
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
@@ -28,7 +28,7 @@
  */
 
 !function(jschardet) {
-    
+
 // This prober doesn't actually recognize a language or a charset.
 // It is a helper prober for the use of the Hebrew model probers
 
@@ -36,40 +36,40 @@
 //
 // Four main charsets exist in Hebrew:
 // "ISO-8859-8" - Visual Hebrew
-// "windows-1255" - Logical Hebrew 
+// "windows-1255" - Logical Hebrew
 // "ISO-8859-8-I" - Logical Hebrew
 // "x-mac-hebrew" - ?? Logical Hebrew ??
 //
 // Both "ISO" charsets use a completely identical set of code points, whereas
-// "windows-1255" and "x-mac-hebrew" are two different proper supersets of 
+// "windows-1255" and "x-mac-hebrew" are two different proper supersets of
 // these code points. windows-1255 defines additional characters in the range
-// 0x80-0x9F as some misc punctuation marks as well as some Hebrew-specific 
+// 0x80-0x9F as some misc punctuation marks as well as some Hebrew-specific
 // diacritics and additional 'Yiddish' ligature letters in the range 0xc0-0xd6.
-// x-mac-hebrew defines similar additional code points but with a different 
+// x-mac-hebrew defines similar additional code points but with a different
 // mapping.
 //
-// As far as an average Hebrew text with no diacritics is concerned, all four 
-// charsets are identical with respect to code points. Meaning that for the 
-// main Hebrew alphabet, all four map the same values to all 27 Hebrew letters 
+// As far as an average Hebrew text with no diacritics is concerned, all four
+// charsets are identical with respect to code points. Meaning that for the
+// main Hebrew alphabet, all four map the same values to all 27 Hebrew letters
 // (including final letters).
 //
 // The dominant difference between these charsets is their directionality.
 // "Visual" directionality means that the text is ordered as if the renderer is
-// not aware of a BIDI rendering algorithm. The renderer sees the text and 
-// draws it from left to right. The text itself when ordered naturally is read 
+// not aware of a BIDI rendering algorithm. The renderer sees the text and
+// draws it from left to right. The text itself when ordered naturally is read
 // backwards. A buffer of Visual Hebrew generally looks like so:
 // "[last word of first line spelled backwards] [whole line ordered backwards
-// and spelled backwards] [first word of first line spelled backwards] 
+// and spelled backwards] [first word of first line spelled backwards]
 // [end of line] [last word of second line] ... etc' "
 // adding punctuation marks, numbers and English text to visual text is
 // naturally also "visual" and from left to right.
-// 
+//
 // "Logical" directionality means the text is ordered "naturally" according to
-// the order it is read. It is the responsibility of the renderer to display 
-// the text from right to left. A BIDI algorithm is used to place general 
+// the order it is read. It is the responsibility of the renderer to display
+// the text from right to left. A BIDI algorithm is used to place general
 // punctuation marks, numbers and English text in the text.
 //
-// Texts in x-mac-hebrew are almost impossible to find on the Internet. From 
+// Texts in x-mac-hebrew are almost impossible to find on the Internet. From
 // what little evidence I could find, it seems that its general directionality
 // is Logical.
 //
@@ -77,17 +77,17 @@
 // charsets:
 // Visual Hebrew - "ISO-8859-8" - backwards text - Words and sentences are
 //    backwards while line order is natural. For charset recognition purposes
-//    the line order is unimportant (In fact, for this implementation, even 
+//    the line order is unimportant (In fact, for this implementation, even
 //    word order is unimportant).
 // Logical Hebrew - "windows-1255" - normal, naturally ordered text.
 //
-// "ISO-8859-8-I" is a subset of windows-1255 and doesn't need to be 
+// "ISO-8859-8-I" is a subset of windows-1255 and doesn't need to be
 //    specifically identified.
 // "x-mac-hebrew" is also identified as windows-1255. A text in x-mac-hebrew
 //    that contain special punctuation marks or diacritics is displayed with
 //    some unconverted characters showing as question marks. This problem might
 //    be corrected using another model prober for x-mac-hebrew. Due to the fact
-//    that x-mac-hebrew texts are so rare, writing another model prober isn't 
+//    that x-mac-hebrew texts are so rare, writing another model prober isn't
 //    worth the effort and performance hit.
 //
 //////// The Prober ////////
@@ -128,7 +128,7 @@
 
 jschardet.HebrewProber = function() {
     jschardet.CharSetProber.apply(this);
-    
+
     // windows-1255 / ISO-8859-8 code points of interest
     var FINAL_KAF = '\xea'
     var NORMAL_KAF = '\xeb'
@@ -152,79 +152,79 @@ jschardet.HebrewProber = function() {
     var VISUAL_HEBREW_NAME = "ISO-8859-8"
     var LOGICAL_HEBREW_NAME = "windows-1255"
     var self = this;
-    
+
     function init() {
         self._mLogicalProber = null;
         self._mVisualProber = null;
         self.reset();
     }
-    
+
     this.reset = function() {
         this._mFinalCharLogicalScore = 0;
         this._mFinalCharVisualScore = 0;
         // The two last characters seen in the previous buffer,
-        // mPrev and mBeforePrev are initialized to space in order to simulate a word 
+        // mPrev and mBeforePrev are initialized to space in order to simulate a word
         // delimiter at the beginning of the data
         this._mPrev = " ";
         this._mBeforePrev = " ";
         // These probers are owned by the group prober.
     }
-    
+
     this.setModelProbers = function(logicalProber, visualProber) {
         this._mLogicalProber = logicalProber;
         this._mVisualProber = visualProber;
     }
-    
+
     this.isFinal = function(c) {
         return [FINAL_KAF, FINAL_MEM, FINAL_NUN, FINAL_PE, FINAL_TSADI].indexOf(c) != -1;
     }
-    
+
     this.isNonFinal = function(c) {
-        // The normal Tsadi is not a good Non-Final letter due to words like 
-        // 'lechotet' (to chat) containing an apostrophe after the tsadi. This 
-        // apostrophe is converted to a space in FilterWithoutEnglishLetters causing 
-        // the Non-Final tsadi to appear at an end of a word even though this is not 
+        // The normal Tsadi is not a good Non-Final letter due to words like
+        // 'lechotet' (to chat) containing an apostrophe after the tsadi. This
+        // apostrophe is converted to a space in FilterWithoutEnglishLetters causing
+        // the Non-Final tsadi to appear at an end of a word even though this is not
         // the case in the original text.
-        // The letters Pe and Kaf rarely display a related behavior of not being a 
-        // good Non-Final letter. Words like 'Pop', 'Winamp' and 'Mubarak' for 
-        // example legally end with a Non-Final Pe or Kaf. However, the benefit of 
-        // these letters as Non-Final letters outweighs the damage since these words 
+        // The letters Pe and Kaf rarely display a related behavior of not being a
+        // good Non-Final letter. Words like 'Pop', 'Winamp' and 'Mubarak' for
+        // example legally end with a Non-Final Pe or Kaf. However, the benefit of
+        // these letters as Non-Final letters outweighs the damage since these words
         // are quite rare.
         return [NORMAL_KAF, NORMAL_MEM, NORMAL_NUN, NORMAL_PE].indexOf(c) != -1;
     }
-    
+
     this.feed = function(aBuf) {
         // Final letter analysis for logical-visual decision.
-        // Look for evidence that the received buffer is either logical Hebrew or 
+        // Look for evidence that the received buffer is either logical Hebrew or
         // visual Hebrew.
         // The following cases are checked:
-        // 1) A word longer than 1 letter, ending with a final letter. This is an 
-        //    indication that the text is laid out "naturally" since the final letter 
+        // 1) A word longer than 1 letter, ending with a final letter. This is an
+        //    indication that the text is laid out "naturally" since the final letter
         //    really appears at the end. +1 for logical score.
         // 2) A word longer than 1 letter, ending with a Non-Final letter. In normal
         //    Hebrew, words ending with Kaf, Mem, Nun, Pe or Tsadi, should not end with
         //    the Non-Final form of that letter. Exceptions to this rule are mentioned
         //    above in isNonFinal(). This is an indication that the text is laid out
         //    backwards. +1 for visual score
-        // 3) A word longer than 1 letter, starting with a final letter. Final letters 
-        //    should not appear at the beginning of a word. This is an indication that 
+        // 3) A word longer than 1 letter, starting with a final letter. Final letters
+        //    should not appear at the beginning of a word. This is an indication that
         //    the text is laid out backwards. +1 for visual score.
-        // 
-        // The visual score and logical score are accumulated throughout the text and 
+        //
+        // The visual score and logical score are accumulated throughout the text and
         // are finally checked against each other in GetCharSetName().
         // No checking for final letters in the middle of words is done since that case
         // is not an indication for either Logical or Visual text.
-        // 
+        //
         // We automatically filter out all 7-bit characters (replace them with spaces)
         // so the word boundary detection works properly. [MAP]
-        
+
         if( this.getState() == jschardet.Constants.notMe ) {
             // Both model probers say it's not them. No reason to continue.
             return jschardet.Constants.notMe;
         }
-        
+
         aBuf = this.filterHighBitOnly(aBuf);
-        
+
         for( var i = 0, cur; i < aBuf.length; i++ ) {
             cur = aBuf[i];
             if( cur == " " ) {
@@ -252,7 +252,7 @@ jschardet.HebrewProber = function() {
         // Forever detecting, till the end or until both model probers return eNotMe (handled above)
         return jschardet.Constants.detecting;
     }
-    
+
     this.getCharsetName = function() {
         // Make the decision: is it Logical or Visual?
         // If the final letter score distance is dominant enough, rely on it.
@@ -263,7 +263,7 @@ jschardet.HebrewProber = function() {
         if( finalsub <= -MIN_FINAL_CHAR_DISTANCE ) {
             return VISUAL_HEBREW_NAME;
         }
-        
+
         // It's not dominant enough, try to rely on the model scores instead.
         var modelsub = this._mLogicalProber.getConfidence() - this._mVisualProber.getConfidence();
         if( modelsub > MIN_MODEL_DISTANCE ) {
@@ -272,16 +272,16 @@ jschardet.HebrewProber = function() {
         if( modelsub < -MIN_MODEL_DISTANCE ) {
             return VISUAL_HEBREW_NAME;
         }
-        
+
         // Still no good, back to final letter distance, maybe it'll save the day.
         if( finalsub < 0 ) {
             return VISUAL_HEBREW_NAME;
         }
-        
+
         // (finalsub > 0 - Logical) or (don't know what to do) default to Logical.
         return LOGICAL_HEBREW_NAME;
     }
-    
+
     this.getState = function() {
         // Remain active as long as any of the model probers are active.
         if( this._mLogicalProber.getState() == jschardet.Constants.notMe &&
@@ -290,11 +290,11 @@ jschardet.HebrewProber = function() {
         }
         return jschardet.Constants.detecting;
     }
-    
+
     init();
 }
 jschardet.HebrewProber.prototype = new jschardet.CharSetProber();
-   
+
 // https://developer.mozilla.org/En/Core_JavaScript_1.5_Reference/Objects/Array/IndexOf
 if (!Array.prototype.indexOf)
 {
@@ -319,4 +319,4 @@ if (!Array.prototype.indexOf)
     };
 }
 
-}((typeof process !== 'undefined' && typeof process.title !== 'undefined') ? require('./init') : jschardet);
+}(require('./init'));

@@ -15,12 +15,12 @@
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
@@ -28,10 +28,10 @@
  */
 
 !function(jschardet) {
-    
+
 // EUCTW frequency table
-// Converted from big5 work 
-// by Taiwan's Mandarin Promotion Council 
+// Converted from big5 work
+// by Taiwan's Mandarin Promotion Council
 // <http://www.edu.tw:81/mandr/>
 
 // 128  --> 0.42261
@@ -42,12 +42,12 @@
 //
 // Idea Distribution Ratio = 0.74851/(1-0.74851) =2.98
 // Random Distribution Ration = 512/(5401-512)=0.105
-// 
+//
 // Typical Distribution Ratio about 25% of Ideal one, still much higher than RDR
 
 jschardet.EUCTW_TYPICAL_DISTRIBUTION_RATIO = 0.75;
 
-// Char to FreqOrder table , 
+// Char to FreqOrder table ,
 jschardet.EUCTW_TABLE_SIZE = 8102;
 
 jschardet.EUCTWCharToFreqOrder = [
@@ -430,4 +430,4 @@ jschardet.EUCTWCharToFreqOrder = [
 8726,8727,8728,8729,8730,8731,8732,8733,8734,8735,8736,8737,8738,8739,8740,8741
 ]; // 8742
 
-}((typeof process !== 'undefined' && typeof process.title !== 'undefined') ? require('./init') : jschardet);
+}(require('./init'));

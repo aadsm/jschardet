@@ -15,12 +15,12 @@
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
@@ -28,7 +28,7 @@
  */
 
 !function(jschardet) {
-    
+
 // This is hiragana 2-char sequence table, the number in each cell represents its frequency category
 jschardet.jp2CharContext = [
 [0,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,1],
@@ -123,11 +123,11 @@ jschardet.JapaneseContextAnalysis = function() {
     var MAX_REL_THRESHOLD = 1000;
     var MINIMUM_DATA_THRESHOLD = 4;
     var self = this;
-    
+
     function init() {
         self.reset();
     }
-    
+
     this.reset = function() {
         this._mTotalRel = 0; // total sequence received
         this._mRelSample = []; // category counters, each interger counts sequence in its category
@@ -136,14 +136,14 @@ jschardet.JapaneseContextAnalysis = function() {
         this._mLastCharOrder = -1; // The order of previous char
         this._mDone = false; // If this flag is set to true, detection is done and conclusion has been made
     }
-    
+
     this.feed = function(aBuf, aLen) {
         if( this._mDone ) return;
-        
+
         // The buffer we got is byte oriented, and a character may span in more than one
-        // buffers. In case the last one or two byte in last buffer is not complete, we 
+        // buffers. In case the last one or two byte in last buffer is not complete, we
         // record how many byte needed to complete that character and skip these bytes here.
-        // We can choose to record those bytes as well and analyse the character once it 
+        // We can choose to record those bytes as well and analyse the character once it
         // is complete, but since a character will not make much difference, by simply skipping
         // this character will simply our logic and improve performance.
         var i = this._mNeedToSkipCharNum;
@@ -168,11 +168,11 @@ jschardet.JapaneseContextAnalysis = function() {
             }
         }
     }
-    
+
     this.gotEnoughData = function() {
         return this._mTotalRel > ENOUGH_REL_THRESHOLD;
     }
-    
+
     this.getConfidence = function() {
         // This is just one way to calculate confidence. It works well for me.
         if( this._mTotalRel > MINIMUM_DATA_THRESHOLD ) {
@@ -181,14 +181,14 @@ jschardet.JapaneseContextAnalysis = function() {
             return DONT_KNOW;
         }
     }
-    
+
     this.getOrder = function(aStr) {
         return [-1, 1];
     }
-    
+
     init();
 }
-        
+
 jschardet.SJISContextAnalysis = function() {
     this.getOrder = function(aStr) {
         if( !aStr ) return [-1, 1];
@@ -199,7 +199,7 @@ jschardet.SJISContextAnalysis = function() {
         } else {
             charLen = 1;
         }
-        
+
         // return its order if it is hiragana
         if( aStr.length > 1 ) {
             if( aStr.charCodeAt(0) == 0x82 && aStr.charCodeAt(1) >= 0x9F &&
@@ -207,7 +207,7 @@ jschardet.SJISContextAnalysis = function() {
                 return [aStr.charCodeAt(1) - 0x9F, charLen];
             }
         }
-        
+
         return [-1, charLen];
     }
 }
@@ -225,7 +225,7 @@ jschardet.EUCJPContextAnalysis = function() {
         } else {
             charLen = 1;
         }
-        
+
         // return its order if it is hiragana
         if( aStr.length > 1 ) {
             if( aStr.charCodeAt(0) == 0xA4 && aStr.charCodeAt(1) >= 0xA1 &&
@@ -233,10 +233,10 @@ jschardet.EUCJPContextAnalysis = function() {
                 return [aStr.charCodeAt(1) - 0xA1, charLen];
             }
         }
-        
+
         return [-1, charLen];
     }
 }
 jschardet.EUCJPContextAnalysis.prototype = new jschardet.JapaneseContextAnalysis();
 
-}((typeof process !== 'undefined' && typeof process.title !== 'undefined') ? require('./init') : jschardet);
+}(require('./init'));
