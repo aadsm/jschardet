@@ -31,6 +31,8 @@ npm install jschardet
 ### Browser
 Copy and include [jschardet.min.js](https://github.com/aadsm/jschardet/tree/master/dist/jschardet.min.js) in your web page.
 
+This library is also available in [cdnjs](https://cdnjs.com) at [https://cdnjs.cloudflare.com/ajax/libs/jschardet/1.4.1/jschardet.min.js](https://cdnjs.cloudflare.com/ajax/libs/jschardet/1.4.1/jschardet.min.js)
+
 Options
 -------
 
