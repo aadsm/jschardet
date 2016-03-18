@@ -77,8 +77,6 @@ I haven't been able to create tests to correctly detect:
 * windows-1253 in Greek
 * EUC-CN
 
-A one-file minimized version is missing.
-
 Development
 -----------
 Use `npm run dist` to update the distribution files. They're available at https://github.com/aadsm/jschardet/tree/master/dist.
