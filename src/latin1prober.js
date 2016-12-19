@@ -132,6 +132,9 @@ jschardet.Latin1Prober = function() {
     }
 
     this.getConfidence = function() {
+        var confidence;
+        var constants;
+        
         if( this.getState() == jschardet.Constants.notMe ) {
             return 0.01;
         }
