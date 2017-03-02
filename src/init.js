@@ -68,14 +68,15 @@ jschardet.VERSION = "1.4.1";
 jschardet.detect = function(buffer) {
     var u = new jschardet.UniversalDetector();
     u.reset();
-    if( typeof Buffer == 'function' && buffer instanceof Buffer ) {
+    /*if( typeof Buffer == 'function' && buffer instanceof Buffer ) {
         var str = "";
         for (var i = 0; i < buffer.length; ++i)
             str += String.fromCharCode(buffer[i])
         u.feed(str);
     } else {
         u.feed(buffer);
-    }
+    }*/
+    u.feed(typeof Buffer == 'function' && buffer instanceof Buffer ? buffer.toString('binary') : buffer);
     u.close();
     return u.result;
 }
