@@ -4110,15 +4110,12 @@ require('./latin1prober');
 require('./escprober');
 require('./universaldetector');
 
-jschardet.VERSION = "0.1";
+jschardet.VERSION = "1.4.1";
 jschardet.detect = function(buffer) {
     var u = new jschardet.UniversalDetector();
     u.reset();
     if( typeof Buffer == 'function' && buffer instanceof Buffer ) {
-        var str = "";
-        for (var i = 0; i < buffer.length; ++i)
-            str += String.fromCharCode(buffer[i])
-        u.feed(str);
+        u.feed(buffer.toString('binary'));
     } else {
         u.feed(buffer);
     }
@@ -6525,6 +6522,9 @@ jschardet.Latin1Prober = function() {
     }
 
     this.getConfidence = function() {
+        var confidence;
+        var constants;
+        
         if( this.getState() == jschardet.Constants.notMe ) {
             return 0.01;
         }
