@@ -234,8 +234,8 @@ jschardet.SJISDistributionAnalysis = function() {
 
     this.getOrder = function(aStr) {
         // for sjis encoding, we are interested
-        //   first  byte range: 0x81 -- 0x9f , 0xe0 -- 0xfe
-        //   second byte range: 0x40 -- 0x7e,  0x81 -- 0xfe
+        //   first  byte range: 0x81 -- 0x9f , 0xe0 -- 0xef
+        //   second byte range: 0x40 -- 0x7e,  0x80 -- 0xfc
         // no validation needed here. State machine has done that
         if( aStr.charCodeAt(0) >= 0x81 && aStr.charCodeAt(0) <= 0x9F ) {
             var order = 188 * (aStr.charCodeAt(0) - 0x81);
@@ -245,7 +245,7 @@ jschardet.SJISDistributionAnalysis = function() {
             return -1;
         }
         order += aStr.charCodeAt(1) - 0x40;
-        if( aStr.charCodeAt(1) > 0x7F ) {
+        if( aStr.charCodeAt(1) < 0x40 || aStr.charCodeAt(1) === 0x7F || aStr.charCodeAt(1) > 0xFC) {
             order = -1;
         }
         return order;
