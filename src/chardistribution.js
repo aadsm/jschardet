@@ -33,6 +33,8 @@ jschardet.CharDistributionAnalysis = function() {
     var ENOUGH_DATA_THRESHOLD = 1024;
     var SURE_YES = 0.99;
     var SURE_NO = 0.01;
+    var MINIMUM_DATA_THRESHOLD = 3;
+
     var self = this;
 
     function init() {
@@ -77,7 +79,7 @@ jschardet.CharDistributionAnalysis = function() {
      */
     this.getConfidence = function() {
         // if we didn't receive any character in our consideration range, return negative answer
-        if( this._mTotalChars <= 0 ) {
+        if( this._mTotalChars <= 0 || this._mFreqChars <= MINIMUM_DATA_THRESHOLD) {
             return SURE_NO;
         }
         if( this._mTotalChars != this._mFreqChars ) {
