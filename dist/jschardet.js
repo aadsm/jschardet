@@ -1465,8 +1465,11 @@ jschardet.CharSetProber = function() {
     }
 
     this.filterWithEnglishLetters = function(aBuf) {
-        // TODO
-        return aBuf;
+        /* Returns a copy of ``buf`` that retains only the sequences of English
+           alphabet and high byte characters that are not between <> characters. */
+        var aBufWithTagsRemoved = aBuf.replace( /(<([^>]+)>)/ig, "");
+        var aBufOnlyEnglishLetters = aBufWithTagsRemoved.replace(/[^A-Za-z]+/g, " ");
+        return aBufOnlyEnglishLetters;
     }
 }
 
@@ -6537,7 +6540,7 @@ jschardet.Latin1Prober = function() {
     this.getConfidence = function() {
         var confidence;
         var constants;
-        
+
         if( this.getState() == jschardet.Constants.notMe ) {
             return 0.01;
         }
