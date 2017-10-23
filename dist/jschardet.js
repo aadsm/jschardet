@@ -1465,11 +1465,36 @@ jschardet.CharSetProber = function() {
     }
 
     this.filterWithEnglishLetters = function(aBuf) {
-        /* Returns a copy of ``buf`` that retains only the sequences of English
-           alphabet and high byte characters that are not between <> characters. */
-        var aBufWithTagsRemoved = aBuf.replace( /(<([^>]+)>)/ig, "");
-        var aBufOnlyEnglishLetters = aBufWithTagsRemoved.replace(/[^A-Za-z]+/g, " ");
-        return aBufOnlyEnglishLetters;
+        var result = '';
+        var inTag = false;
+        var prev = 0;
+
+        for (var curr = 0; curr < aBuf.length; curr++) {
+          var c = aBuf[curr];
+
+          if (c == '>') {
+            inTag = false;
+          } else if (c == '<') {
+            inTag = true;
+          }
+
+          var isAlpha = /[a-zA-Z]/.test(c);
+          var isASCII = /^[\x00-\x7F]*$/.test(c);
+
+          if (isASCII && !isAlpha) {
+            if (curr > prev && !inTag) {
+              result = result + aBuf.substring(prev, curr) + ' ';
+            }
+
+            prev = curr + 1;
+          }
+        }
+
+        if (!inTag) {
+          result = result + aBuf.substring(prev);
+        }
+
+        return result;
     }
 }
 
