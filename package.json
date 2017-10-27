@@ -1,6 +1,6 @@
 {
     "name": "jschardet",
-    "version": "1.5.1",
+    "version": "1.6.0",
     "description": "Character encoding auto-detection in JavaScript (port of python's chardet)",
     "main": "src/init",
     "author": "António Afonso",
