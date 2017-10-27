@@ -1465,8 +1465,36 @@ jschardet.CharSetProber = function() {
     }
 
     this.filterWithEnglishLetters = function(aBuf) {
-        // TODO
-        return aBuf;
+        var result = '';
+        var inTag = false;
+        var prev = 0;
+
+        for (var curr = 0; curr < aBuf.length; curr++) {
+          var c = aBuf[curr];
+
+          if (c == '>') {
+            inTag = false;
+          } else if (c == '<') {
+            inTag = true;
+          }
+
+          var isAlpha = /[a-zA-Z]/.test(c);
+          var isASCII = /^[\x00-\x7F]*$/.test(c);
+
+          if (isASCII && !isAlpha) {
+            if (curr > prev && !inTag) {
+              result = result + aBuf.substring(prev, curr) + ' ';
+            }
+
+            prev = curr + 1;
+          }
+        }
+
+        if (!inTag) {
+          result = result + aBuf.substring(prev);
+        }
+
+        return result;
     }
 }
 
@@ -6537,7 +6565,7 @@ jschardet.Latin1Prober = function() {
     this.getConfidence = function() {
         var confidence;
         var constants;
-        
+
         if( this.getState() == jschardet.Constants.notMe ) {
             return 0.01;
         }
