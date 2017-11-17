@@ -27,16 +27,19 @@
  * 02110-1301  USA
  */
 
-!function(jschardet) {
+var CodingStateMachine = require('./codingstatemachine');
+var MultiByteCharSetProber = require('./mbcharsetprober');
+var EUCKRDistributionAnalysis = require('./chardistribution').EUCKRDistributionAnalysis;
+var EUCKRSMModel = require('./mbcssm').EUCKRSMModel;
 
-jschardet.EUCKRProber = function() {
-    jschardet.MultiByteCharSetProber.apply(this);
+function EUCKRProber() {
+    MultiByteCharSetProber.apply(this);
 
     var self = this;
 
     function init() {
-        self._mCodingSM = new jschardet.CodingStateMachine(jschardet.EUCKRSMModel);
-        self._mDistributionAnalyzer = new jschardet.EUCKRDistributionAnalysis();
+        self._mCodingSM = new CodingStateMachine(EUCKRSMModel);
+        self._mDistributionAnalyzer = new EUCKRDistributionAnalysis();
         self.reset();
     }
 
@@ -46,6 +49,6 @@ jschardet.EUCKRProber = function() {
 
     init();
 }
-jschardet.EUCKRProber.prototype = new jschardet.MultiByteCharSetProber();
+EUCKRProber.prototype = new MultiByteCharSetProber();
 
-}(require('./init'));
+module.exports = EUCKRProber;

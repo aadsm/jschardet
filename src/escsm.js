@@ -27,11 +27,9 @@
  * 02110-1301  USA
  */
 
-!function(jschardet) {
+var consts = require('./constants');
 
-var consts = jschardet.Constants;
-
-jschardet.HZ_cls = [
+exports.HZ_cls = [
     1,0,0,0,0,0,0,0,  // 00 - 07
     0,0,0,0,0,0,0,0,  // 08 - 0f
     0,0,0,0,0,0,0,0,  // 10 - 17
@@ -66,7 +64,7 @@ jschardet.HZ_cls = [
     1,1,1,1,1,1,1,1   // f8 - ff
 ];
 
-jschardet.HZ_st = [
+exports.HZ_st = [
     consts.start,consts.error,    3,consts.start,consts.start,consts.start,consts.error,consts.error, // 00-07
     consts.error,consts.error,consts.error,consts.error,consts.itsMe,consts.itsMe,consts.itsMe,consts.itsMe, // 08-0f
     consts.itsMe,consts.itsMe,consts.error,consts.error,consts.start,consts.start,    4,consts.error, // 10-17
@@ -75,17 +73,17 @@ jschardet.HZ_st = [
         4,consts.itsMe,consts.start,consts.start,consts.start,consts.start,consts.start,consts.start  // 28-2f
 ];
 
-jschardet.HZCharLenTable = [0, 0, 0, 0, 0, 0];
+exports.HZCharLenTable = [0, 0, 0, 0, 0, 0];
 
-jschardet.HZSMModel = {
-    "classTable"    : jschardet.HZ_cls,
+exports.HZSMModel = {
+    "classTable"    : exports.HZ_cls,
     "classFactor"   : 6,
-    "stateTable"    : jschardet.HZ_st,
-    "charLenTable"  : jschardet.HZCharLenTable,
+    "stateTable"    : exports.HZ_st,
+    "charLenTable"  : exports.HZCharLenTable,
     "name"          : "HZ-GB-2312"
 };
 
-jschardet.ISO2022CN_cls = [
+exports.ISO2022CN_cls = [
     2,0,0,0,0,0,0,0,  // 00 - 07
     0,0,0,0,0,0,0,0,  // 08 - 0f
     0,0,0,0,0,0,0,0,  // 10 - 17
@@ -120,7 +118,7 @@ jschardet.ISO2022CN_cls = [
     2,2,2,2,2,2,2,2   // f8 - ff
 ];
 
-jschardet.ISO2022CN_st = [
+exports.ISO2022CN_st = [
     consts.start,    3,consts.error,consts.start,consts.start,consts.start,consts.start,consts.start, // 00-07
     consts.start,consts.error,consts.error,consts.error,consts.error,consts.error,consts.error,consts.error, // 08-0f
     consts.error,consts.error,consts.itsMe,consts.itsMe,consts.itsMe,consts.itsMe,consts.itsMe,consts.itsMe, // 10-17
@@ -131,17 +129,17 @@ jschardet.ISO2022CN_st = [
     consts.error,consts.error,consts.error,consts.error,consts.error,consts.itsMe,consts.error,consts.start  // 38-3f
 ];
 
-jschardet.ISO2022CNCharLenTable = [0, 0, 0, 0, 0, 0, 0, 0, 0];
+exports.ISO2022CNCharLenTable = [0, 0, 0, 0, 0, 0, 0, 0, 0];
 
-jschardet.ISO2022CNSMModel = {
-    "classTable"    : jschardet.ISO2022CN_cls,
+exports.ISO2022CNSMModel = {
+    "classTable"    : exports.ISO2022CN_cls,
     "classFactor"   : 9,
-    "stateTable"    : jschardet.ISO2022CN_st,
-    "charLenTable"  : jschardet.ISO2022CNCharLenTable,
+    "stateTable"    : exports.ISO2022CN_st,
+    "charLenTable"  : exports.ISO2022CNCharLenTable,
     "name"          : "ISO-2022-CN"
 };
 
-jschardet.ISO2022JP_cls = [
+exports.ISO2022JP_cls = [
     2,0,0,0,0,0,0,0,  // 00 - 07
     0,0,0,0,0,0,2,2,  // 08 - 0f
     0,0,0,0,0,0,0,0,  // 10 - 17
@@ -176,7 +174,7 @@ jschardet.ISO2022JP_cls = [
     2,2,2,2,2,2,2,2   // f8 - ff
 ];
 
-jschardet.ISO2022JP_st = [
+exports.ISO2022JP_st = [
     consts.start,    3,consts.error,consts.start,consts.start,consts.start,consts.start,consts.start, // 00-07
     consts.start,consts.start,consts.error,consts.error,consts.error,consts.error,consts.error,consts.error, // 08-0f
     consts.error,consts.error,consts.error,consts.error,consts.itsMe,consts.itsMe,consts.itsMe,consts.itsMe, // 10-17
@@ -188,17 +186,17 @@ jschardet.ISO2022JP_st = [
     consts.error,consts.error,consts.error,consts.error,consts.itsMe,consts.error,consts.start,consts.start  // 40-47
 ];
 
-jschardet.ISO2022JPCharLenTable = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+exports.ISO2022JPCharLenTable = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 
-jschardet.ISO2022JPSMModel = {
-    "classTable"    : jschardet.ISO2022JP_cls,
+exports.ISO2022JPSMModel = {
+    "classTable"    : exports.ISO2022JP_cls,
     "classFactor"   : 10,
-    "stateTable"    : jschardet.ISO2022JP_st,
-    "charLenTable"  : jschardet.ISO2022JPCharLenTable,
+    "stateTable"    : exports.ISO2022JP_st,
+    "charLenTable"  : exports.ISO2022JPCharLenTable,
     "name"          : "ISO-2022-JP"
 };
 
-jschardet.ISO2022KR_cls = [
+exports.ISO2022KR_cls = [
     2,0,0,0,0,0,0,0,  // 00 - 07
     0,0,0,0,0,0,0,0,  // 08 - 0f
     0,0,0,0,0,0,0,0,  // 10 - 17
@@ -233,7 +231,7 @@ jschardet.ISO2022KR_cls = [
     2,2,2,2,2,2,2,2   // f8 - ff
 ];
 
-jschardet.ISO2022KR_st = [
+exports.ISO2022KR_st = [
     consts.start,    3,consts.error,consts.start,consts.start,consts.start,consts.error,consts.error, // 00-07
     consts.error,consts.error,consts.error,consts.error,consts.itsMe,consts.itsMe,consts.itsMe,consts.itsMe, // 08-0f
     consts.itsMe,consts.itsMe,consts.error,consts.error,consts.error,    4,consts.error,consts.error, // 10-17
@@ -241,14 +239,12 @@ jschardet.ISO2022KR_st = [
     consts.error,consts.error,consts.error,consts.itsMe,consts.start,consts.start,consts.start,consts.start  // 20-27
 ];
 
-jschardet.ISO2022KRCharLenTable = [0, 0, 0, 0, 0, 0];
+exports.ISO2022KRCharLenTable = [0, 0, 0, 0, 0, 0];
 
-jschardet.ISO2022KRSMModel = {
-    "classTable"    : jschardet.ISO2022KR_cls,
+exports.ISO2022KRSMModel = {
+    "classTable"    : exports.ISO2022KR_cls,
     "classFactor"   : 6,
-    "stateTable"    : jschardet.ISO2022KR_st,
-    "charLenTable"  : jschardet.ISO2022KRCharLenTable,
+    "stateTable"    : exports.ISO2022KR_st,
+    "charLenTable"  : exports.ISO2022KRCharLenTable,
     "name"          : "ISO-2022-KR"
 };
-
-}(require('./init'));

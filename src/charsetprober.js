@@ -27,11 +27,11 @@
  * 02110-1301  USA
  */
 
-!function(jschardet) {
+var constants = require('./constants')
 
-jschardet.CharSetProber = function() {
+function CharSetProber() {
     this.reset = function() {
-        this._mState = jschardet.Constants.detecting;
+        this._mState = constants.detecting;
     }
 
     this.getCharsetName = function() {
@@ -97,4 +97,4 @@ jschardet.CharSetProber = function() {
     }
 }
 
-}(require('./init'));
+module.exports = CharSetProber

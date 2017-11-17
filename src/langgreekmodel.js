@@ -27,15 +27,13 @@
  * 02110-1301  USA
  */
 
-!function(jschardet) {
-
 // 255: Control characters that usually does not exist in any text
 // 254: Carriage/Return
 // 253: symbol (punctuation) that does not belong to word
 // 252: 0 - 9
 
 // Character Mapping Table:
-jschardet.Latin7_CharToOrderMap = [
+exports.Latin7_CharToOrderMap = [
 255,255,255,255,255,255,255,255,255,255,254,255,255,254,255,255,  // 00
 255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,  // 10
 253,253,253,253,253,253,253,253,253,253,253,253,253,253,253,253,  // 20
@@ -54,7 +52,7 @@ jschardet.Latin7_CharToOrderMap = [
   9,  8, 14,  7,  2, 12, 28, 23, 42, 24, 64, 75, 19, 26, 27,253   // f0
 ];
 
-jschardet.win1253_CharToOrderMap = [
+exports.win1253_CharToOrderMap = [
 255,255,255,255,255,255,255,255,255,255,254,255,255,254,255,255,  // 00
 255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,  // 10
 253,253,253,253,253,253,253,253,253,253,253,253,253,253,253,253,  // 20
@@ -79,7 +77,7 @@ jschardet.win1253_CharToOrderMap = [
 // first 1024 sequences:1.7001%
 // rest  sequences:     0.0359%
 // negative sequences:  0.0148%
-jschardet.GreekLangModel = [
+exports.GreekLangModel = [
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,3,2,2,3,3,3,3,3,3,3,3,1,3,3,3,0,2,2,3,3,0,3,0,3,2,0,3,3,3,0,
@@ -210,20 +208,18 @@ jschardet.GreekLangModel = [
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 ];
 
-jschardet.Latin7GreekModel = {
-    "charToOrderMap"        : jschardet.Latin7_CharToOrderMap,
-    "precedenceMatrix"      : jschardet.GreekLangModel,
+exports.Latin7GreekModel = {
+    "charToOrderMap"        : exports.Latin7_CharToOrderMap,
+    "precedenceMatrix"      : exports.GreekLangModel,
     "mTypicalPositiveRatio" : 0.982851,
     "keepEnglishLetter"     : false,
     "charsetName"           : "ISO-8859-7"
 };
 
-jschardet.Win1253GreekModel = {
-    "charToOrderMap"        : jschardet.win1253_CharToOrderMap,
-    "precedenceMatrix"      : jschardet.GreekLangModel,
+exports.Win1253GreekModel = {
+    "charToOrderMap"        : exports.win1253_CharToOrderMap,
+    "precedenceMatrix"      : exports.GreekLangModel,
     "mTypicalPositiveRatio" : 0.982851,
     "keepEnglishLetter"     : false,
     "charsetName"           : "windows-1253"
 };
-
-}(require('./init'));

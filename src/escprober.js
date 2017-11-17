@@ -27,25 +27,28 @@
  * 02110-1301  USA
  */
 
-!function(jschardet) {
+var CharSetProber = require('./charsetprober');
+var CodingStateMachine = require('./codingstatemachine');
+var escsm = require('./escsm');
+var constants = require('./constants');
 
-jschardet.EscCharSetProber = function() {
-    jschardet.CharSetProber.apply(this);
+function EscCharSetProber() {
+    CharSetProber.apply(this);
 
     var self = this;
 
     function init() {
         self._mCodingSM = [
-            new jschardet.CodingStateMachine(jschardet.HZSMModel),
-            new jschardet.CodingStateMachine(jschardet.ISO2022CNSMModel),
-            new jschardet.CodingStateMachine(jschardet.ISO2022JPSMModel),
-            new jschardet.CodingStateMachine(jschardet.ISO2022KRSMModel)
+            new CodingStateMachine(escsm.HZSMModel),
+            new CodingStateMachine(escsm.ISO2022CNSMModel),
+            new CodingStateMachine(escsm.ISO2022JPSMModel),
+            new CodingStateMachine(escsm.ISO2022KRSMModel)
         ];
         self.reset();
     }
 
     this.reset = function() {
-        jschardet.EscCharSetProber.prototype.reset.apply(this);
+        EscCharSetProber.prototype.reset.apply(this);
         for( var i = 0, codingSM; codingSM = this._mCodingSM[i]; i++ ) {
             if( !codingSM ) continue;
             codingSM.active = true;
@@ -73,15 +76,15 @@ jschardet.EscCharSetProber = function() {
             for( var j = 0, codingSM; codingSM = this._mCodingSM[j]; j++ ) {
                 if( !codingSM || !codingSM.active ) continue;
                 var codingState = codingSM.nextState(c);
-                if( codingState == jschardet.Constants.error ) {
+                if( codingState == constants.error ) {
                     codingSM.active = false;
                     this._mActiveSM--;
                     if( this._mActiveSM <= 0 ) {
-                        this._mState = jschardet.Constants.notMe;
+                        this._mState = constants.notMe;
                         return this.getState();
                     }
-                } else if( codingState == jschardet.Constants.itsMe ) {
-                    this._mState = jschardet.Constants.foundIt;
+                } else if( codingState == constants.itsMe ) {
+                    this._mState = constants.foundIt;
                     this._mDetectedCharset = codingSM.getCodingStateMachine();
                     return this.getState();
                 }
@@ -93,6 +96,6 @@ jschardet.EscCharSetProber = function() {
 
     init();
 }
-jschardet.EscCharSetProber.prototype = new jschardet.CharSetProber();
+EscCharSetProber.prototype = new CharSetProber();
 
-}(require('./init'));
+module.exports = EscCharSetProber

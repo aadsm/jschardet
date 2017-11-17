@@ -27,8 +27,6 @@
  * 02110-1301  USA
  */
 
-!function(jschardet) {
-
 // Sampling from about 20M text materials include literature and computer technology
 //
 // Japanese frequency table, applied to both S-JIS and EUC-JP
@@ -45,11 +43,11 @@
 //
 // Typical Distribution Ratio, 25% of IDR
 
-jschardet.JIS_TYPICAL_DISTRIBUTION_RATIO = 3.0;
+exports.JIS_TYPICAL_DISTRIBUTION_RATIO = 3.0;
 
-jschardet.JIS_TABLE_SIZE = 4368;
+exports.JIS_TABLE_SIZE = 4368;
 
-jschardet.JISCharToFreqOrder = [
+exports.JISCharToFreqOrder = [
   40,   1,   6, 182, 152, 180, 295,2127, 285, 381,3295,4304,3068,4606,3165,3510, //   16
 3511,1822,2785,4607,1193,2226,5070,4608, 171,2996,1247,  18, 179,5071, 856,1661, //   32
 1262,5072, 619, 127,3431,3512,3230,1899,1700, 232, 228,1294,1298, 284, 283,2041, //   48
@@ -569,5 +567,3 @@ jschardet.JISCharToFreqOrder = [
 8240,8241,8242,8243,8244,8245,8246,8247,8248,8249,8250,8251,8252,8253,8254,8255, // 8256
 8256,8257,8258,8259,8260,8261,8262,8263,8264,8265,8266,8267,8268,8269,8270,8271 // 8272
 ];
-
-}(require('./init'));

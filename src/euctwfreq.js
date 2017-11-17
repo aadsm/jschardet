@@ -27,8 +27,6 @@
  * 02110-1301  USA
  */
 
-!function(jschardet) {
-
 // EUCTW frequency table
 // Converted from big5 work
 // by Taiwan's Mandarin Promotion Council
@@ -45,12 +43,12 @@
 //
 // Typical Distribution Ratio about 25% of Ideal one, still much higher than RDR
 
-jschardet.EUCTW_TYPICAL_DISTRIBUTION_RATIO = 0.75;
+exports.EUCTW_TYPICAL_DISTRIBUTION_RATIO = 0.75;
 
 // Char to FreqOrder table ,
-jschardet.EUCTW_TABLE_SIZE = 8102;
+exports.EUCTW_TABLE_SIZE = 8102;
 
-jschardet.EUCTWCharToFreqOrder = [
+exports.EUCTWCharToFreqOrder = [
    1,1800,1506, 255,1431, 198,   9,  82,   6,7310, 177, 202,3615,1256,2808, 110, // 2742
 3735,  33,3241, 261,  76,  44,2113,  16,2931,2184,1176, 659,3868,  26,3404,2643, // 2758
 1198,3869,3313,4060, 410,2211, 302, 590, 361,1963,   8, 204,  58,4296,7311,1931, // 2774
@@ -429,5 +427,3 @@ jschardet.EUCTWCharToFreqOrder = [
 8710,8711,8712,8713,8714,8715,8716,8717,8718,8719,8720,8721,8722,8723,8724,8725, // 8726
 8726,8727,8728,8729,8730,8731,8732,8733,8734,8735,8736,8737,8738,8739,8740,8741
 ]; // 8742
-
-}(require('./init'));

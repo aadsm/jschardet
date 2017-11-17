@@ -27,15 +27,13 @@
  * 02110-1301  USA
  */
 
-!function(jschardet) {
-
 // 255: Control characters that usually does not exist in any text
 // 254: Carriage/Return
 // 253: symbol (punctuation) that does not belong to word
 // 252: 0 - 9
 
 // Character Mapping Table:
-jschardet.Latin2_HungarianCharToOrderMap = [
+exports.Latin2_HungarianCharToOrderMap = [
 255,255,255,255,255,255,255,255,255,255,254,255,255,254,255,255,  // 00
 255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,  // 10
 253,253,253,253,253,253,253,253,253,253,253,253,253,253,253,253,  // 20
@@ -54,7 +52,7 @@ jschardet.Latin2_HungarianCharToOrderMap = [
 245,246,247, 25, 73, 42, 24,248,249,250, 31, 56, 29,251,252,253
 ]
 
-jschardet.win1250HungarianCharToOrderMap = [
+exports.win1250HungarianCharToOrderMap = [
 255,255,255,255,255,255,255,255,255,255,254,255,255,254,255,255,  // 00
 255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,  // 10
 253,253,253,253,253,253,253,253,253,253,253,253,253,253,253,253,  // 20
@@ -79,7 +77,7 @@ jschardet.win1250HungarianCharToOrderMap = [
 // first 1024 sequences:5.2623%
 // rest  sequences:     0.8894%
 // negative sequences:  0.0009%
-jschardet.HungarianLangModel = [
+exports.HungarianLangModel = [
 0,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,1,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,
 3,3,3,3,3,3,3,3,3,3,2,3,3,3,3,3,3,3,3,2,2,3,3,1,1,2,2,2,2,2,1,2,
 3,2,2,3,3,3,3,3,2,3,3,3,3,3,3,1,2,3,3,3,3,2,3,3,1,1,3,3,0,1,1,1,
@@ -210,20 +208,18 @@ jschardet.HungarianLangModel = [
 0,1,1,1,1,1,1,0,1,1,0,1,0,1,0,0,1,1,0,0,1,1,0,0,0,0,0,0,0,0,0,0
 ];
 
-jschardet.Latin2HungarianModel = {
-    "charToOrderMap"        : jschardet.Latin2_HungarianCharToOrderMap,
-    "precedenceMatrix"      : jschardet.HungarianLangModel,
+exports.Latin2HungarianModel = {
+    "charToOrderMap"        : exports.Latin2_HungarianCharToOrderMap,
+    "precedenceMatrix"      : exports.HungarianLangModel,
     "mTypicalPositiveRatio" : 0.947368,
     "keepEnglishLetter"     : true,
     "charsetName"           : "ISO-8859-2"
 };
 
-jschardet.Win1250HungarianModel = {
-    "charToOrderMap"        : jschardet.win1250HungarianCharToOrderMap,
-    "precedenceMatrix"      : jschardet.HungarianLangModel,
+exports.Win1250HungarianModel = {
+    "charToOrderMap"        : exports.win1250HungarianCharToOrderMap,
+    "precedenceMatrix"      : exports.HungarianLangModel,
     "mTypicalPositiveRatio" : 0.947368,
     "keepEnglishLetter"     : true,
     "charsetName"           : "windows-1250"
 };
-
-}(require('./init'));

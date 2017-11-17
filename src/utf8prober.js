@@ -27,21 +27,24 @@
  * 02110-1301  USA
  */
 
-!function(jschardet) {
+var CodingStateMachine = require('./codingstatemachine');
+var CharSetProber = require('./charsetprober');
+var constants = require('./constants')
+var UTF8SMModel = require('./mbcssm').UTF8SMModel
 
-jschardet.UTF8Prober = function() {
-    jschardet.CharSetProber.apply(this);
+function UTF8Prober() {
+    CharSetProber.apply(this);
 
     var ONE_CHAR_PROB = 0.5;
     var self = this;
 
     function init() {
-        self._mCodingSM = new jschardet.CodingStateMachine(jschardet.UTF8SMModel);
+        self._mCodingSM = new CodingStateMachine(UTF8SMModel);
         self.reset();
     }
 
     this.reset = function() {
-        jschardet.UTF8Prober.prototype.reset.apply(this);
+        UTF8Prober.prototype.reset.apply(this);
         this._mCodingSM.reset();
         this._mNumOfMBChar = 0;
     }
@@ -54,22 +57,22 @@ jschardet.UTF8Prober = function() {
         for( var i = 0, c; i < aBuf.length; i++ ) {
             c = aBuf[i];
             var codingState = this._mCodingSM.nextState(c);
-            if( codingState == jschardet.Constants.error ) {
-                this._mState = jschardet.Constants.notMe;
+            if( codingState == constants.error ) {
+                this._mState = constants.notMe;
                 break;
-            } else if( codingState == jschardet.Constants.itsMe ) {
-                this._mState = jschardet.Constants.foundIt;
+            } else if( codingState == constants.itsMe ) {
+                this._mState = constants.foundIt;
                 break;
-            } else if( codingState == jschardet.Constants.start ) {
+            } else if( codingState == constants.start ) {
                 if( this._mCodingSM.getCurrentCharLen() >= 2 ) {
                     this._mNumOfMBChar++;
                 }
             }
         }
 
-        if( this.getState() == jschardet.Constants.detecting ) {
-            if( this.getConfidence() > jschardet.Constants.SHORTCUT_THRESHOLD ) {
-                this._mState = jschardet.Constants.foundIt;
+        if( this.getState() == constants.detecting ) {
+            if( this.getConfidence() > constants.SHORTCUT_THRESHOLD ) {
+                this._mState = constants.foundIt;
             }
         }
 
@@ -90,6 +93,6 @@ jschardet.UTF8Prober = function() {
 
     init();
 }
-jschardet.UTF8Prober.prototype = new jschardet.CharSetProber();
+UTF8Prober.prototype = new CharSetProber();
 
-}(require('./init'));
+module.exports = UTF8Prober;

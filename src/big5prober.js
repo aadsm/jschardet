@@ -27,16 +27,19 @@
  * 02110-1301  USA
  */
 
-!function(jschardet) {
+var CodingStateMachine = require('./codingstatemachine')
+var MultiByteCharSetProber = require('./mbcharsetprober')
+var Big5SMModel = require('./mbcssm').Big5SMModel
+var Big5DistributionAnalysis = require('./chardistribution').Big5DistributionAnalysis
 
-jschardet.Big5Prober = function() {
-    jschardet.MultiByteCharSetProber.apply(this);
+function Big5Prober() {
+    MultiByteCharSetProber.apply(this);
 
     var self = this;
 
     function init() {
-        self._mCodingSM = new jschardet.CodingStateMachine(jschardet.Big5SMModel);
-        self._mDistributionAnalyzer = new jschardet.Big5DistributionAnalysis();
+        self._mCodingSM = new CodingStateMachine(Big5SMModel);
+        self._mDistributionAnalyzer = new Big5DistributionAnalysis();
         self.reset();
     }
 
@@ -46,6 +49,6 @@ jschardet.Big5Prober = function() {
 
     init();
 }
-jschardet.Big5Prober.prototype = new jschardet.MultiByteCharSetProber();
+Big5Prober.prototype = new MultiByteCharSetProber();
 
-}(require('./init'));
+module.exports = Big5Prober

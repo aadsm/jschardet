@@ -27,8 +27,6 @@
  * 02110-1301  USA
  */
 
-!function(jschardet) {
-
 // This prober doesn't actually recognize a language or a charset.
 // It is a helper prober for the use of the Hebrew model probers
 
@@ -126,8 +124,35 @@
 // model probers scores. The answer is returned in the form of the name of the
 // charset identified, either "windows-1255" or "ISO-8859-8".
 
-jschardet.HebrewProber = function() {
-    jschardet.CharSetProber.apply(this);
+var CharSetProber = require('./charsetprober');
+var constants = require('./constants')
+
+// https://developer.mozilla.org/En/Core_JavaScript_1.5_Reference/Objects/Array/IndexOf
+if (!Array.prototype.indexOf)
+{
+    Array.prototype.indexOf = function(elt /*, from*/)
+    {
+        var len = this.length >>> 0;
+
+        var from = Number(arguments[1]) || 0;
+        from = (from < 0)
+             ? Math.ceil(from)
+             : Math.floor(from);
+        if (from < 0)
+            from += len;
+
+        for (; from < len; from++)
+        {
+            if (from in this &&
+                this[from] === elt)
+                return from;
+        }
+        return -1;
+    };
+}
+
+function HebrewProber() {
+    CharSetProber.apply(this);
 
     // windows-1255 / ISO-8859-8 code points of interest
     var FINAL_KAF = '\xea'
@@ -218,9 +243,9 @@ jschardet.HebrewProber = function() {
         // We automatically filter out all 7-bit characters (replace them with spaces)
         // so the word boundary detection works properly. [MAP]
 
-        if( this.getState() == jschardet.Constants.notMe ) {
+        if( this.getState() == constants.notMe ) {
             // Both model probers say it's not them. No reason to continue.
-            return jschardet.Constants.notMe;
+            return constants.notMe;
         }
 
         aBuf = this.filterHighBitOnly(aBuf);
@@ -250,7 +275,7 @@ jschardet.HebrewProber = function() {
             this._mPrev = cur;
         }
         // Forever detecting, till the end or until both model probers return eNotMe (handled above)
-        return jschardet.Constants.detecting;
+        return constants.detecting;
     }
 
     this.getCharsetName = function() {
@@ -284,39 +309,15 @@ jschardet.HebrewProber = function() {
 
     this.getState = function() {
         // Remain active as long as any of the model probers are active.
-        if( this._mLogicalProber.getState() == jschardet.Constants.notMe &&
-            this._mVisualProber.getState() == jschardet.Constants.notMe ) {
-            return jschardet.Constants.notMe;
+        if( this._mLogicalProber.getState() == constants.notMe &&
+            this._mVisualProber.getState() == constants.notMe ) {
+            return constants.notMe;
         }
-        return jschardet.Constants.detecting;
+        return constants.detecting;
     }
 
     init();
 }
-jschardet.HebrewProber.prototype = new jschardet.CharSetProber();
+HebrewProber.prototype = new CharSetProber();
 
-// https://developer.mozilla.org/En/Core_JavaScript_1.5_Reference/Objects/Array/IndexOf
-if (!Array.prototype.indexOf)
-{
-    Array.prototype.indexOf = function(elt /*, from*/)
-    {
-        var len = this.length >>> 0;
-
-        var from = Number(arguments[1]) || 0;
-        from = (from < 0)
-             ? Math.ceil(from)
-             : Math.floor(from);
-        if (from < 0)
-            from += len;
-
-        for (; from < len; from++)
-        {
-            if (from in this &&
-                this[from] === elt)
-                return from;
-        }
-        return -1;
-    };
-}
-
-}(require('./init'));
+module.exports = HebrewProber

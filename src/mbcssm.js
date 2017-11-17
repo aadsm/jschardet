@@ -27,13 +27,11 @@
  * 02110-1301  USA
  */
 
-!function(jschardet) {
-
-var consts = jschardet.Constants;
+var consts = require('./constants');
 
 // BIG5
 
-jschardet.BIG5_cls = [
+exports.BIG5_cls = [
     1,1,1,1,1,1,1,1,  // 00 - 07    //allow 0x00 as legal value
     1,1,1,1,1,1,0,0,  // 08 - 0f
     1,1,1,1,1,1,1,1,  // 10 - 17
@@ -68,25 +66,25 @@ jschardet.BIG5_cls = [
     3,3,3,3,3,3,3,0   // f8 - ff
 ];
 
-jschardet.BIG5_st = [
+exports.BIG5_st = [
     consts.error,consts.start,consts.start,    3,consts.error,consts.error,consts.error,consts.error, //00-07
     consts.error,consts.error,consts.itsMe,consts.itsMe,consts.itsMe,consts.itsMe,consts.itsMe,consts.error, //08-0f
     consts.error,consts.start,consts.start,consts.start,consts.start,consts.start,consts.start,consts.start  //10-17
 ];
 
-jschardet.Big5CharLenTable = [0, 1, 1, 2, 0];
+exports.Big5CharLenTable = [0, 1, 1, 2, 0];
 
-jschardet.Big5SMModel = {
-    "classTable"    : jschardet.BIG5_cls,
+exports.Big5SMModel = {
+    "classTable"    : exports.BIG5_cls,
     "classFactor"   : 5,
-    "stateTable"    : jschardet.BIG5_st,
-    "charLenTable"  : jschardet.Big5CharLenTable,
+    "stateTable"    : exports.BIG5_st,
+    "charLenTable"  : exports.Big5CharLenTable,
     "name"          : "Big5"
 };
 
 // EUC-JP
 
-jschardet.EUCJP_cls = [
+exports.EUCJP_cls = [
     4,4,4,4,4,4,4,4,  // 00 - 07
     4,4,4,4,4,4,5,5,  // 08 - 0f
     4,4,4,4,4,4,4,4,  // 10 - 17
@@ -121,7 +119,7 @@ jschardet.EUCJP_cls = [
     0,0,0,0,0,0,0,5   // f8 - ff
 ];
 
-jschardet.EUCJP_st = [
+exports.EUCJP_st = [
          3,    4,    3,    5,consts.start,consts.error,consts.error,consts.error, //00-07
      consts.error,consts.error,consts.error,consts.error,consts.itsMe,consts.itsMe,consts.itsMe,consts.itsMe, //08-0f
      consts.itsMe,consts.itsMe,consts.start,consts.error,consts.start,consts.error,consts.error,consts.error, //10-17
@@ -129,19 +127,19 @@ jschardet.EUCJP_st = [
          3,consts.error,consts.error,consts.error,consts.start,consts.start,consts.start,consts.start  //20-27
 ];
 
-jschardet.EUCJPCharLenTable = [2, 2, 2, 3, 1, 0];
+exports.EUCJPCharLenTable = [2, 2, 2, 3, 1, 0];
 
-jschardet.EUCJPSMModel = {
-    "classTable"    : jschardet.EUCJP_cls,
+exports.EUCJPSMModel = {
+    "classTable"    : exports.EUCJP_cls,
     "classFactor"   : 6,
-    "stateTable"    : jschardet.EUCJP_st,
-    "charLenTable"  : jschardet.EUCJPCharLenTable,
+    "stateTable"    : exports.EUCJP_st,
+    "charLenTable"  : exports.EUCJPCharLenTable,
     "name"          : "EUC-JP"
 };
 
 // EUC-KR
 
-jschardet.EUCKR_cls  = [
+exports.EUCKR_cls  = [
     1,1,1,1,1,1,1,1,  // 00 - 07
     1,1,1,1,1,1,0,0,  // 08 - 0f
     1,1,1,1,1,1,1,1,  // 10 - 17
@@ -176,24 +174,24 @@ jschardet.EUCKR_cls  = [
     2,2,2,2,2,2,2,0   // f8 - ff
 ];
 
-jschardet.EUCKR_st = [
+exports.EUCKR_st = [
     consts.error,consts.start,    3,consts.error,consts.error,consts.error,consts.error,consts.error, //00-07
     consts.itsMe,consts.itsMe,consts.itsMe,consts.itsMe,consts.error,consts.error,consts.start,consts.start  //08-0f
 ];
 
-jschardet.EUCKRCharLenTable = [0, 1, 2, 0];
+exports.EUCKRCharLenTable = [0, 1, 2, 0];
 
-jschardet.EUCKRSMModel = {
-    "classTable"    : jschardet.EUCKR_cls,
+exports.EUCKRSMModel = {
+    "classTable"    : exports.EUCKR_cls,
     "classFactor"   : 4,
-    "stateTable"    : jschardet.EUCKR_st,
-    "charLenTable"  : jschardet.EUCKRCharLenTable,
+    "stateTable"    : exports.EUCKR_st,
+    "charLenTable"  : exports.EUCKRCharLenTable,
     "name"          : "EUC-KR"
 };
 
 // EUC-TW
 
-jschardet.EUCTW_cls = [
+exports.EUCTW_cls = [
     2,2,2,2,2,2,2,2,  // 00 - 07
     2,2,2,2,2,2,0,0,  // 08 - 0f
     2,2,2,2,2,2,2,2,  // 10 - 17
@@ -228,7 +226,7 @@ jschardet.EUCTW_cls = [
     3,3,3,3,3,3,3,0   // f8 - ff
 ];
 
-jschardet.EUCTW_st = [
+exports.EUCTW_st = [
     consts.error,consts.error,consts.start,    3,    3,    3,    4,consts.error, //00-07
     consts.error,consts.error,consts.error,consts.error,consts.error,consts.error,consts.itsMe,consts.itsMe, //08-0f
     consts.itsMe,consts.itsMe,consts.itsMe,consts.itsMe,consts.itsMe,consts.error,consts.start,consts.error, //10-17
@@ -237,19 +235,19 @@ jschardet.EUCTW_st = [
     consts.start,consts.error,consts.start,consts.start,consts.start,consts.start,consts.start,consts.start  //28-2f
 ];
 
-jschardet.EUCTWCharLenTable = [0, 0, 1, 2, 2, 2, 3];
+exports.EUCTWCharLenTable = [0, 0, 1, 2, 2, 2, 3];
 
-jschardet.EUCTWSMModel = {
-    "classTable"    : jschardet.EUCTW_cls,
+exports.EUCTWSMModel = {
+    "classTable"    : exports.EUCTW_cls,
     "classFactor"   : 7,
-    "stateTable"    : jschardet.EUCTW_st,
-    "charLenTable"  : jschardet.EUCTWCharLenTable,
+    "stateTable"    : exports.EUCTW_st,
+    "charLenTable"  : exports.EUCTWCharLenTable,
     "name"          : "x-euc-tw"
 };
 
 // GB2312
 
-jschardet.GB2312_cls = [
+exports.GB2312_cls = [
     1,1,1,1,1,1,1,1,  // 00 - 07
     1,1,1,1,1,1,0,0,  // 08 - 0f
     1,1,1,1,1,1,1,1,  // 10 - 17
@@ -284,7 +282,7 @@ jschardet.GB2312_cls = [
     6,6,6,6,6,6,6,0   // f8 - ff
 ];
 
-jschardet.GB2312_st = [
+exports.GB2312_st = [
     consts.error,consts.start,consts.start,consts.start,consts.start,consts.start,    3,consts.error, //00-07
     consts.error,consts.error,consts.error,consts.error,consts.error,consts.error,consts.itsMe,consts.itsMe, //08-0f
     consts.itsMe,consts.itsMe,consts.itsMe,consts.itsMe,consts.itsMe,consts.error,consts.error,consts.start, //10-17
@@ -298,19 +296,19 @@ jschardet.GB2312_st = [
 // it is used for frequency analysis only, and we are validing
 // each code range there as well. So it is safe to set it to be
 // 2 here.
-jschardet.GB2312CharLenTable = [0, 1, 1, 1, 1, 1, 2];
+exports.GB2312CharLenTable = [0, 1, 1, 1, 1, 1, 2];
 
-jschardet.GB2312SMModel = {
-    "classTable"    : jschardet.GB2312_cls,
+exports.GB2312SMModel = {
+    "classTable"    : exports.GB2312_cls,
     "classFactor"   : 7,
-    "stateTable"    : jschardet.GB2312_st,
-    "charLenTable"  : jschardet.GB2312CharLenTable,
+    "stateTable"    : exports.GB2312_st,
+    "charLenTable"  : exports.GB2312CharLenTable,
     "name"          : "GB2312"
 };
 
 // Shift_JIS
 
-jschardet.SJIS_cls = [
+exports.SJIS_cls = [
     1,1,1,1,1,1,1,1,  // 00 - 07
     1,1,1,1,1,1,0,0,  // 08 - 0f
     1,1,1,1,1,1,1,1,  // 10 - 17
@@ -347,25 +345,25 @@ jschardet.SJIS_cls = [
     3,3,3,3,3,0,0,0   // f8 - ff
 ];
 
-jschardet.SJIS_st = [
+exports.SJIS_st = [
     consts.error,consts.start,consts.start,    3,consts.error,consts.error,consts.error,consts.error, //00-07
     consts.error,consts.error,consts.error,consts.error,consts.itsMe,consts.itsMe,consts.itsMe,consts.itsMe, //08-0f
     consts.itsMe,consts.itsMe,consts.error,consts.error,consts.start,consts.start,consts.start,consts.start  //10-17
 ];
 
-jschardet.SJISCharLenTable = [0, 1, 1, 2, 0, 0];
+exports.SJISCharLenTable = [0, 1, 1, 2, 0, 0];
 
-jschardet.SJISSMModel = {
-    "classTable"    : jschardet.SJIS_cls,
+exports.SJISSMModel = {
+    "classTable"    : exports.SJIS_cls,
     "classFactor"   : 6,
-    "stateTable"    : jschardet.SJIS_st,
-    "charLenTable"  : jschardet.SJISCharLenTable,
+    "stateTable"    : exports.SJIS_st,
+    "charLenTable"  : exports.SJISCharLenTable,
     "name"          : "Shift_JIS"
 };
 
 //UCS2-BE
 
-jschardet.UCS2BE_cls = [
+exports.UCS2BE_cls = [
     0,0,0,0,0,0,0,0,  // 00 - 07
     0,0,1,0,0,2,0,0,  // 08 - 0f
     0,0,0,0,0,0,0,0,  // 10 - 17
@@ -400,7 +398,7 @@ jschardet.UCS2BE_cls = [
     0,0,0,0,0,0,4,5   // f8 - ff
 ];
 
-jschardet.UCS2BE_st  = [
+exports.UCS2BE_st  = [
          5,    7,    7,consts.error,    4,    3,consts.error,consts.error, //00-07
      consts.error,consts.error,consts.error,consts.error,consts.itsMe,consts.itsMe,consts.itsMe,consts.itsMe, //08-0f
      consts.itsMe,consts.itsMe,    6,    6,    6,    6,consts.error,consts.error, //10-17
@@ -410,19 +408,19 @@ jschardet.UCS2BE_st  = [
          6,    6,    6,    6,consts.error,consts.error,consts.start,consts.start  //30-37
 ];
 
-jschardet.UCS2BECharLenTable = [2, 2, 2, 0, 2, 2];
+exports.UCS2BECharLenTable = [2, 2, 2, 0, 2, 2];
 
-jschardet.UCS2BESMModel = {
-    "classTable"    : jschardet.UCS2BE_cls,
+exports.UCS2BESMModel = {
+    "classTable"    : exports.UCS2BE_cls,
     "classFactor"   : 6,
-    "stateTable"    : jschardet.UCS2BE_st,
-    "charLenTable"  : jschardet.UCS2BECharLenTable,
+    "stateTable"    : exports.UCS2BE_st,
+    "charLenTable"  : exports.UCS2BECharLenTable,
     "name"          : "UTF-16BE"
 };
 
 // UCS2-LE
 
-jschardet.UCS2LE_cls = [
+exports.UCS2LE_cls = [
     0,0,0,0,0,0,0,0,  // 00 - 07
     0,0,1,0,0,2,0,0,  // 08 - 0f
     0,0,0,0,0,0,0,0,  // 10 - 17
@@ -457,7 +455,7 @@ jschardet.UCS2LE_cls = [
     0,0,0,0,0,0,4,5   // f8 - ff
 ];
 
-jschardet.UCS2LE_st = [
+exports.UCS2LE_st = [
          6,    6,    7,    6,    4,    3,consts.error,consts.error, //00-07
      consts.error,consts.error,consts.error,consts.error,consts.itsMe,consts.itsMe,consts.itsMe,consts.itsMe, //08-0f
      consts.itsMe,consts.itsMe,    5,    5,    5,consts.error,consts.itsMe,consts.error, //10-17
@@ -467,19 +465,19 @@ jschardet.UCS2LE_st = [
          5,    5,    5,consts.error,    5,consts.error,consts.start,consts.start  //30-37
 ];
 
-jschardet.UCS2LECharLenTable = [2, 2, 2, 2, 2, 2];
+exports.UCS2LECharLenTable = [2, 2, 2, 2, 2, 2];
 
-jschardet.UCS2LESMModel = {
-    "classTable"    : jschardet.UCS2LE_cls,
+exports.UCS2LESMModel = {
+    "classTable"    : exports.UCS2LE_cls,
     "classFactor"   : 6,
-    "stateTable"    : jschardet.UCS2LE_st,
-    "charLenTable"  : jschardet.UCS2LECharLenTable,
+    "stateTable"    : exports.UCS2LE_st,
+    "charLenTable"  : exports.UCS2LECharLenTable,
     "name"          : "UTF-16LE"
 };
 
 // UTF-8
 
-jschardet.UTF8_cls = [
+exports.UTF8_cls = [
     1,1,1,1,1,1,1,1,  // 00 - 07  //allow 0x00 as a legal value
     1,1,1,1,1,1,0,0,  // 08 - 0f
     1,1,1,1,1,1,1,1,  // 10 - 17
@@ -514,7 +512,7 @@ jschardet.UTF8_cls = [
     12,13,13,13,14,15,0,0    // f8 - ff
 ];
 
-jschardet.UTF8_st = [
+exports.UTF8_st = [
     consts.error,consts.start,consts.error,consts.error,consts.error,consts.error,    12,  10, //00-07
         9,    11,    8,    7,    6,    5,    4,   3, //08-0f
     consts.error,consts.error,consts.error,consts.error,consts.error,consts.error,consts.error,consts.error, //10-17
@@ -543,14 +541,12 @@ jschardet.UTF8_st = [
     consts.error,consts.error,consts.error,consts.error,consts.error,consts.error,consts.error,consts.error  //c8-cf
 ];
 
-jschardet.UTF8CharLenTable = [0, 1, 0, 0, 0, 0, 2, 3, 3, 3, 4, 4, 5, 5, 6, 6];
+exports.UTF8CharLenTable = [0, 1, 0, 0, 0, 0, 2, 3, 3, 3, 4, 4, 5, 5, 6, 6];
 
-jschardet.UTF8SMModel = {
-    "classTable"    : jschardet.UTF8_cls,
+exports.UTF8SMModel = {
+    "classTable"    : exports.UTF8_cls,
     "classFactor"   : 16,
-    "stateTable"    : jschardet.UTF8_st,
-    "charLenTable"  : jschardet.UTF8CharLenTable,
+    "stateTable"    : exports.UTF8_st,
+    "charLenTable"  : exports.UTF8CharLenTable,
     "name"          : "UTF-8"
 };
-
-}(require('./init'));

@@ -27,8 +27,6 @@
  * 02110-1301  USA
  */
 
-!function(jschardet) {
-
 // 255: Control characters that usually does not exist in any text
 // 254: Carriage/Return
 // 253: symbol (punctuation) that does not belong to word
@@ -38,7 +36,7 @@
 // this table is modified base on win1251BulgarianCharToOrderMap, so
 // only number <64 is sure valid
 
-jschardet.Latin5_BulgarianCharToOrderMap = [
+exports.Latin5_BulgarianCharToOrderMap = [
 255,255,255,255,255,255,255,255,255,255,254,255,255,254,255,255,  // 00
 255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,  // 10
 253,253,253,253,253,253,253,253,253,253,253,253,253,253,253,253,  // 20
@@ -57,7 +55,7 @@ jschardet.Latin5_BulgarianCharToOrderMap = [
  62,242,243,244, 58,245, 98,246,247,248,249,250,251, 91,252,253   // f0
 ];
 
-jschardet.win1251BulgarianCharToOrderMap = [
+exports.win1251BulgarianCharToOrderMap = [
 255,255,255,255,255,255,255,255,255,255,254,255,255,254,255,255,  // 00
 255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,  // 10
 253,253,253,253,253,253,253,253,253,253,253,253,253,253,253,253,  // 20
@@ -82,7 +80,7 @@ jschardet.win1251BulgarianCharToOrderMap = [
 // first 1024 sequences:3.0618%
 // rest  sequences:     0.2992%
 // negative sequences:  0.0020%
-jschardet.BulgarianLangModel = [
+exports.BulgarianLangModel = [
 0,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,2,3,3,3,3,3,3,3,3,2,3,3,3,3,3,
 3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,0,3,3,3,2,2,3,2,2,1,2,2,
 3,1,3,3,2,3,3,3,3,3,3,3,3,3,3,3,3,0,3,3,3,3,3,3,3,3,3,3,0,3,0,1,
@@ -213,20 +211,18 @@ jschardet.BulgarianLangModel = [
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1
 ];
 
-jschardet.Latin5BulgarianModel = {
-    "charToOrderMap"        : jschardet.Latin5_BulgarianCharToOrderMap,
-    "precedenceMatrix"      : jschardet.BulgarianLangModel,
+exports.Latin5BulgarianModel = {
+    "charToOrderMap"        : exports.Latin5_BulgarianCharToOrderMap,
+    "precedenceMatrix"      : exports.BulgarianLangModel,
     "mTypicalPositiveRatio" : 0.969392,
     "keepEnglishLetter"     : false,
     "charsetName"           : "ISO-8859-5"
 };
 
-jschardet.Win1251BulgarianModel = {
-    "charToOrderMap"        : jschardet.win1251BulgarianCharToOrderMap,
-    "precedenceMatrix"      : jschardet.BulgarianLangModel,
+exports.Win1251BulgarianModel = {
+    "charToOrderMap"        : exports.win1251BulgarianCharToOrderMap,
+    "precedenceMatrix"      : exports.BulgarianLangModel,
     "mTypicalPositiveRatio" : 0.969392,
     "keepEnglishLetter"     : false,
     "charsetName"           : "windows-1251"
 };
-
-}(require('./init'));

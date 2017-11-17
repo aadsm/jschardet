@@ -27,21 +27,28 @@
  * 02110-1301  USA
  */
 
-!function(jschardet) {
+var CharSetGroupProber = require('./charsetgroupprober');
+var Big5Prober = require('./big5prober');
+var UTF8Prober = require('./utf8prober');
+var SJISProber = require('./sjisprober');
+var EUCJPProber = require('./eucjpprober');
+var GB2312Prober = require('./gb2312prober');
+var EUCKRProber = require('./euckrprober');
+var EUCTWProber = require('./euctwprober');
 
-jschardet.MBCSGroupProber = function() {
-    jschardet.CharSetGroupProber.apply(this);
+function MBCSGroupProber() {
+    CharSetGroupProber.apply(this);
     this._mProbers = [
-        new jschardet.UTF8Prober(),
-        new jschardet.SJISProber(),
-        new jschardet.EUCJPProber(),
-        new jschardet.GB2312Prober(),
-        new jschardet.EUCKRProber(),
-        new jschardet.Big5Prober(),
-        new jschardet.EUCTWProber()
+        new UTF8Prober(),
+        new SJISProber(),
+        new EUCJPProber(),
+        new GB2312Prober(),
+        new EUCKRProber(),
+        new Big5Prober(),
+        new EUCTWProber()
     ];
     this.reset();
 }
-jschardet.MBCSGroupProber.prototype = new jschardet.CharSetGroupProber();
+MBCSGroupProber.prototype = new CharSetGroupProber();
 
-}(require('./init'));
+module.exports = MBCSGroupProber

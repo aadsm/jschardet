@@ -27,9 +27,13 @@
  * 02110-1301  USA
  */
 
-!function(jschardet) {
+var jisfreq = require('./jisfreq');
+var euctwfreq = require('./euctwfreq');
+var euckrfreq = require('./euckrfreq');
+var gb2312freq = require('./gb2312freq');
+var big5freq = require('./big5freq');
 
-jschardet.CharDistributionAnalysis = function() {
+function CharDistributionAnalysis() {
     var ENOUGH_DATA_THRESHOLD = 1024;
     var SURE_YES = 0.99;
     var SURE_NO = 0.01;
@@ -109,15 +113,17 @@ jschardet.CharDistributionAnalysis = function() {
     init();
 }
 
-jschardet.EUCTWDistributionAnalysis = function() {
-    jschardet.CharDistributionAnalysis.apply(this);
+exports.CharDistributionAnalysis = CharDistributionAnalysis
+
+function EUCTWDistributionAnalysis() {
+    CharDistributionAnalysis.apply(this);
 
     var self = this;
 
     function init() {
-        self._mCharToFreqOrder = jschardet.EUCTWCharToFreqOrder;
-        self._mTableSize = jschardet.EUCTW_TABLE_SIZE;
-        self._mTypicalDistributionRatio = jschardet.EUCTW_TYPICAL_DISTRIBUTION_RATIO;
+        self._mCharToFreqOrder = euctwfreq.EUCTWCharToFreqOrder;
+        self._mTableSize = euctwfreq.EUCTW_TABLE_SIZE;
+        self._mTypicalDistributionRatio = euctwfreq.EUCTW_TYPICAL_DISTRIBUTION_RATIO;
     }
 
     this.getOrder = function(aStr) {
@@ -134,17 +140,19 @@ jschardet.EUCTWDistributionAnalysis = function() {
 
     init();
 }
-jschardet.EUCTWDistributionAnalysis.prototype = new jschardet.CharDistributionAnalysis();
+EUCTWDistributionAnalysis.prototype = new CharDistributionAnalysis();
 
-jschardet.EUCKRDistributionAnalysis = function() {
-    jschardet.CharDistributionAnalysis.apply(this);
+exports.EUCTWDistributionAnalysis = EUCTWDistributionAnalysis
+
+function EUCKRDistributionAnalysis() {
+    CharDistributionAnalysis.apply(this);
 
     var self = this;
 
     function init() {
-        self._mCharToFreqOrder = jschardet.EUCKRCharToFreqOrder;
-        self._mTableSize = jschardet.EUCKR_TABLE_SIZE;
-        self._mTypicalDistributionRatio = jschardet.EUCKR_TYPICAL_DISTRIBUTION_RATIO;
+        self._mCharToFreqOrder = euckrfreq.EUCKRCharToFreqOrder;
+        self._mTableSize = euckrfreq.EUCKR_TABLE_SIZE;
+        self._mTypicalDistributionRatio = euckrfreq.EUCKR_TYPICAL_DISTRIBUTION_RATIO;
     }
 
     this.getOrder = function(aStr) {
@@ -161,17 +169,19 @@ jschardet.EUCKRDistributionAnalysis = function() {
 
     init();
 }
-jschardet.EUCKRDistributionAnalysis.prototype = new jschardet.CharDistributionAnalysis();
+EUCKRDistributionAnalysis.prototype = new CharDistributionAnalysis();
 
-jschardet.GB2312DistributionAnalysis = function() {
-    jschardet.CharDistributionAnalysis.apply(this);
+exports.EUCKRDistributionAnalysis = EUCKRDistributionAnalysis
+
+function GB2312DistributionAnalysis() {
+    CharDistributionAnalysis.apply(this);
 
     var self = this;
 
     function init() {
-        self._mCharToFreqOrder = jschardet.GB2312CharToFreqOrder;
-        self._mTableSize = jschardet.GB2312_TABLE_SIZE;
-        self._mTypicalDistributionRatio = jschardet.GB2312_TYPICAL_DISTRIBUTION_RATIO;
+        self._mCharToFreqOrder = gb2312freq.GB2312CharToFreqOrder;
+        self._mTableSize = gb2312freq.GB2312_TABLE_SIZE;
+        self._mTypicalDistributionRatio = gb2312freq.GB2312_TYPICAL_DISTRIBUTION_RATIO;
     }
 
     this.getOrder = function(aStr) {
@@ -188,17 +198,19 @@ jschardet.GB2312DistributionAnalysis = function() {
 
     init();
 }
-jschardet.GB2312DistributionAnalysis.prototype = new jschardet.CharDistributionAnalysis();
+GB2312DistributionAnalysis.prototype = new CharDistributionAnalysis();
 
-jschardet.Big5DistributionAnalysis = function() {
-    jschardet.CharDistributionAnalysis.apply(this);
+exports.GB2312DistributionAnalysis = GB2312DistributionAnalysis
+
+function Big5DistributionAnalysis() {
+    CharDistributionAnalysis.apply(this);
 
     var self = this;
 
     function init() {
-        self._mCharToFreqOrder = jschardet.Big5CharToFreqOrder;
-        self._mTableSize = jschardet.BIG5_TABLE_SIZE;
-        self._mTypicalDistributionRatio = jschardet.BIG5_TYPICAL_DISTRIBUTION_RATIO;
+        self._mCharToFreqOrder = big5freq.Big5CharToFreqOrder;
+        self._mTableSize = big5freq.BIG5_TABLE_SIZE;
+        self._mTypicalDistributionRatio = big5freq.BIG5_TYPICAL_DISTRIBUTION_RATIO;
     }
 
     this.getOrder = function(aStr) {
@@ -219,17 +231,19 @@ jschardet.Big5DistributionAnalysis = function() {
 
     init();
 }
-jschardet.Big5DistributionAnalysis.prototype = new jschardet.CharDistributionAnalysis();
+Big5DistributionAnalysis.prototype = new CharDistributionAnalysis();
 
-jschardet.SJISDistributionAnalysis = function() {
-    jschardet.CharDistributionAnalysis.apply(this);
+exports.Big5DistributionAnalysis = Big5DistributionAnalysis
+
+function SJISDistributionAnalysis() {
+    CharDistributionAnalysis.apply(this);
 
     var self = this;
 
     function init() {
-        self._mCharToFreqOrder = jschardet.JISCharToFreqOrder;
-        self._mTableSize = jschardet.JIS_TABLE_SIZE;
-        self._mTypicalDistributionRatio = jschardet.JIS_TYPICAL_DISTRIBUTION_RATIO;
+        self._mCharToFreqOrder = jisfreq.JISCharToFreqOrder;
+        self._mTableSize = jisfreq.JIS_TABLE_SIZE;
+        self._mTypicalDistributionRatio = jisfreq.JIS_TYPICAL_DISTRIBUTION_RATIO;
     }
 
     this.getOrder = function(aStr) {
@@ -253,17 +267,19 @@ jschardet.SJISDistributionAnalysis = function() {
 
     init();
 }
-jschardet.SJISDistributionAnalysis.prototype = new jschardet.CharDistributionAnalysis();
+SJISDistributionAnalysis.prototype = new CharDistributionAnalysis();
 
-jschardet.EUCJPDistributionAnalysis = function() {
-    jschardet.CharDistributionAnalysis.apply(this);
+exports.SJISDistributionAnalysis = SJISDistributionAnalysis
+
+function EUCJPDistributionAnalysis() {
+    CharDistributionAnalysis.apply(this);
 
     var self = this;
 
     function init() {
-        self._mCharToFreqOrder = jschardet.JISCharToFreqOrder;
-        self._mTableSize = jschardet.JIS_TABLE_SIZE;
-        self._mTypicalDistributionRatio = jschardet.JIS_TYPICAL_DISTRIBUTION_RATIO;
+        self._mCharToFreqOrder = jisfreq.JISCharToFreqOrder;
+        self._mTableSize = jisfreq.JIS_TABLE_SIZE;
+        self._mTypicalDistributionRatio = jisfreq.JIS_TYPICAL_DISTRIBUTION_RATIO;
     }
 
     this.getOrder = function(aStr) {
@@ -280,6 +296,6 @@ jschardet.EUCJPDistributionAnalysis = function() {
 
     init();
 }
-jschardet.EUCJPDistributionAnalysis.prototype = new jschardet.CharDistributionAnalysis();
+EUCJPDistributionAnalysis.prototype = new CharDistributionAnalysis();
 
-}(require('./init'));
+exports.EUCJPDistributionAnalysis = EUCJPDistributionAnalysis

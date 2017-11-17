@@ -27,22 +27,28 @@
  * 02110-1301  USA
  */
 
-!function(jschardet) {
+var CodingStateMachine = require('./codingstatemachine');
+var MultiByteCharSetProber = require('./mbcharsetprober');
+var EUCJPDistributionAnalysis = require('./chardistribution').EUCJPDistributionAnalysis;
+var EUCJPContextAnalysis = require('./jpcntx').EUCJPContextAnalysis;
+var EUCJPSMModel = require('./mbcssm').EUCJPSMModel;
+var constants = require('./constants');
+var logger = require('./logger');
 
-jschardet.EUCJPProber = function() {
-    jschardet.MultiByteCharSetProber.apply(this);
+function EUCJPProber() {
+    MultiByteCharSetProber.apply(this);
 
     var self = this;
 
     function init() {
-        self._mCodingSM = new jschardet.CodingStateMachine(jschardet.EUCJPSMModel);
-        self._mDistributionAnalyzer = new jschardet.EUCJPDistributionAnalysis();
-        self._mContextAnalyzer = new jschardet.EUCJPContextAnalysis();
+        self._mCodingSM = new CodingStateMachine(EUCJPSMModel);
+        self._mDistributionAnalyzer = new EUCJPDistributionAnalysis();
+        self._mContextAnalyzer = new EUCJPContextAnalysis();
         self.reset();
     }
 
     this.reset = function() {
-        jschardet.EUCJPProber.prototype.reset.apply(this);
+        EUCJPProber.prototype.reset.apply(this);
         this._mContextAnalyzer.reset();
     }
 
@@ -54,16 +60,16 @@ jschardet.EUCJPProber = function() {
         var aLen = aBuf.length;
         for( var i = 0; i < aLen; i++ ) {
             var codingState = this._mCodingSM.nextState(aBuf[i]);
-            if( codingState == jschardet.Constants.error ) {
-                if( jschardet.Constants._debug ) {
-                    jschardet.log(this.getCharsetName() + " prober hit error at byte " + i + "\n");
+            if( codingState == constants.error ) {
+                if( constants._debug ) {
+                    logger.log(this.getCharsetName() + " prober hit error at byte " + i + "\n");
                 }
-                this._mState = jschardet.Constants.notMe;
+                this._mState = constants.notMe;
                 break;
-            } else if( codingState == jschardet.Constants.itsMe ) {
-                this._mState = jschardet.Constants.foundIt;
+            } else if( codingState == constants.itsMe ) {
+                this._mState = constants.foundIt;
                 break;
-            } else if( codingState == jschardet.Constants.start ) {
+            } else if( codingState == constants.start ) {
                 var charLen = this._mCodingSM.getCurrentCharLen();
                 if( i == 0 ) {
                     this._mLastChar[1] = aBuf[0];
@@ -78,10 +84,10 @@ jschardet.EUCJPProber = function() {
 
         this._mLastChar[0] = aBuf[aLen - 1];
 
-        if( this.getState() == jschardet.Constants.detecting ) {
+        if( this.getState() == constants.detecting ) {
             if( this._mContextAnalyzer.gotEnoughData() &&
-                this.getConfidence() > jschardet.Constants.SHORTCUT_THRESHOLD ) {
-                this._mState = jschardet.Constants.foundIt;
+                this.getConfidence() > constants.SHORTCUT_THRESHOLD ) {
+                this._mState = constants.foundIt;
             }
         }
 
@@ -97,6 +103,6 @@ jschardet.EUCJPProber = function() {
 
     init();
 }
-jschardet.EUCJPProber.prototype = new jschardet.MultiByteCharSetProber();
+EUCJPProber.prototype = new MultiByteCharSetProber();
 
-}(require('./init'));
+module.exports = EUCJPProber

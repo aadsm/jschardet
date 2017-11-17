@@ -27,11 +27,9 @@
  * 02110-1301  USA
  */
 
-!function(jschardet) {
-
 // KOI8-R language model
 // Character Mapping Table:
-jschardet.KOI8R_CharToOrderMap = [
+exports.KOI8R_CharToOrderMap = [
 255,255,255,255,255,255,255,255,255,255,254,255,255,254,255,255,  // 00
 255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,  // 10
 253,253,253,253,253,253,253,253,253,253,253,253,253,253,253,253,  // 20
@@ -50,7 +48,7 @@ jschardet.KOI8R_CharToOrderMap = [
  35, 43, 45, 32, 40, 52, 56, 33, 61, 62, 51, 57, 47, 63, 50, 70   // f0
 ];
 
-jschardet.win1251_CharToOrderMap = [
+exports.win1251_CharToOrderMap = [
 255,255,255,255,255,255,255,255,255,255,254,255,255,254,255,255,  // 00
 255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,  // 10
 253,253,253,253,253,253,253,253,253,253,253,253,253,253,253,253,  // 20
@@ -69,7 +67,7 @@ jschardet.win1251_CharToOrderMap = [
   9,  7,  6, 14, 39, 26, 28, 22, 25, 29, 54, 18, 17, 30, 27, 16
 ];
 
-jschardet.latin5_CharToOrderMap = [
+exports.latin5_CharToOrderMap = [
 255,255,255,255,255,255,255,255,255,255,254,255,255,254,255,255,  // 00
 255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,  // 10
 253,253,253,253,253,253,253,253,253,253,253,253,253,253,253,253,  // 20
@@ -88,7 +86,7 @@ jschardet.latin5_CharToOrderMap = [
 239, 68,240,241,242,243,244,245,246,247,248,249,250,251,252,255
 ];
 
-jschardet.macCyrillic_CharToOrderMap = [
+exports.macCyrillic_CharToOrderMap = [
 255,255,255,255,255,255,255,255,255,255,254,255,255,254,255,255,  // 00
 255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,  // 10
 253,253,253,253,253,253,253,253,253,253,253,253,253,253,253,253,  // 20
@@ -107,7 +105,7 @@ jschardet.macCyrillic_CharToOrderMap = [
   9,  7,  6, 14, 39, 26, 28, 22, 25, 29, 54, 18, 17, 30, 27,255
 ];
 
-jschardet.IBM855_CharToOrderMap = [
+exports.IBM855_CharToOrderMap = [
 255,255,255,255,255,255,255,255,255,255,254,255,255,254,255,255,  // 00
 255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,  // 10
 253,253,253,253,253,253,253,253,253,253,253,253,253,253,253,253,  // 20
@@ -126,7 +124,7 @@ jschardet.IBM855_CharToOrderMap = [
 250, 18, 62, 20, 51, 25, 57, 30, 47, 29, 63, 22, 50,251,252,255
 ];
 
-jschardet.IBM866_CharToOrderMap = [
+exports.IBM866_CharToOrderMap = [
 255,255,255,255,255,255,255,255,255,255,254,255,255,254,255,255,  // 00
 255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,  // 10
 253,253,253,253,253,253,253,253,253,253,253,253,253,253,253,253,  // 20
@@ -151,7 +149,7 @@ jschardet.IBM866_CharToOrderMap = [
 // first 1024 sequences: 2.3389%
 // rest  sequences:      0.1237%
 // negative sequences:   0.0009%
-jschardet.RussianLangModel = [
+exports.RussianLangModel = [
 0,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,1,1,3,3,3,3,1,3,3,3,2,3,2,3,3,
 3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,0,3,2,2,2,2,2,0,0,2,
 3,3,3,2,3,3,3,3,3,3,3,3,3,3,2,3,3,0,0,3,3,3,3,3,3,3,3,3,2,3,2,0,
@@ -282,52 +280,50 @@ jschardet.RussianLangModel = [
 0,0,0,0,0,1,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0
 ];
 
-jschardet.Koi8rModel = {
-    "charToOrderMap"          : jschardet.KOI8R_CharToOrderMap,
-    "precedenceMatrix"        : jschardet.RussianLangModel,
+exports.Koi8rModel = {
+    "charToOrderMap"          : exports.KOI8R_CharToOrderMap,
+    "precedenceMatrix"        : exports.RussianLangModel,
     "mTypicalPositiveRatio"   : 0.976601,
     "keepEnglishLetter"       : false,
     "charsetName"             : "KOI8-R"
 };
 
-jschardet.Win1251CyrillicModel = {
-    "charToOrderMap"          : jschardet.win1251_CharToOrderMap,
-    "precedenceMatrix"        : jschardet.RussianLangModel,
+exports.Win1251CyrillicModel = {
+    "charToOrderMap"          : exports.win1251_CharToOrderMap,
+    "precedenceMatrix"        : exports.RussianLangModel,
     "mTypicalPositiveRatio"   : 0.976601,
     "keepEnglishLetter"       : false,
     "charsetName"             : "windows-1251"
 };
 
-jschardet.Latin5CyrillicModel = {
-    "charToOrderMap"          : jschardet.latin5_CharToOrderMap,
-    "precedenceMatrix"        : jschardet.RussianLangModel,
+exports.Latin5CyrillicModel = {
+    "charToOrderMap"          : exports.latin5_CharToOrderMap,
+    "precedenceMatrix"        : exports.RussianLangModel,
     "mTypicalPositiveRatio"   : 0.976601,
     "keepEnglishLetter"       : false,
     "charsetName"             : "ISO-8859-5"
 };
 
-jschardet.MacCyrillicModel = {
-    "charToOrderMap"          : jschardet.macCyrillic_CharToOrderMap,
-    "precedenceMatrix"        : jschardet.RussianLangModel,
+exports.MacCyrillicModel = {
+    "charToOrderMap"          : exports.macCyrillic_CharToOrderMap,
+    "precedenceMatrix"        : exports.RussianLangModel,
     "mTypicalPositiveRatio"   : 0.976601,
     "keepEnglishLetter"       : false,
     "charsetName"             : "MacCyrillic"
 };
 
-jschardet.Ibm866Model = {
-    "charToOrderMap"          : jschardet.IBM866_CharToOrderMap,
-    "precedenceMatrix"        : jschardet.RussianLangModel,
+exports.Ibm866Model = {
+    "charToOrderMap"          : exports.IBM866_CharToOrderMap,
+    "precedenceMatrix"        : exports.RussianLangModel,
     "mTypicalPositiveRatio"   : 0.976601,
     "keepEnglishLetter"       : false,
     "charsetName"             : "IBM866"
 };
 
-jschardet.Ibm855Model = {
-    "charToOrderMap"          : jschardet.IBM855_CharToOrderMap,
-    "precedenceMatrix"        : jschardet.RussianLangModel,
+exports.Ibm855Model = {
+    "charToOrderMap"          : exports.IBM855_CharToOrderMap,
+    "precedenceMatrix"        : exports.RussianLangModel,
     "mTypicalPositiveRatio"   : 0.976601,
     "keepEnglishLetter"       : false,
     "charsetName"             : "IBM855"
 };
-
-}(require('./init'));

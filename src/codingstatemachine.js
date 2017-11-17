@@ -27,9 +27,9 @@
  * 02110-1301  USA
  */
 
-!function(jschardet) {
+var constants = require('./constants')
 
-jschardet.CodingStateMachine = function(sm) {
+function CodingStateMachine(sm) {
     var self = this;
 
     function init(sm) {
@@ -40,14 +40,14 @@ jschardet.CodingStateMachine = function(sm) {
     }
 
     this.reset = function() {
-        this._mCurrentState = jschardet.Constants.start;
+        this._mCurrentState = constants.start;
     }
 
     this.nextState = function(c) {
         // for each byte we get its class
         // if it is first byte, we also get byte length
         var byteCls = this._mModel.classTable[c.charCodeAt(0)];
-        if( this._mCurrentState == jschardet.Constants.start ) {
+        if( this._mCurrentState == constants.start ) {
             this._mCurrentBytePos = 0;
             this._mCurrentCharLen = this._mModel.charLenTable[byteCls];
         }
@@ -68,4 +68,4 @@ jschardet.CodingStateMachine = function(sm) {
     init(sm);
 }
 
-}(require('./init'));
+module.exports = CodingStateMachine

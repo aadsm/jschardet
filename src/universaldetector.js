@@ -31,10 +31,15 @@
  * This is a port from the python port, version "2.0.1"
  */
 
-!function(jschardet) {
+var constants = require('./constants');
+var MBCSGroupProber = require('./mbcsgroupprober');
+var SBCSGroupProber = require('./sbcsgroupprober');
+var Latin1Prober = require('./latin1prober');
+var EscCharSetProber = require('./escprober')
+var logger = require('./logger');
 
-jschardet.UniversalDetector = function() {
-    var MINIMUM_THRESHOLD = jschardet.Constants.MINIMUM_THRESHOLD;
+function UniversalDetector() {
+    var MINIMUM_THRESHOLD = constants.MINIMUM_THRESHOLD;
     var _state = {
         pureAscii   : 0,
         escAscii    : 1,
@@ -122,9 +127,9 @@ jschardet.UniversalDetector = function() {
 
         if( this._mInputState == _state.escAscii ) {
             if( !this._mEscCharsetProber ) {
-                this._mEscCharsetProber = new jschardet.EscCharSetProber();
+                this._mEscCharsetProber = new EscCharSetProber();
             }
-            if( this._mEscCharsetProber.feed(aBuf) == jschardet.Constants.foundIt ) {
+            if( this._mEscCharsetProber.feed(aBuf) == constants.foundIt ) {
                 this.result = {
                     "encoding": this._mEscCharsetProber.getCharsetName(),
                     "confidence": this._mEscCharsetProber.getConfidence()
@@ -134,13 +139,13 @@ jschardet.UniversalDetector = function() {
         } else if( this._mInputState == _state.highbyte ) {
             if( this._mCharsetProbers.length == 0 ) {
                 this._mCharsetProbers = [
-                    new jschardet.MBCSGroupProber(),
-                    new jschardet.SBCSGroupProber(),
-                    new jschardet.Latin1Prober()
+                    new MBCSGroupProber(),
+                    new SBCSGroupProber(),
+                    new Latin1Prober()
                 ];
             }
             for( var i = 0, prober; prober = this._mCharsetProbers[i]; i++ ) {
-                if( prober.feed(aBuf) == jschardet.Constants.foundIt ) {
+                if( prober.feed(aBuf) == constants.foundIt ) {
                     this.result = {
                         "encoding": prober.getCharsetName(),
                         "confidence": prober.getConfidence()
@@ -155,16 +160,16 @@ jschardet.UniversalDetector = function() {
     this.close = function() {
         if( this.done ) return;
         if( this._mBOM.length === 0 ) {
-            if( jschardet.Constants._debug ) {
-                jschardet.log("no data received!\n");
+            if( constants._debug ) {
+                logger.log("no data received!\n");
             }
             return;
         }
         this.done = true;
 
         if( this._mInputState == _state.pureAscii ) {
-            if( jschardet.Constants._debug ) {
-                jschardet.log("pure ascii")
+            if( constants._debug ) {
+                logger.log("pure ascii")
             }
             this.result = {"encoding": "ascii", "confidence": 1.0};
             return this.result;
@@ -181,8 +186,8 @@ jschardet.UniversalDetector = function() {
                     maxProberConfidence = proberConfidence;
                     maxProber = prober;
                 }
-                if( jschardet.Constants._debug ) {
-                    jschardet.log(prober.getCharsetName() + " confidence " + prober.getConfidence());
+                if( constants._debug ) {
+                    logger.log(prober.getCharsetName() + " confidence " + prober.getConfidence());
                 }
             }
             if( maxProber && maxProberConfidence > MINIMUM_THRESHOLD ) {
@@ -194,11 +199,11 @@ jschardet.UniversalDetector = function() {
             }
         }
 
-        if( jschardet.Constants._debug ) {
-            jschardet.log("no probers hit minimum threshhold\n");
+        if( constants._debug ) {
+            logger.log("no probers hit minimum threshhold\n");
             for( var i = 0, prober; prober = this._mCharsetProbers[i]; i++ ) {
                 if( !prober ) continue;
-                jschardet.log(prober.getCharsetName() + " confidence = " +
+                logger.log(prober.getCharsetName() + " confidence = " +
                     prober.getConfidence() + "\n");
             }
         }
@@ -207,4 +212,4 @@ jschardet.UniversalDetector = function() {
     init();
 }
 
-}(require('./init'));
+module.exports = UniversalDetector;

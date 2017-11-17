@@ -27,32 +27,40 @@
  * 02110-1301  USA
  */
 
-!function(jschardet) {
+var SingleByteCharSetProber = require('./sbcharsetprober');
+var CharSetGroupProber = require('./charsetgroupprober');
+var Win1255HebrewModel = require('./langhebrewmodel').Win1255HebrewModel;
+var HebrewProber = require('./hebrewprober');
+var cyrillicModels = require('./langcyrillicmodel');
+var greekModels = require('./langgreekmodel');
+var TIS620ThaiModel = require('./langthaimodel').TIS620ThaiModel;
+var hungarianModels = require('./langhungarianmodel');
+var bulgarianModels = require('./langbulgarianmodel')
 
-jschardet.SBCSGroupProber = function() {
-    jschardet.CharSetGroupProber.apply(this);
+function SBCSGroupProber() {
+    CharSetGroupProber.apply(this);
 
     var self = this;
 
     function init() {
         self._mProbers = [
-            new jschardet.SingleByteCharSetProber(jschardet.Win1251CyrillicModel),
-            new jschardet.SingleByteCharSetProber(jschardet.Koi8rModel),
-            new jschardet.SingleByteCharSetProber(jschardet.Latin5CyrillicModel),
-            new jschardet.SingleByteCharSetProber(jschardet.MacCyrillicModel),
-            new jschardet.SingleByteCharSetProber(jschardet.Ibm866Model),
-            new jschardet.SingleByteCharSetProber(jschardet.Ibm855Model),
-            new jschardet.SingleByteCharSetProber(jschardet.Latin7GreekModel),
-            new jschardet.SingleByteCharSetProber(jschardet.Win1253GreekModel),
-            new jschardet.SingleByteCharSetProber(jschardet.Latin5BulgarianModel),
-            new jschardet.SingleByteCharSetProber(jschardet.Win1251BulgarianModel),
-            new jschardet.SingleByteCharSetProber(jschardet.Latin2HungarianModel),
-            new jschardet.SingleByteCharSetProber(jschardet.Win1250HungarianModel),
-            new jschardet.SingleByteCharSetProber(jschardet.TIS620ThaiModel)
+            new SingleByteCharSetProber(cyrillicModels.Win1251CyrillicModel),
+            new SingleByteCharSetProber(cyrillicModels.Koi8rModel),
+            new SingleByteCharSetProber(cyrillicModels.Latin5CyrillicModel),
+            new SingleByteCharSetProber(cyrillicModels.MacCyrillicModel),
+            new SingleByteCharSetProber(cyrillicModels.Ibm866Model),
+            new SingleByteCharSetProber(cyrillicModels.Ibm855Model),
+            new SingleByteCharSetProber(greekModels.Latin7GreekModel),
+            new SingleByteCharSetProber(greekModels.Win1253GreekModel),
+            new SingleByteCharSetProber(bulgarianModels.Latin5BulgarianModel),
+            new SingleByteCharSetProber(bulgarianModels.Win1251BulgarianModel),
+            new SingleByteCharSetProber(hungarianModels.Latin2HungarianModel),
+            new SingleByteCharSetProber(hungarianModels.Win1250HungarianModel),
+            new SingleByteCharSetProber(TIS620ThaiModel)
         ];
-        var hebrewProber = new jschardet.HebrewProber();
-        var logicalHebrewProber = new jschardet.SingleByteCharSetProber(jschardet.Win1255HebrewModel, false, hebrewProber);
-        var visualHebrewProber = new jschardet.SingleByteCharSetProber(jschardet.Win1255HebrewModel, true, hebrewProber);
+        var hebrewProber = new HebrewProber();
+        var logicalHebrewProber = new SingleByteCharSetProber(Win1255HebrewModel, false, hebrewProber);
+        var visualHebrewProber = new SingleByteCharSetProber(Win1255HebrewModel, true, hebrewProber);
         hebrewProber.setModelProbers(logicalHebrewProber, visualHebrewProber);
         self._mProbers.push(hebrewProber, logicalHebrewProber, visualHebrewProber);
 
@@ -61,6 +69,6 @@ jschardet.SBCSGroupProber = function() {
 
     init();
 }
-jschardet.SBCSGroupProber.prototype = new jschardet.CharSetGroupProber();
+SBCSGroupProber.prototype = new CharSetGroupProber();
 
-}(require('./init'));
+module.exports = SBCSGroupProber;

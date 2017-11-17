@@ -27,22 +27,28 @@
  * 02110-1301  USA
  */
 
-!function(jschardet) {
+var CodingStateMachine = require('./codingstatemachine');
+var MultiByteCharSetProber = require('./mbcharsetprober');
+var SJISSMModel = require('./mbcssm').SJISSMModel;
+var SJISDistributionAnalysis = require('./chardistribution').SJISDistributionAnalysis;
+var SJISContextAnalysis = require('./jpcntx').SJISContextAnalysis;
+var constants = require('./constants');
+var logger = require('./logger');
 
-jschardet.SJISProber = function() {
-    jschardet.MultiByteCharSetProber.apply(this);
+function SJISProber() {
+    MultiByteCharSetProber.apply(this);
 
     var self = this;
 
     function init() {
-        self._mCodingSM = new jschardet.CodingStateMachine(jschardet.SJISSMModel);
-        self._mDistributionAnalyzer = new jschardet.SJISDistributionAnalysis();
-        self._mContextAnalyzer = new jschardet.SJISContextAnalysis();
+        self._mCodingSM = new CodingStateMachine(SJISSMModel);
+        self._mDistributionAnalyzer = new SJISDistributionAnalysis();
+        self._mContextAnalyzer = new SJISContextAnalysis();
         self.reset();
     }
 
     this.reset = function() {
-        jschardet.SJISProber.prototype.reset.apply(this);
+        SJISProber.prototype.reset.apply(this);
         this._mContextAnalyzer.reset();
     }
 
@@ -54,16 +60,16 @@ jschardet.SJISProber = function() {
         var aLen = aBuf.length;
         for( var i = 0; i < aLen; i++ ) {
             var codingState = this._mCodingSM.nextState(aBuf[i]);
-            if( codingState == jschardet.Constants.error ) {
-                if( jschardet.Constants._debug ) {
-                    jschardet.log(this.getCharsetName() + " prober hit error at byte " + i + "\n");
+            if( codingState == constants.error ) {
+                if( constants._debug ) {
+                    logger.log(this.getCharsetName() + " prober hit error at byte " + i + "\n");
                 }
-                this._mState = jschardet.Constants.notMe;
+                this._mState = constants.notMe;
                 break;
-            } else if( codingState == jschardet.Constants.itsMe ) {
-                this._mState = jschardet.Constants.foundIt;
+            } else if( codingState == constants.itsMe ) {
+                this._mState = constants.foundIt;
                 break;
-            } else if( codingState == jschardet.Constants.start ) {
+            } else if( codingState == constants.start ) {
                 var charLen = this._mCodingSM.getCurrentCharLen();
                 if( i == 0 ) {
                     this._mLastChar[1] = aBuf[0];
@@ -78,10 +84,10 @@ jschardet.SJISProber = function() {
 
         this._mLastChar[0] = aBuf[aLen - 1];
 
-        if( this.getState() == jschardet.Constants.detecting ) {
+        if( this.getState() == constants.detecting ) {
             if( this._mContextAnalyzer.gotEnoughData() &&
-                this.getConfidence() > jschardet.Constants.SHORTCUT_THRESHOLD ) {
-                this._mState = jschardet.Constants.foundIt;
+                this.getConfidence() > constants.SHORTCUT_THRESHOLD ) {
+                this._mState = constants.foundIt;
             }
         }
 
@@ -96,6 +102,6 @@ jschardet.SJISProber = function() {
 
     init();
 }
-jschardet.SJISProber.prototype = new jschardet.MultiByteCharSetProber();
+SJISProber.prototype = new MultiByteCharSetProber();
 
-}(require('./init'));
+module.exports = SJISProber

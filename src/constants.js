@@ -27,9 +27,7 @@
  * 02110-1301  USA
  */
 
-!function(jschardet) {
-
-jschardet.Constants = {
+module.exports = {
     _debug      : false,
 
     detecting   : 0,
@@ -43,5 +41,3 @@ jschardet.Constants = {
     MINIMUM_THRESHOLD   : 0.20,
     SHORTCUT_THRESHOLD  : 0.95
 };
-
-}(require('./init'));

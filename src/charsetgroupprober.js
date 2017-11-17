@@ -27,10 +27,12 @@
  * 02110-1301  USA
  */
 
-!function(jschardet) {
+var constants = require('./constants');
+var CharSetProber = require('./charsetprober');
+var logger = require('./logger');
 
-jschardet.CharSetGroupProber = function() {
-    jschardet.CharSetProber.apply(this);
+function CharSetGroupProber() {
+    CharSetProber.apply(this);
 
     var self = this;
 
@@ -41,7 +43,7 @@ jschardet.CharSetGroupProber = function() {
     }
 
     this.reset = function() {
-        jschardet.CharSetGroupProber.prototype.reset.apply(this);
+        CharSetGroupProber.prototype.reset.apply(this);
         this._mActiveNum = 0;
         for( var i = 0, prober; prober = this._mProbers[i]; i++ ) {
             if( prober ) {
@@ -66,14 +68,14 @@ jschardet.CharSetGroupProber = function() {
             if( !prober || !prober.active ) continue;
             var st = prober.feed(aBuf);
             if( !st ) continue;
-            if( st == jschardet.Constants.foundIt ) {
+            if( st == constants.foundIt ) {
                 this._mBestGuessProber = prober;
                 return this.getState();
-            } else if( st == jschardet.Constants.notMe ) {
+            } else if( st == constants.notMe ) {
                 prober.active = false;
                 this._mActiveNum--;
                 if( this._mActiveNum <= 0 ) {
-                    this._mState = jschardet.Constants.notMe;
+                    this._mState = constants.notMe;
                     return this.getState();
                 }
             }
@@ -83,9 +85,9 @@ jschardet.CharSetGroupProber = function() {
 
     this.getConfidence = function() {
         var st = this.getState();
-        if( st == jschardet.Constants.foundIt ) {
+        if( st == constants.foundIt ) {
             return 0.99;
-        } else if( st == jschardet.Constants.notMe ) {
+        } else if( st == constants.notMe ) {
             return 0.01;
         }
         var bestConf = 0.0;
@@ -93,14 +95,14 @@ jschardet.CharSetGroupProber = function() {
         for( var i = 0, prober; prober = this._mProbers[i]; i++ ) {
             if( !prober ) continue;
             if( !prober.active ) {
-                if( jschardet.Constants._debug ) {
-                    jschardet.log(prober.getCharsetName() + " not active\n");
+                if( constants._debug ) {
+                    logger.log(prober.getCharsetName() + " not active\n");
                 }
                 continue;
             }
             var cf = prober.getConfidence();
-            if( jschardet.Constants._debug ) {
-                jschardet.log(prober.getCharsetName() + " confidence = " + cf + "\n");
+            if( constants._debug ) {
+                logger.log(prober.getCharsetName() + " confidence = " + cf + "\n");
             }
             if( bestConf < cf ) {
                 bestConf = cf;
@@ -113,6 +115,6 @@ jschardet.CharSetGroupProber = function() {
 
     init();
 }
-jschardet.CharSetGroupProber.prototype = new jschardet.CharSetProber();
+CharSetGroupProber.prototype = new CharSetProber();
 
-}(require('./init'));
+module.exports = CharSetGroupProber

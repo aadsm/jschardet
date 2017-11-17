@@ -27,8 +27,6 @@
  * 02110-1301  USA
  */
 
-!function(jschardet) {
-
 // Sampling from about 20M text materials include literature and computer technology
 
 // 128  --> 0.79
@@ -42,12 +40,12 @@
 //
 // Typical Distribution Ratio
 
-jschardet.EUCKR_TYPICAL_DISTRIBUTION_RATIO = 6.0;
+exports.EUCKR_TYPICAL_DISTRIBUTION_RATIO = 6.0;
 
-jschardet.EUCKR_TABLE_SIZE = 2352;
+exports.EUCKR_TABLE_SIZE = 2352;
 
 // Char to FreqOrder table ,
-jschardet.EUCKRCharToFreqOrder = [
+exports.EUCKRCharToFreqOrder = [
   13, 130, 120,1396, 481,1719,1720, 328, 609, 212,1721, 707, 400, 299,1722,  87,
 1397,1723, 104, 536,1117,1203,1724,1267, 685,1268, 508,1725,1726,1727,1728,1398,
 1399,1729,1730,1731, 141, 621, 326,1057, 368,1732, 267, 488,  20,1733,1269,1734,
@@ -597,5 +595,3 @@ jschardet.EUCKRCharToFreqOrder = [
 8720,8721,8722,8723,8724,8725,8726,8727,8728,8729,8730,8731,8732,8733,8734,8735,
 8736,8737,8738,8739,8740,8741
 ];
-
-}(require('./init'));

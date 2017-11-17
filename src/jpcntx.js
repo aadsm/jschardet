@@ -27,10 +27,8 @@
  * 02110-1301  USA
  */
 
-!function(jschardet) {
-
 // This is hiragana 2-char sequence table, the number in each cell represents its frequency category
-jschardet.jp2CharContext = [
+exports.jp2CharContext = [
 [0,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,1],
 [2,4,0,4,0,3,0,4,0,3,4,4,4,2,4,3,3,4,3,2,3,3,4,2,3,3,3,2,4,1,4,3,3,1,5,4,3,4,3,4,3,5,3,0,3,5,4,2,0,3,1,0,3,3,0,3,3,0,1,1,0,4,3,0,3,3,0,4,0,2,0,3,5,5,5,5,4,0,4,1,0,3,4],
 [0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2],
@@ -116,7 +114,7 @@ jschardet.jp2CharContext = [
 [0,4,0,3,0,3,0,3,0,3,5,5,3,3,3,3,4,3,4,3,3,3,4,4,4,3,3,3,3,4,3,5,3,3,1,3,2,4,5,5,5,5,4,3,4,5,5,3,2,2,3,3,3,3,2,3,3,1,2,3,2,4,3,3,3,4,0,4,0,2,0,4,3,2,2,1,2,0,3,0,0,4,1]
 ];
 
-jschardet.JapaneseContextAnalysis = function() {
+function JapaneseContextAnalysis() {
     var NUM_OF_CATEGORY = 6;
     var DONT_KNOW = -1;
     var ENOUGH_REL_THRESHOLD = 100;
@@ -162,7 +160,7 @@ jschardet.JapaneseContextAnalysis = function() {
                         this._mDone = true;
                         break;
                     }
-                    this._mRelSample[jschardet.jp2CharContext[this._mLastCharOrder][order]] += 1;
+                    this._mRelSample[exports.jp2CharContext[this._mLastCharOrder][order]] += 1;
                 }
                 this._mLastCharOrder = order;
             }
@@ -189,7 +187,7 @@ jschardet.JapaneseContextAnalysis = function() {
     init();
 }
 
-jschardet.SJISContextAnalysis = function() {
+function SJISContextAnalysis() {
     this.getOrder = function(aStr) {
         if( !aStr ) return [-1, 1];
         // find out current char's byte length
@@ -211,9 +209,11 @@ jschardet.SJISContextAnalysis = function() {
         return [-1, charLen];
     }
 }
-jschardet.SJISContextAnalysis.prototype = new jschardet.JapaneseContextAnalysis();
+SJISContextAnalysis.prototype = new JapaneseContextAnalysis();
 
-jschardet.EUCJPContextAnalysis = function() {
+exports.SJISContextAnalysis = SJISContextAnalysis
+
+function EUCJPContextAnalysis() {
     this.getOrder = function(aStr) {
         if( !aStr ) return [-1, 1];
         // find out current char's byte length
@@ -237,6 +237,6 @@ jschardet.EUCJPContextAnalysis = function() {
         return [-1, charLen];
     }
 }
-jschardet.EUCJPContextAnalysis.prototype = new jschardet.JapaneseContextAnalysis();
+EUCJPContextAnalysis.prototype = new JapaneseContextAnalysis();
 
-}(require('./init'));
+exports.EUCJPContextAnalysis = EUCJPContextAnalysis

@@ -27,10 +27,12 @@
  * 02110-1301  USA
  */
 
-!function(jschardet) {
+var CharSetProber = require('./charsetprober');
+var constants = require('./constants');
+var logger = require('./logger');
 
-jschardet.MultiByteCharSetProber = function() {
-    jschardet.CharSetProber.apply(this);
+ function MultiByteCharSetProber() {
+    CharSetProber.apply(this);
 
     var self = this;
 
@@ -42,7 +44,7 @@ jschardet.MultiByteCharSetProber = function() {
     }
 
     this.reset = function() {
-        jschardet.MultiByteCharSetProber.prototype.reset.apply(this);
+        MultiByteCharSetProber.prototype.reset.apply(this);
         if( this._mCodingSM ) {
             this._mCodingSM.reset();
         }
@@ -60,16 +62,16 @@ jschardet.MultiByteCharSetProber = function() {
         var aLen = aBuf.length;
         for( var i = 0; i < aLen; i++ ) {
             var codingState = this._mCodingSM.nextState(aBuf[i]);
-            if( codingState == jschardet.Constants.error ) {
-                if( jschardet.Constants._debug ) {
-                    jschardet.log(this.getCharsetName() + " prober hit error at byte " + i + "\n");
+            if( codingState == constants.error ) {
+                if( constants._debug ) {
+                    logger.log(this.getCharsetName() + " prober hit error at byte " + i + "\n");
                 }
-                this._mState = jschardet.Constants.notMe;
+                this._mState = constants.notMe;
                 break;
-            } else if( codingState == jschardet.Constants.itsMe ) {
-                this._mState = jschardet.Constants.foundIt;
+            } else if( codingState == constants.itsMe ) {
+                this._mState = constants.foundIt;
                 break;
-            } else if( codingState == jschardet.Constants.start ) {
+            } else if( codingState == constants.start ) {
                 var charLen = this._mCodingSM.getCurrentCharLen();
                 if( i == 0 ) {
                     this._mLastChar[1] = aBuf[0];
@@ -82,10 +84,10 @@ jschardet.MultiByteCharSetProber = function() {
 
         this._mLastChar[0] = aBuf[aLen - 1];
 
-        if( this.getState() == jschardet.Constants.detecting ) {
+        if( this.getState() == constants.detecting ) {
             if( this._mDistributionAnalyzer.gotEnoughData() &&
-                this.getConfidence() > jschardet.Constants.SHORTCUT_THRESHOLD ) {
-                this._mState = jschardet.Constants.foundIt;
+                this.getConfidence() > constants.SHORTCUT_THRESHOLD ) {
+                this._mState = constants.foundIt;
             }
         }
 
@@ -96,6 +98,6 @@ jschardet.MultiByteCharSetProber = function() {
         return this._mDistributionAnalyzer.getConfidence();
     }
 }
-jschardet.MultiByteCharSetProber.prototype = new jschardet.CharSetProber();
+MultiByteCharSetProber.prototype = new CharSetProber();
 
-}(require('./init'));
+module.exports = MultiByteCharSetProber
