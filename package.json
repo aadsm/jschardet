@@ -5,8 +5,11 @@
     "main": "src/init",
     "author": "António Afonso",
     "license": "LGPL-2.1+",
-    "keywords": ["encoding", "charset"],
-    "repository" : {
+    "keywords": [
+        "encoding",
+        "charset"
+    ],
+    "repository": {
         "type": "git",
         "url": "https://github.com/aadsm/jschardet.git"
     },
@@ -16,10 +19,12 @@
     },
     "dependencies": {},
     "devDependencies": {
+        "ava": "^0.23.0",
         "browserify": "~12.0.1",
         "google-closure-compiler": "20151015.0.0"
     },
     "scripts": {
+        "test": "ava",
         "dist-dev": "mkdir -p dist && browserify index.js -s jschardet --detect-globals false -o dist/jschardet.js",
         "dist": "npm run dist-dev && java -jar node_modules/google-closure-compiler/compiler.jar --warning_level QUIET --compilation_level SIMPLE_OPTIMIZATIONS --js dist/jschardet.js > dist/jschardet.min.js"
     },

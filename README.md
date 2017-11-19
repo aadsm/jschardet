@@ -81,6 +81,8 @@ Development
 -----------
 Use `npm run dist` to update the distribution files. They're available at https://github.com/aadsm/jschardet/tree/master/dist.
 
+Use `npm test` to run tests.
+
 Authors
 -------
 
