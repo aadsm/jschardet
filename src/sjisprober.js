@@ -29,7 +29,7 @@
 
 var CodingStateMachine = require('./codingstatemachine');
 var MultiByteCharSetProber = require('./mbcharsetprober');
-var SJISSMModel = require('./mbcssm').SJISSMModel;
+var SJISSMModel = require('./mbcssm/sjis');
 var SJISDistributionAnalysis = require('./chardistribution').SJISDistributionAnalysis;
 var SJISContextAnalysis = require('./jpcntx').SJISContextAnalysis;
 var constants = require('./constants');

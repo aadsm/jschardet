@@ -29,8 +29,8 @@
 
 var CodingStateMachine = require('./codingstatemachine');
 var CharSetProber = require('./charsetprober');
-var constants = require('./constants')
-var UTF8SMModel = require('./mbcssm').UTF8SMModel
+var constants = require('./constants');
+var UTF8SMModel = require('./mbcssm/utf8');
 
 function UTF8Prober() {
     CharSetProber.apply(this);

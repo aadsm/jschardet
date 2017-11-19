@@ -31,7 +31,7 @@ var CodingStateMachine = require('./codingstatemachine');
 var MultiByteCharSetProber = require('./mbcharsetprober');
 var EUCJPDistributionAnalysis = require('./chardistribution').EUCJPDistributionAnalysis;
 var EUCJPContextAnalysis = require('./jpcntx').EUCJPContextAnalysis;
-var EUCJPSMModel = require('./mbcssm').EUCJPSMModel;
+var EUCJPSMModel = require('./mbcssm/eucjp');
 var constants = require('./constants');
 var logger = require('./logger');
 

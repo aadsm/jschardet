@@ -30,7 +30,7 @@
 var CodingStateMachine = require('./codingstatemachine');
 var MultiByteCharSetProber = require('./mbcharsetprober');
 var EUCKRDistributionAnalysis = require('./chardistribution').EUCKRDistributionAnalysis;
-var EUCKRSMModel = require('./mbcssm').EUCKRSMModel;
+var EUCKRSMModel = require('./mbcssm/euckr');
 
 function EUCKRProber() {
     MultiByteCharSetProber.apply(this);

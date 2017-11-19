@@ -29,7 +29,7 @@
 
 var MultiByteCharSetProber = require('./mbcharsetprober');
 var CodingStateMachine = require('./codingstatemachine');
-var GB2312SMModel = require('./mbcssm').GB2312SMModel;
+var GB2312SMModel = require('./mbcssm/gb2312');
 var GB2312DistributionAnalysis = require('./chardistribution').GB2312DistributionAnalysis;
 
 function GB2312Prober() {

@@ -29,7 +29,7 @@
 
 var CodingStateMachine = require('./codingstatemachine')
 var MultiByteCharSetProber = require('./mbcharsetprober')
-var Big5SMModel = require('./mbcssm').Big5SMModel
+var Big5SMModel = require('./mbcssm/big5')
 var Big5DistributionAnalysis = require('./chardistribution').Big5DistributionAnalysis
 
 function Big5Prober() {
