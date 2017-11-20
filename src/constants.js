@@ -28,8 +28,6 @@
  */
 
 module.exports = {
-    _debug      : false,
-
     detecting   : 0,
     foundIt     : 1,
     notMe       : 2,

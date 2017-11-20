@@ -28,6 +28,7 @@
  */
 
 var UniversalDetector = require('./universaldetector');
+var setLogger = require('./logger').setLogger;
 
 exports.VERSION = "1.4.1";
 exports.detect = function(buffer) {
@@ -42,3 +43,4 @@ exports.detect = function(buffer) {
     return u.result;
 }
 exports.UniversalDetector = UniversalDetector;
+exports.setLogger = setLogger;

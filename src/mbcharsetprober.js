@@ -63,7 +63,7 @@ var logger = require('./logger');
         for( var i = 0; i < aLen; i++ ) {
             var codingState = this._mCodingSM.nextState(aBuf[i]);
             if( codingState == constants.error ) {
-                if( constants._debug ) {
+                if( logger.enabled ) {
                     logger.log(this.getCharsetName() + " prober hit error at byte " + i + "\n");
                 }
                 this._mState = constants.notMe;

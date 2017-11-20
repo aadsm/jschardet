@@ -95,13 +95,13 @@ function CharSetGroupProber() {
         for( var i = 0, prober; prober = this._mProbers[i]; i++ ) {
             if( !prober ) continue;
             if( !prober.active ) {
-                if( constants._debug ) {
+                if( logger.enabled ) {
                     logger.log(prober.getCharsetName() + " not active\n");
                 }
                 continue;
             }
             var cf = prober.getConfidence();
-            if( constants._debug ) {
+            if( logger.enabled ) {
                 logger.log(prober.getCharsetName() + " confidence = " + cf + "\n");
             }
             if( bestConf < cf ) {

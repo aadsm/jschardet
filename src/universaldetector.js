@@ -160,17 +160,13 @@ function UniversalDetector() {
     this.close = function() {
         if( this.done ) return;
         if( this._mBOM.length === 0 ) {
-            if( constants._debug ) {
-                logger.log("no data received!\n");
-            }
+            logger.log("no data received!\n");
             return;
         }
         this.done = true;
 
         if( this._mInputState == _state.pureAscii ) {
-            if( constants._debug ) {
-                logger.log("pure ascii")
-            }
+            logger.log("pure ascii")
             this.result = {"encoding": "ascii", "confidence": 1.0};
             return this.result;
         }
@@ -186,9 +182,7 @@ function UniversalDetector() {
                     maxProberConfidence = proberConfidence;
                     maxProber = prober;
                 }
-                if( constants._debug ) {
-                    logger.log(prober.getCharsetName() + " confidence " + prober.getConfidence());
-                }
+                logger.log(prober.getCharsetName() + " confidence " + prober.getConfidence());
             }
             if( maxProber && maxProberConfidence > MINIMUM_THRESHOLD ) {
                 this.result = {
@@ -199,7 +193,7 @@ function UniversalDetector() {
             }
         }
 
-        if( constants._debug ) {
+        if( logger.enabled ) {
             logger.log("no probers hit minimum threshhold\n");
             for( var i = 0, prober; prober = this._mCharsetProbers[i]; i++ ) {
                 if( !prober ) continue;
