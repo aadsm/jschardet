@@ -39,8 +39,8 @@ var EscCharSetProber = require('./escprober')
 var logger = require('./logger');
 
 function UniversalDetector(options) {
-    options || options = {};
-    options.minimumThreshold ||  options.minimumThreshold = 0.20;
+    if (!options) options = {};
+    if (!options.minimumThreshold)  options.minimumThreshold = 0.20;
 
     var _state = {
         pureAscii   : 0,
