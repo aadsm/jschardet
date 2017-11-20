@@ -31,8 +31,8 @@ var UniversalDetector = require('./universaldetector');
 var setLogger = require('./logger').setLogger;
 
 exports.VERSION = "1.4.1";
-exports.detect = function(buffer) {
-    var u = new UniversalDetector();
+exports.detect = function(buffer, options) {
+    var u = new UniversalDetector(options);
     u.reset();
     if( typeof Buffer == 'function' && buffer instanceof Buffer ) {
         u.feed(buffer.toString('binary'));

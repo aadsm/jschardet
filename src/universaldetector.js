@@ -38,8 +38,10 @@ var Latin1Prober = require('./latin1prober');
 var EscCharSetProber = require('./escprober')
 var logger = require('./logger');
 
-function UniversalDetector() {
-    var MINIMUM_THRESHOLD = constants.MINIMUM_THRESHOLD;
+function UniversalDetector(options) {
+    options || options = {};
+    options.minimumThreshold ||  options.minimumThreshold = 0.20;
+
     var _state = {
         pureAscii   : 0,
         escAscii    : 1,
@@ -184,7 +186,7 @@ function UniversalDetector() {
                 }
                 logger.log(prober.getCharsetName() + " confidence " + prober.getConfidence());
             }
-            if( maxProber && maxProberConfidence > MINIMUM_THRESHOLD ) {
+            if( maxProber && maxProberConfidence > options.minimumThreshold ) {
                 this.result = {
                     "encoding": maxProber.getCharsetName(),
                     "confidence": maxProber.getConfidence()

@@ -45,7 +45,7 @@ jschardet.setLogger();
 // enough, specially when dealing with files mostly with numbers.
 // To change this to 0 to always get something or any other value that can
 // work for you.
-jschardet.Constants.MINIMUM_THRESHOLD = 0;
+jschardet.detect(str, { minimumThreshold: 0 });
 ```
 
 Supported Charsets
