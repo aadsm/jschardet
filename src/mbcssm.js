@@ -531,7 +531,7 @@ jschardet.UTF8_st = [
     consts.error,consts.error,consts.error,consts.error,consts.error,consts.error,consts.error,consts.error, //68-6f
     consts.error,consts.error,    9,    9,    9,    9,consts.error,consts.error, //70-77
     consts.error,consts.error,consts.error,consts.error,consts.error,consts.error,consts.error,consts.error, //78-7f
-    consts.error,consts.error,consts.error,consts.error,consts.error,    9,consts.error,consts.error, //80-87
+    consts.error,consts.error,consts.error,consts.error,    9,    9,consts.error,consts.error, //80-87
     consts.error,consts.error,consts.error,consts.error,consts.error,consts.error,consts.error,consts.error, //88-8f
     consts.error,consts.error,   12,   12,   12,   12,consts.error,consts.error, //90-97
     consts.error,consts.error,consts.error,consts.error,consts.error,consts.error,consts.error,consts.error, //98-9f
