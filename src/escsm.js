@@ -29,7 +29,7 @@
 
 var consts = require('./constants');
 
-exports.HZ_cls = [
+var HZ_cls = [
     1,0,0,0,0,0,0,0,  // 00 - 07
     0,0,0,0,0,0,0,0,  // 08 - 0f
     0,0,0,0,0,0,0,0,  // 10 - 17
@@ -64,7 +64,7 @@ exports.HZ_cls = [
     1,1,1,1,1,1,1,1   // f8 - ff
 ];
 
-exports.HZ_st = [
+var HZ_st = [
     consts.start,consts.error,    3,consts.start,consts.start,consts.start,consts.error,consts.error, // 00-07
     consts.error,consts.error,consts.error,consts.error,consts.itsMe,consts.itsMe,consts.itsMe,consts.itsMe, // 08-0f
     consts.itsMe,consts.itsMe,consts.error,consts.error,consts.start,consts.start,    4,consts.error, // 10-17
@@ -73,17 +73,17 @@ exports.HZ_st = [
         4,consts.itsMe,consts.start,consts.start,consts.start,consts.start,consts.start,consts.start  // 28-2f
 ];
 
-exports.HZCharLenTable = [0, 0, 0, 0, 0, 0];
+var HZCharLenTable = [0, 0, 0, 0, 0, 0];
 
 exports.HZSMModel = {
-    "classTable"    : exports.HZ_cls,
+    "classTable"    : HZ_cls,
     "classFactor"   : 6,
-    "stateTable"    : exports.HZ_st,
-    "charLenTable"  : exports.HZCharLenTable,
+    "stateTable"    : HZ_st,
+    "charLenTable"  : HZCharLenTable,
     "name"          : "HZ-GB-2312"
 };
 
-exports.ISO2022CN_cls = [
+var ISO2022CN_cls = [
     2,0,0,0,0,0,0,0,  // 00 - 07
     0,0,0,0,0,0,0,0,  // 08 - 0f
     0,0,0,0,0,0,0,0,  // 10 - 17
@@ -118,7 +118,7 @@ exports.ISO2022CN_cls = [
     2,2,2,2,2,2,2,2   // f8 - ff
 ];
 
-exports.ISO2022CN_st = [
+var ISO2022CN_st = [
     consts.start,    3,consts.error,consts.start,consts.start,consts.start,consts.start,consts.start, // 00-07
     consts.start,consts.error,consts.error,consts.error,consts.error,consts.error,consts.error,consts.error, // 08-0f
     consts.error,consts.error,consts.itsMe,consts.itsMe,consts.itsMe,consts.itsMe,consts.itsMe,consts.itsMe, // 10-17
@@ -129,17 +129,17 @@ exports.ISO2022CN_st = [
     consts.error,consts.error,consts.error,consts.error,consts.error,consts.itsMe,consts.error,consts.start  // 38-3f
 ];
 
-exports.ISO2022CNCharLenTable = [0, 0, 0, 0, 0, 0, 0, 0, 0];
+var ISO2022CNCharLenTable = [0, 0, 0, 0, 0, 0, 0, 0, 0];
 
 exports.ISO2022CNSMModel = {
-    "classTable"    : exports.ISO2022CN_cls,
+    "classTable"    : ISO2022CN_cls,
     "classFactor"   : 9,
-    "stateTable"    : exports.ISO2022CN_st,
-    "charLenTable"  : exports.ISO2022CNCharLenTable,
+    "stateTable"    : ISO2022CN_st,
+    "charLenTable"  : ISO2022CNCharLenTable,
     "name"          : "ISO-2022-CN"
 };
 
-exports.ISO2022JP_cls = [
+var ISO2022JP_cls = [
     2,0,0,0,0,0,0,0,  // 00 - 07
     0,0,0,0,0,0,2,2,  // 08 - 0f
     0,0,0,0,0,0,0,0,  // 10 - 17
@@ -174,7 +174,7 @@ exports.ISO2022JP_cls = [
     2,2,2,2,2,2,2,2   // f8 - ff
 ];
 
-exports.ISO2022JP_st = [
+var ISO2022JP_st = [
     consts.start,    3,consts.error,consts.start,consts.start,consts.start,consts.start,consts.start, // 00-07
     consts.start,consts.start,consts.error,consts.error,consts.error,consts.error,consts.error,consts.error, // 08-0f
     consts.error,consts.error,consts.error,consts.error,consts.itsMe,consts.itsMe,consts.itsMe,consts.itsMe, // 10-17
@@ -186,17 +186,17 @@ exports.ISO2022JP_st = [
     consts.error,consts.error,consts.error,consts.error,consts.itsMe,consts.error,consts.start,consts.start  // 40-47
 ];
 
-exports.ISO2022JPCharLenTable = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+var ISO2022JPCharLenTable = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 
 exports.ISO2022JPSMModel = {
-    "classTable"    : exports.ISO2022JP_cls,
+    "classTable"    : ISO2022JP_cls,
     "classFactor"   : 10,
-    "stateTable"    : exports.ISO2022JP_st,
-    "charLenTable"  : exports.ISO2022JPCharLenTable,
+    "stateTable"    : ISO2022JP_st,
+    "charLenTable"  : ISO2022JPCharLenTable,
     "name"          : "ISO-2022-JP"
 };
 
-exports.ISO2022KR_cls = [
+var ISO2022KR_cls = [
     2,0,0,0,0,0,0,0,  // 00 - 07
     0,0,0,0,0,0,0,0,  // 08 - 0f
     0,0,0,0,0,0,0,0,  // 10 - 17
@@ -231,7 +231,7 @@ exports.ISO2022KR_cls = [
     2,2,2,2,2,2,2,2   // f8 - ff
 ];
 
-exports.ISO2022KR_st = [
+var ISO2022KR_st = [
     consts.start,    3,consts.error,consts.start,consts.start,consts.start,consts.error,consts.error, // 00-07
     consts.error,consts.error,consts.error,consts.error,consts.itsMe,consts.itsMe,consts.itsMe,consts.itsMe, // 08-0f
     consts.itsMe,consts.itsMe,consts.error,consts.error,consts.error,    4,consts.error,consts.error, // 10-17
@@ -239,12 +239,12 @@ exports.ISO2022KR_st = [
     consts.error,consts.error,consts.error,consts.itsMe,consts.start,consts.start,consts.start,consts.start  // 20-27
 ];
 
-exports.ISO2022KRCharLenTable = [0, 0, 0, 0, 0, 0];
+var ISO2022KRCharLenTable = [0, 0, 0, 0, 0, 0];
 
 exports.ISO2022KRSMModel = {
-    "classTable"    : exports.ISO2022KR_cls,
+    "classTable"    : ISO2022KR_cls,
     "classFactor"   : 6,
-    "stateTable"    : exports.ISO2022KR_st,
-    "charLenTable"  : exports.ISO2022KRCharLenTable,
+    "stateTable"    : ISO2022KR_st,
+    "charLenTable"  : ISO2022KRCharLenTable,
     "name"          : "ISO-2022-KR"
 };
