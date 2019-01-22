@@ -30,8 +30,6 @@ module.exports = require('./src')
  * 02110-1301  USA
  */
 
-!function(jschardet) {
-
 // Big5 frequency table
 // by Taiwan's Mandarin Promotion Council
 // <http://www.edu.tw:81/mandr/>
@@ -47,12 +45,12 @@ module.exports = require('./src')
 //
 // Typical Distribution Ratio about 25% of Ideal one, still much higher than RDR
 
-jschardet.BIG5_TYPICAL_DISTRIBUTION_RATIO = 0.75;
+exports.BIG5_TYPICAL_DISTRIBUTION_RATIO = 0.75;
 
 //Char to FreqOrder table
-jschardet.BIG5_TABLE_SIZE = 5376;
+exports.BIG5_TABLE_SIZE = 5376;
 
-jschardet.Big5CharToFreqOrder = [
+exports.Big5CharToFreqOrder = [
    1,1801,1506, 255,1431, 198,   9,  82,   6,5008, 177, 202,3681,1256,2821, 110, //   16
 3814,  33,3274, 261,  76,  44,2114,  16,2946,2187,1176, 659,3971,  26,3451,2653, //   32
 1198,3972,3350,4202, 410,2215, 302, 590, 361,1964,   8, 204,  58,4510,5009,1932, //   48
@@ -929,9 +927,7 @@ jschardet.Big5CharToFreqOrder = [
 13952,13953,13954,13955,13956,13957,13958,13959,13960,13961,13962,13963,13964,13965,13966,13967, //13968
 13968,13969,13970,13971,13972]; //13973
 
-}(require('./init'));
-
-},{"./init":20}],3:[function(require,module,exports){
+},{}],3:[function(require,module,exports){
 /*
  * The Original Code is Mozilla Universal charset detector code.
  *
@@ -961,16 +957,19 @@ jschardet.Big5CharToFreqOrder = [
  * 02110-1301  USA
  */
 
-!function(jschardet) {
+var CodingStateMachine = require('./codingstatemachine')
+var MultiByteCharSetProber = require('./mbcharsetprober')
+var Big5SMModel = require('./mbcssm/big5')
+var Big5DistributionAnalysis = require('./chardistribution').Big5DistributionAnalysis
 
-jschardet.Big5Prober = function() {
-    jschardet.MultiByteCharSetProber.apply(this);
+function Big5Prober() {
+    MultiByteCharSetProber.apply(this);
 
     var self = this;
 
     function init() {
-        self._mCodingSM = new jschardet.CodingStateMachine(jschardet.Big5SMModel);
-        self._mDistributionAnalyzer = new jschardet.Big5DistributionAnalysis();
+        self._mCodingSM = new CodingStateMachine(Big5SMModel);
+        self._mDistributionAnalyzer = new Big5DistributionAnalysis();
         self.reset();
     }
 
@@ -980,11 +979,11 @@ jschardet.Big5Prober = function() {
 
     init();
 }
-jschardet.Big5Prober.prototype = new jschardet.MultiByteCharSetProber();
+Big5Prober.prototype = new MultiByteCharSetProber();
 
-}(require('./init'));
+module.exports = Big5Prober
 
-},{"./init":20}],4:[function(require,module,exports){
+},{"./chardistribution":4,"./codingstatemachine":7,"./mbcharsetprober":30,"./mbcssm/big5":32}],4:[function(require,module,exports){
 /*
  * The Original Code is Mozilla Universal charset detector code.
  *
@@ -1014,9 +1013,13 @@ jschardet.Big5Prober.prototype = new jschardet.MultiByteCharSetProber();
  * 02110-1301  USA
  */
 
-!function(jschardet) {
+var jisfreq = require('./jisfreq');
+var euctwfreq = require('./euctwfreq');
+var euckrfreq = require('./euckrfreq');
+var gb2312freq = require('./gb2312freq');
+var big5freq = require('./big5freq');
 
-jschardet.CharDistributionAnalysis = function() {
+function CharDistributionAnalysis() {
     var ENOUGH_DATA_THRESHOLD = 1024;
     var SURE_YES = 0.99;
     var SURE_NO = 0.01;
@@ -1096,15 +1099,17 @@ jschardet.CharDistributionAnalysis = function() {
     init();
 }
 
-jschardet.EUCTWDistributionAnalysis = function() {
-    jschardet.CharDistributionAnalysis.apply(this);
+exports.CharDistributionAnalysis = CharDistributionAnalysis
+
+function EUCTWDistributionAnalysis() {
+    CharDistributionAnalysis.apply(this);
 
     var self = this;
 
     function init() {
-        self._mCharToFreqOrder = jschardet.EUCTWCharToFreqOrder;
-        self._mTableSize = jschardet.EUCTW_TABLE_SIZE;
-        self._mTypicalDistributionRatio = jschardet.EUCTW_TYPICAL_DISTRIBUTION_RATIO;
+        self._mCharToFreqOrder = euctwfreq.EUCTWCharToFreqOrder;
+        self._mTableSize = euctwfreq.EUCTW_TABLE_SIZE;
+        self._mTypicalDistributionRatio = euctwfreq.EUCTW_TYPICAL_DISTRIBUTION_RATIO;
     }
 
     this.getOrder = function(aStr) {
@@ -1121,17 +1126,19 @@ jschardet.EUCTWDistributionAnalysis = function() {
 
     init();
 }
-jschardet.EUCTWDistributionAnalysis.prototype = new jschardet.CharDistributionAnalysis();
+EUCTWDistributionAnalysis.prototype = new CharDistributionAnalysis();
 
-jschardet.EUCKRDistributionAnalysis = function() {
-    jschardet.CharDistributionAnalysis.apply(this);
+exports.EUCTWDistributionAnalysis = EUCTWDistributionAnalysis
+
+function EUCKRDistributionAnalysis() {
+    CharDistributionAnalysis.apply(this);
 
     var self = this;
 
     function init() {
-        self._mCharToFreqOrder = jschardet.EUCKRCharToFreqOrder;
-        self._mTableSize = jschardet.EUCKR_TABLE_SIZE;
-        self._mTypicalDistributionRatio = jschardet.EUCKR_TYPICAL_DISTRIBUTION_RATIO;
+        self._mCharToFreqOrder = euckrfreq.EUCKRCharToFreqOrder;
+        self._mTableSize = euckrfreq.EUCKR_TABLE_SIZE;
+        self._mTypicalDistributionRatio = euckrfreq.EUCKR_TYPICAL_DISTRIBUTION_RATIO;
     }
 
     this.getOrder = function(aStr) {
@@ -1148,17 +1155,19 @@ jschardet.EUCKRDistributionAnalysis = function() {
 
     init();
 }
-jschardet.EUCKRDistributionAnalysis.prototype = new jschardet.CharDistributionAnalysis();
+EUCKRDistributionAnalysis.prototype = new CharDistributionAnalysis();
 
-jschardet.GB2312DistributionAnalysis = function() {
-    jschardet.CharDistributionAnalysis.apply(this);
+exports.EUCKRDistributionAnalysis = EUCKRDistributionAnalysis
+
+function GB2312DistributionAnalysis() {
+    CharDistributionAnalysis.apply(this);
 
     var self = this;
 
     function init() {
-        self._mCharToFreqOrder = jschardet.GB2312CharToFreqOrder;
-        self._mTableSize = jschardet.GB2312_TABLE_SIZE;
-        self._mTypicalDistributionRatio = jschardet.GB2312_TYPICAL_DISTRIBUTION_RATIO;
+        self._mCharToFreqOrder = gb2312freq.GB2312CharToFreqOrder;
+        self._mTableSize = gb2312freq.GB2312_TABLE_SIZE;
+        self._mTypicalDistributionRatio = gb2312freq.GB2312_TYPICAL_DISTRIBUTION_RATIO;
     }
 
     this.getOrder = function(aStr) {
@@ -1175,17 +1184,19 @@ jschardet.GB2312DistributionAnalysis = function() {
 
     init();
 }
-jschardet.GB2312DistributionAnalysis.prototype = new jschardet.CharDistributionAnalysis();
+GB2312DistributionAnalysis.prototype = new CharDistributionAnalysis();
 
-jschardet.Big5DistributionAnalysis = function() {
-    jschardet.CharDistributionAnalysis.apply(this);
+exports.GB2312DistributionAnalysis = GB2312DistributionAnalysis
+
+function Big5DistributionAnalysis() {
+    CharDistributionAnalysis.apply(this);
 
     var self = this;
 
     function init() {
-        self._mCharToFreqOrder = jschardet.Big5CharToFreqOrder;
-        self._mTableSize = jschardet.BIG5_TABLE_SIZE;
-        self._mTypicalDistributionRatio = jschardet.BIG5_TYPICAL_DISTRIBUTION_RATIO;
+        self._mCharToFreqOrder = big5freq.Big5CharToFreqOrder;
+        self._mTableSize = big5freq.BIG5_TABLE_SIZE;
+        self._mTypicalDistributionRatio = big5freq.BIG5_TYPICAL_DISTRIBUTION_RATIO;
     }
 
     this.getOrder = function(aStr) {
@@ -1206,17 +1217,19 @@ jschardet.Big5DistributionAnalysis = function() {
 
     init();
 }
-jschardet.Big5DistributionAnalysis.prototype = new jschardet.CharDistributionAnalysis();
+Big5DistributionAnalysis.prototype = new CharDistributionAnalysis();
 
-jschardet.SJISDistributionAnalysis = function() {
-    jschardet.CharDistributionAnalysis.apply(this);
+exports.Big5DistributionAnalysis = Big5DistributionAnalysis
+
+function SJISDistributionAnalysis() {
+    CharDistributionAnalysis.apply(this);
 
     var self = this;
 
     function init() {
-        self._mCharToFreqOrder = jschardet.JISCharToFreqOrder;
-        self._mTableSize = jschardet.JIS_TABLE_SIZE;
-        self._mTypicalDistributionRatio = jschardet.JIS_TYPICAL_DISTRIBUTION_RATIO;
+        self._mCharToFreqOrder = jisfreq.JISCharToFreqOrder;
+        self._mTableSize = jisfreq.JIS_TABLE_SIZE;
+        self._mTypicalDistributionRatio = jisfreq.JIS_TYPICAL_DISTRIBUTION_RATIO;
     }
 
     this.getOrder = function(aStr) {
@@ -1240,17 +1253,19 @@ jschardet.SJISDistributionAnalysis = function() {
 
     init();
 }
-jschardet.SJISDistributionAnalysis.prototype = new jschardet.CharDistributionAnalysis();
+SJISDistributionAnalysis.prototype = new CharDistributionAnalysis();
 
-jschardet.EUCJPDistributionAnalysis = function() {
-    jschardet.CharDistributionAnalysis.apply(this);
+exports.SJISDistributionAnalysis = SJISDistributionAnalysis
+
+function EUCJPDistributionAnalysis() {
+    CharDistributionAnalysis.apply(this);
 
     var self = this;
 
     function init() {
-        self._mCharToFreqOrder = jschardet.JISCharToFreqOrder;
-        self._mTableSize = jschardet.JIS_TABLE_SIZE;
-        self._mTypicalDistributionRatio = jschardet.JIS_TYPICAL_DISTRIBUTION_RATIO;
+        self._mCharToFreqOrder = jisfreq.JISCharToFreqOrder;
+        self._mTableSize = jisfreq.JIS_TABLE_SIZE;
+        self._mTypicalDistributionRatio = jisfreq.JIS_TYPICAL_DISTRIBUTION_RATIO;
     }
 
     this.getOrder = function(aStr) {
@@ -1267,11 +1282,11 @@ jschardet.EUCJPDistributionAnalysis = function() {
 
     init();
 }
-jschardet.EUCJPDistributionAnalysis.prototype = new jschardet.CharDistributionAnalysis();
+EUCJPDistributionAnalysis.prototype = new CharDistributionAnalysis();
 
-}(require('./init'));
+exports.EUCJPDistributionAnalysis = EUCJPDistributionAnalysis
 
-},{"./init":20}],5:[function(require,module,exports){
+},{"./big5freq":2,"./euckrfreq":12,"./euctwfreq":14,"./gb2312freq":16,"./jisfreq":20}],5:[function(require,module,exports){
 /*
  * The Original Code is Mozilla Universal charset detector code.
  *
@@ -1301,10 +1316,12 @@ jschardet.EUCJPDistributionAnalysis.prototype = new jschardet.CharDistributionAn
  * 02110-1301  USA
  */
 
-!function(jschardet) {
+var constants = require('./constants');
+var CharSetProber = require('./charsetprober');
+var logger = require('./logger');
 
-jschardet.CharSetGroupProber = function() {
-    jschardet.CharSetProber.apply(this);
+function CharSetGroupProber() {
+    CharSetProber.apply(this);
 
     var self = this;
 
@@ -1315,7 +1332,7 @@ jschardet.CharSetGroupProber = function() {
     }
 
     this.reset = function() {
-        jschardet.CharSetGroupProber.prototype.reset.apply(this);
+        CharSetGroupProber.prototype.reset.apply(this);
         this._mActiveNum = 0;
         for( var i = 0, prober; prober = this._mProbers[i]; i++ ) {
             if( prober ) {
@@ -1340,14 +1357,14 @@ jschardet.CharSetGroupProber = function() {
             if( !prober || !prober.active ) continue;
             var st = prober.feed(aBuf);
             if( !st ) continue;
-            if( st == jschardet.Constants.foundIt ) {
+            if( st == constants.foundIt ) {
                 this._mBestGuessProber = prober;
                 return this.getState();
-            } else if( st == jschardet.Constants.notMe ) {
+            } else if( st == constants.notMe ) {
                 prober.active = false;
                 this._mActiveNum--;
                 if( this._mActiveNum <= 0 ) {
-                    this._mState = jschardet.Constants.notMe;
+                    this._mState = constants.notMe;
                     return this.getState();
                 }
             }
@@ -1357,9 +1374,9 @@ jschardet.CharSetGroupProber = function() {
 
     this.getConfidence = function() {
         var st = this.getState();
-        if( st == jschardet.Constants.foundIt ) {
+        if( st == constants.foundIt ) {
             return 0.99;
-        } else if( st == jschardet.Constants.notMe ) {
+        } else if( st == constants.notMe ) {
             return 0.01;
         }
         var bestConf = 0.0;
@@ -1367,15 +1384,11 @@ jschardet.CharSetGroupProber = function() {
         for( var i = 0, prober; prober = this._mProbers[i]; i++ ) {
             if( !prober ) continue;
             if( !prober.active ) {
-                if( jschardet.Constants._debug ) {
-                    jschardet.log(prober.getCharsetName() + " not active\n");
-                }
+                logger.log(prober.getCharsetName() + " not active\n");
                 continue;
             }
             var cf = prober.getConfidence();
-            if( jschardet.Constants._debug ) {
-                jschardet.log(prober.getCharsetName() + " confidence = " + cf + "\n");
-            }
+            logger.log(prober.getCharsetName() + " confidence = " + cf + "\n");
             if( bestConf < cf ) {
                 bestConf = cf;
                 this._mBestGuessProber = prober;
@@ -1387,11 +1400,11 @@ jschardet.CharSetGroupProber = function() {
 
     init();
 }
-jschardet.CharSetGroupProber.prototype = new jschardet.CharSetProber();
+CharSetGroupProber.prototype = new CharSetProber();
 
-}(require('./init'));
+module.exports = CharSetGroupProber
 
-},{"./init":20}],6:[function(require,module,exports){
+},{"./charsetprober":6,"./constants":8,"./logger":29}],6:[function(require,module,exports){
 /*
  * The Original Code is Mozilla Universal charset detector code.
  *
@@ -1421,11 +1434,11 @@ jschardet.CharSetGroupProber.prototype = new jschardet.CharSetProber();
  * 02110-1301  USA
  */
 
-!function(jschardet) {
+var constants = require('./constants')
 
-jschardet.CharSetProber = function() {
+function CharSetProber() {
     this.reset = function() {
-        this._mState = jschardet.Constants.detecting;
+        this._mState = constants.detecting;
     }
 
     this.getCharsetName = function() {
@@ -1491,9 +1504,9 @@ jschardet.CharSetProber = function() {
     }
 }
 
-}(require('./init'));
+module.exports = CharSetProber
 
-},{"./init":20}],7:[function(require,module,exports){
+},{"./constants":8}],7:[function(require,module,exports){
 /*
  * The Original Code is Mozilla Universal charset detector code.
  *
@@ -1523,9 +1536,9 @@ jschardet.CharSetProber = function() {
  * 02110-1301  USA
  */
 
-!function(jschardet) {
+var constants = require('./constants')
 
-jschardet.CodingStateMachine = function(sm) {
+function CodingStateMachine(sm) {
     var self = this;
 
     function init(sm) {
@@ -1536,14 +1549,14 @@ jschardet.CodingStateMachine = function(sm) {
     }
 
     this.reset = function() {
-        this._mCurrentState = jschardet.Constants.start;
+        this._mCurrentState = constants.start;
     }
 
     this.nextState = function(c) {
         // for each byte we get its class
         // if it is first byte, we also get byte length
         var byteCls = this._mModel.classTable[c.charCodeAt(0)];
-        if( this._mCurrentState == jschardet.Constants.start ) {
+        if( this._mCurrentState == constants.start ) {
             this._mCurrentBytePos = 0;
             this._mCurrentCharLen = this._mModel.charLenTable[byteCls];
         }
@@ -1564,9 +1577,9 @@ jschardet.CodingStateMachine = function(sm) {
     init(sm);
 }
 
-}(require('./init'));
+module.exports = CodingStateMachine
 
-},{"./init":20}],8:[function(require,module,exports){
+},{"./constants":8}],8:[function(require,module,exports){
 /*
  * The Original Code is Mozilla Universal charset detector code.
  *
@@ -1596,11 +1609,7 @@ jschardet.CodingStateMachine = function(sm) {
  * 02110-1301  USA
  */
 
-!function(jschardet) {
-
-jschardet.Constants = {
-    _debug      : false,
-
+module.exports = {
     detecting   : 0,
     foundIt     : 1,
     notMe       : 2,
@@ -1609,13 +1618,10 @@ jschardet.Constants = {
     error       : 1,
     itsMe       : 2,
 
-    MINIMUM_THRESHOLD   : 0.20,
     SHORTCUT_THRESHOLD  : 0.95
 };
 
-}(require('./init'));
-
-},{"./init":20}],9:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 /*
  * The Original Code is Mozilla Universal charset detector code.
  *
@@ -1645,25 +1651,28 @@ jschardet.Constants = {
  * 02110-1301  USA
  */
 
-!function(jschardet) {
+var CharSetProber = require('./charsetprober');
+var CodingStateMachine = require('./codingstatemachine');
+var escsm = require('./escsm');
+var constants = require('./constants');
 
-jschardet.EscCharSetProber = function() {
-    jschardet.CharSetProber.apply(this);
+function EscCharSetProber() {
+    CharSetProber.apply(this);
 
     var self = this;
 
     function init() {
         self._mCodingSM = [
-            new jschardet.CodingStateMachine(jschardet.HZSMModel),
-            new jschardet.CodingStateMachine(jschardet.ISO2022CNSMModel),
-            new jschardet.CodingStateMachine(jschardet.ISO2022JPSMModel),
-            new jschardet.CodingStateMachine(jschardet.ISO2022KRSMModel)
+            new CodingStateMachine(escsm.HZSMModel),
+            new CodingStateMachine(escsm.ISO2022CNSMModel),
+            new CodingStateMachine(escsm.ISO2022JPSMModel),
+            new CodingStateMachine(escsm.ISO2022KRSMModel)
         ];
         self.reset();
     }
 
     this.reset = function() {
-        jschardet.EscCharSetProber.prototype.reset.apply(this);
+        EscCharSetProber.prototype.reset.apply(this);
         for( var i = 0, codingSM; codingSM = this._mCodingSM[i]; i++ ) {
             if( !codingSM ) continue;
             codingSM.active = true;
@@ -1691,15 +1700,15 @@ jschardet.EscCharSetProber = function() {
             for( var j = 0, codingSM; codingSM = this._mCodingSM[j]; j++ ) {
                 if( !codingSM || !codingSM.active ) continue;
                 var codingState = codingSM.nextState(c);
-                if( codingState == jschardet.Constants.error ) {
+                if( codingState == constants.error ) {
                     codingSM.active = false;
                     this._mActiveSM--;
                     if( this._mActiveSM <= 0 ) {
-                        this._mState = jschardet.Constants.notMe;
+                        this._mState = constants.notMe;
                         return this.getState();
                     }
-                } else if( codingState == jschardet.Constants.itsMe ) {
-                    this._mState = jschardet.Constants.foundIt;
+                } else if( codingState == constants.itsMe ) {
+                    this._mState = constants.foundIt;
                     this._mDetectedCharset = codingSM.getCodingStateMachine();
                     return this.getState();
                 }
@@ -1711,11 +1720,11 @@ jschardet.EscCharSetProber = function() {
 
     init();
 }
-jschardet.EscCharSetProber.prototype = new jschardet.CharSetProber();
+EscCharSetProber.prototype = new CharSetProber();
 
-}(require('./init'));
+module.exports = EscCharSetProber
 
-},{"./init":20}],10:[function(require,module,exports){
+},{"./charsetprober":6,"./codingstatemachine":7,"./constants":8,"./escsm":10}],10:[function(require,module,exports){
 /*
  * The Original Code is Mozilla Universal charset detector code.
  *
@@ -1745,11 +1754,9 @@ jschardet.EscCharSetProber.prototype = new jschardet.CharSetProber();
  * 02110-1301  USA
  */
 
-!function(jschardet) {
+var consts = require('./constants');
 
-var consts = jschardet.Constants;
-
-jschardet.HZ_cls = [
+var HZ_cls = [
     1,0,0,0,0,0,0,0,  // 00 - 07
     0,0,0,0,0,0,0,0,  // 08 - 0f
     0,0,0,0,0,0,0,0,  // 10 - 17
@@ -1784,7 +1791,7 @@ jschardet.HZ_cls = [
     1,1,1,1,1,1,1,1   // f8 - ff
 ];
 
-jschardet.HZ_st = [
+var HZ_st = [
     consts.start,consts.error,    3,consts.start,consts.start,consts.start,consts.error,consts.error, // 00-07
     consts.error,consts.error,consts.error,consts.error,consts.itsMe,consts.itsMe,consts.itsMe,consts.itsMe, // 08-0f
     consts.itsMe,consts.itsMe,consts.error,consts.error,consts.start,consts.start,    4,consts.error, // 10-17
@@ -1793,17 +1800,17 @@ jschardet.HZ_st = [
         4,consts.itsMe,consts.start,consts.start,consts.start,consts.start,consts.start,consts.start  // 28-2f
 ];
 
-jschardet.HZCharLenTable = [0, 0, 0, 0, 0, 0];
+var HZCharLenTable = [0, 0, 0, 0, 0, 0];
 
-jschardet.HZSMModel = {
-    "classTable"    : jschardet.HZ_cls,
+exports.HZSMModel = {
+    "classTable"    : HZ_cls,
     "classFactor"   : 6,
-    "stateTable"    : jschardet.HZ_st,
-    "charLenTable"  : jschardet.HZCharLenTable,
+    "stateTable"    : HZ_st,
+    "charLenTable"  : HZCharLenTable,
     "name"          : "HZ-GB-2312"
 };
 
-jschardet.ISO2022CN_cls = [
+var ISO2022CN_cls = [
     2,0,0,0,0,0,0,0,  // 00 - 07
     0,0,0,0,0,0,0,0,  // 08 - 0f
     0,0,0,0,0,0,0,0,  // 10 - 17
@@ -1838,7 +1845,7 @@ jschardet.ISO2022CN_cls = [
     2,2,2,2,2,2,2,2   // f8 - ff
 ];
 
-jschardet.ISO2022CN_st = [
+var ISO2022CN_st = [
     consts.start,    3,consts.error,consts.start,consts.start,consts.start,consts.start,consts.start, // 00-07
     consts.start,consts.error,consts.error,consts.error,consts.error,consts.error,consts.error,consts.error, // 08-0f
     consts.error,consts.error,consts.itsMe,consts.itsMe,consts.itsMe,consts.itsMe,consts.itsMe,consts.itsMe, // 10-17
@@ -1849,17 +1856,17 @@ jschardet.ISO2022CN_st = [
     consts.error,consts.error,consts.error,consts.error,consts.error,consts.itsMe,consts.error,consts.start  // 38-3f
 ];
 
-jschardet.ISO2022CNCharLenTable = [0, 0, 0, 0, 0, 0, 0, 0, 0];
+var ISO2022CNCharLenTable = [0, 0, 0, 0, 0, 0, 0, 0, 0];
 
-jschardet.ISO2022CNSMModel = {
-    "classTable"    : jschardet.ISO2022CN_cls,
+exports.ISO2022CNSMModel = {
+    "classTable"    : ISO2022CN_cls,
     "classFactor"   : 9,
-    "stateTable"    : jschardet.ISO2022CN_st,
-    "charLenTable"  : jschardet.ISO2022CNCharLenTable,
+    "stateTable"    : ISO2022CN_st,
+    "charLenTable"  : ISO2022CNCharLenTable,
     "name"          : "ISO-2022-CN"
 };
 
-jschardet.ISO2022JP_cls = [
+var ISO2022JP_cls = [
     2,0,0,0,0,0,0,0,  // 00 - 07
     0,0,0,0,0,0,2,2,  // 08 - 0f
     0,0,0,0,0,0,0,0,  // 10 - 17
@@ -1894,7 +1901,7 @@ jschardet.ISO2022JP_cls = [
     2,2,2,2,2,2,2,2   // f8 - ff
 ];
 
-jschardet.ISO2022JP_st = [
+var ISO2022JP_st = [
     consts.start,    3,consts.error,consts.start,consts.start,consts.start,consts.start,consts.start, // 00-07
     consts.start,consts.start,consts.error,consts.error,consts.error,consts.error,consts.error,consts.error, // 08-0f
     consts.error,consts.error,consts.error,consts.error,consts.itsMe,consts.itsMe,consts.itsMe,consts.itsMe, // 10-17
@@ -1906,17 +1913,17 @@ jschardet.ISO2022JP_st = [
     consts.error,consts.error,consts.error,consts.error,consts.itsMe,consts.error,consts.start,consts.start  // 40-47
 ];
 
-jschardet.ISO2022JPCharLenTable = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+var ISO2022JPCharLenTable = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 
-jschardet.ISO2022JPSMModel = {
-    "classTable"    : jschardet.ISO2022JP_cls,
+exports.ISO2022JPSMModel = {
+    "classTable"    : ISO2022JP_cls,
     "classFactor"   : 10,
-    "stateTable"    : jschardet.ISO2022JP_st,
-    "charLenTable"  : jschardet.ISO2022JPCharLenTable,
+    "stateTable"    : ISO2022JP_st,
+    "charLenTable"  : ISO2022JPCharLenTable,
     "name"          : "ISO-2022-JP"
 };
 
-jschardet.ISO2022KR_cls = [
+var ISO2022KR_cls = [
     2,0,0,0,0,0,0,0,  // 00 - 07
     0,0,0,0,0,0,0,0,  // 08 - 0f
     0,0,0,0,0,0,0,0,  // 10 - 17
@@ -1951,7 +1958,7 @@ jschardet.ISO2022KR_cls = [
     2,2,2,2,2,2,2,2   // f8 - ff
 ];
 
-jschardet.ISO2022KR_st = [
+var ISO2022KR_st = [
     consts.start,    3,consts.error,consts.start,consts.start,consts.start,consts.error,consts.error, // 00-07
     consts.error,consts.error,consts.error,consts.error,consts.itsMe,consts.itsMe,consts.itsMe,consts.itsMe, // 08-0f
     consts.itsMe,consts.itsMe,consts.error,consts.error,consts.error,    4,consts.error,consts.error, // 10-17
@@ -1959,19 +1966,17 @@ jschardet.ISO2022KR_st = [
     consts.error,consts.error,consts.error,consts.itsMe,consts.start,consts.start,consts.start,consts.start  // 20-27
 ];
 
-jschardet.ISO2022KRCharLenTable = [0, 0, 0, 0, 0, 0];
+var ISO2022KRCharLenTable = [0, 0, 0, 0, 0, 0];
 
-jschardet.ISO2022KRSMModel = {
-    "classTable"    : jschardet.ISO2022KR_cls,
+exports.ISO2022KRSMModel = {
+    "classTable"    : ISO2022KR_cls,
     "classFactor"   : 6,
-    "stateTable"    : jschardet.ISO2022KR_st,
-    "charLenTable"  : jschardet.ISO2022KRCharLenTable,
+    "stateTable"    : ISO2022KR_st,
+    "charLenTable"  : ISO2022KRCharLenTable,
     "name"          : "ISO-2022-KR"
 };
 
-}(require('./init'));
-
-},{"./init":20}],11:[function(require,module,exports){
+},{"./constants":8}],11:[function(require,module,exports){
 /*
  * The Original Code is Mozilla Universal charset detector code.
  *
@@ -2001,22 +2006,28 @@ jschardet.ISO2022KRSMModel = {
  * 02110-1301  USA
  */
 
-!function(jschardet) {
+var CodingStateMachine = require('./codingstatemachine');
+var MultiByteCharSetProber = require('./mbcharsetprober');
+var EUCJPDistributionAnalysis = require('./chardistribution').EUCJPDistributionAnalysis;
+var EUCJPContextAnalysis = require('./jpcntx').EUCJPContextAnalysis;
+var EUCJPSMModel = require('./mbcssm/eucjp');
+var constants = require('./constants');
+var logger = require('./logger');
 
-jschardet.EUCJPProber = function() {
-    jschardet.MultiByteCharSetProber.apply(this);
+function EUCJPProber() {
+    MultiByteCharSetProber.apply(this);
 
     var self = this;
 
     function init() {
-        self._mCodingSM = new jschardet.CodingStateMachine(jschardet.EUCJPSMModel);
-        self._mDistributionAnalyzer = new jschardet.EUCJPDistributionAnalysis();
-        self._mContextAnalyzer = new jschardet.EUCJPContextAnalysis();
+        self._mCodingSM = new CodingStateMachine(EUCJPSMModel);
+        self._mDistributionAnalyzer = new EUCJPDistributionAnalysis();
+        self._mContextAnalyzer = new EUCJPContextAnalysis();
         self.reset();
     }
 
     this.reset = function() {
-        jschardet.EUCJPProber.prototype.reset.apply(this);
+        EUCJPProber.prototype.reset.apply(this);
         this._mContextAnalyzer.reset();
     }
 
@@ -2028,16 +2039,14 @@ jschardet.EUCJPProber = function() {
         var aLen = aBuf.length;
         for( var i = 0; i < aLen; i++ ) {
             var codingState = this._mCodingSM.nextState(aBuf[i]);
-            if( codingState == jschardet.Constants.error ) {
-                if( jschardet.Constants._debug ) {
-                    jschardet.log(this.getCharsetName() + " prober hit error at byte " + i + "\n");
-                }
-                this._mState = jschardet.Constants.notMe;
+            if( codingState == constants.error ) {
+                logger.log(this.getCharsetName() + " prober hit error at byte " + i + "\n");
+                this._mState = constants.notMe;
                 break;
-            } else if( codingState == jschardet.Constants.itsMe ) {
-                this._mState = jschardet.Constants.foundIt;
+            } else if( codingState == constants.itsMe ) {
+                this._mState = constants.foundIt;
                 break;
-            } else if( codingState == jschardet.Constants.start ) {
+            } else if( codingState == constants.start ) {
                 var charLen = this._mCodingSM.getCurrentCharLen();
                 if( i == 0 ) {
                     this._mLastChar[1] = aBuf[0];
@@ -2052,10 +2061,10 @@ jschardet.EUCJPProber = function() {
 
         this._mLastChar[0] = aBuf[aLen - 1];
 
-        if( this.getState() == jschardet.Constants.detecting ) {
+        if( this.getState() == constants.detecting ) {
             if( this._mContextAnalyzer.gotEnoughData() &&
-                this.getConfidence() > jschardet.Constants.SHORTCUT_THRESHOLD ) {
-                this._mState = jschardet.Constants.foundIt;
+                this.getConfidence() > constants.SHORTCUT_THRESHOLD ) {
+                this._mState = constants.foundIt;
             }
         }
 
@@ -2071,11 +2080,11 @@ jschardet.EUCJPProber = function() {
 
     init();
 }
-jschardet.EUCJPProber.prototype = new jschardet.MultiByteCharSetProber();
+EUCJPProber.prototype = new MultiByteCharSetProber();
 
-}(require('./init'));
+module.exports = EUCJPProber
 
-},{"./init":20}],12:[function(require,module,exports){
+},{"./chardistribution":4,"./codingstatemachine":7,"./constants":8,"./jpcntx":21,"./logger":29,"./mbcharsetprober":30,"./mbcssm/eucjp":33}],12:[function(require,module,exports){
 /*
  * The Original Code is Mozilla Universal charset detector code.
  *
@@ -2105,8 +2114,6 @@ jschardet.EUCJPProber.prototype = new jschardet.MultiByteCharSetProber();
  * 02110-1301  USA
  */
 
-!function(jschardet) {
-
 // Sampling from about 20M text materials include literature and computer technology
 
 // 128  --> 0.79
@@ -2120,12 +2127,12 @@ jschardet.EUCJPProber.prototype = new jschardet.MultiByteCharSetProber();
 //
 // Typical Distribution Ratio
 
-jschardet.EUCKR_TYPICAL_DISTRIBUTION_RATIO = 6.0;
+exports.EUCKR_TYPICAL_DISTRIBUTION_RATIO = 6.0;
 
-jschardet.EUCKR_TABLE_SIZE = 2352;
+exports.EUCKR_TABLE_SIZE = 2352;
 
 // Char to FreqOrder table ,
-jschardet.EUCKRCharToFreqOrder = [
+exports.EUCKRCharToFreqOrder = [
   13, 130, 120,1396, 481,1719,1720, 328, 609, 212,1721, 707, 400, 299,1722,  87,
 1397,1723, 104, 536,1117,1203,1724,1267, 685,1268, 508,1725,1726,1727,1728,1398,
 1399,1729,1730,1731, 141, 621, 326,1057, 368,1732, 267, 488,  20,1733,1269,1734,
@@ -2676,9 +2683,7 @@ jschardet.EUCKRCharToFreqOrder = [
 8736,8737,8738,8739,8740,8741
 ];
 
-}(require('./init'));
-
-},{"./init":20}],13:[function(require,module,exports){
+},{}],13:[function(require,module,exports){
 /*
  * The Original Code is Mozilla Universal charset detector code.
  *
@@ -2708,16 +2713,19 @@ jschardet.EUCKRCharToFreqOrder = [
  * 02110-1301  USA
  */
 
-!function(jschardet) {
+var CodingStateMachine = require('./codingstatemachine');
+var MultiByteCharSetProber = require('./mbcharsetprober');
+var EUCKRDistributionAnalysis = require('./chardistribution').EUCKRDistributionAnalysis;
+var EUCKRSMModel = require('./mbcssm/euckr');
 
-jschardet.EUCKRProber = function() {
-    jschardet.MultiByteCharSetProber.apply(this);
+function EUCKRProber() {
+    MultiByteCharSetProber.apply(this);
 
     var self = this;
 
     function init() {
-        self._mCodingSM = new jschardet.CodingStateMachine(jschardet.EUCKRSMModel);
-        self._mDistributionAnalyzer = new jschardet.EUCKRDistributionAnalysis();
+        self._mCodingSM = new CodingStateMachine(EUCKRSMModel);
+        self._mDistributionAnalyzer = new EUCKRDistributionAnalysis();
         self.reset();
     }
 
@@ -2727,11 +2735,11 @@ jschardet.EUCKRProber = function() {
 
     init();
 }
-jschardet.EUCKRProber.prototype = new jschardet.MultiByteCharSetProber();
+EUCKRProber.prototype = new MultiByteCharSetProber();
 
-}(require('./init'));
+module.exports = EUCKRProber;
 
-},{"./init":20}],14:[function(require,module,exports){
+},{"./chardistribution":4,"./codingstatemachine":7,"./mbcharsetprober":30,"./mbcssm/euckr":34}],14:[function(require,module,exports){
 /*
  * The Original Code is Mozilla Universal charset detector code.
  *
@@ -2760,8 +2768,6 @@ jschardet.EUCKRProber.prototype = new jschardet.MultiByteCharSetProber();
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301  USA
  */
-
-!function(jschardet) {
 
 // EUCTW frequency table
 // Converted from big5 work
@@ -2779,12 +2785,12 @@ jschardet.EUCKRProber.prototype = new jschardet.MultiByteCharSetProber();
 //
 // Typical Distribution Ratio about 25% of Ideal one, still much higher than RDR
 
-jschardet.EUCTW_TYPICAL_DISTRIBUTION_RATIO = 0.75;
+exports.EUCTW_TYPICAL_DISTRIBUTION_RATIO = 0.75;
 
 // Char to FreqOrder table ,
-jschardet.EUCTW_TABLE_SIZE = 8102;
+exports.EUCTW_TABLE_SIZE = 8102;
 
-jschardet.EUCTWCharToFreqOrder = [
+exports.EUCTWCharToFreqOrder = [
    1,1800,1506, 255,1431, 198,   9,  82,   6,7310, 177, 202,3615,1256,2808, 110, // 2742
 3735,  33,3241, 261,  76,  44,2113,  16,2931,2184,1176, 659,3868,  26,3404,2643, // 2758
 1198,3869,3313,4060, 410,2211, 302, 590, 361,1963,   8, 204,  58,4296,7311,1931, // 2774
@@ -3164,9 +3170,7 @@ jschardet.EUCTWCharToFreqOrder = [
 8726,8727,8728,8729,8730,8731,8732,8733,8734,8735,8736,8737,8738,8739,8740,8741
 ]; // 8742
 
-}(require('./init'));
-
-},{"./init":20}],15:[function(require,module,exports){
+},{}],15:[function(require,module,exports){
 /*
  * The Original Code is Mozilla Universal charset detector code.
  *
@@ -3196,16 +3200,19 @@ jschardet.EUCTWCharToFreqOrder = [
  * 02110-1301  USA
  */
 
-!function(jschardet) {
+ var CodingStateMachine = require('./codingstatemachine');
+ var MultiByteCharSetProber = require('./mbcharsetprober');
+ var EUCTWDistributionAnalysis = require('./chardistribution').EUCTWDistributionAnalysis;
+ var EUCTWSMModel = require('./mbcssm/euctw');
 
-jschardet.EUCTWProber = function() {
-    jschardet.MultiByteCharSetProber.apply(this);
+function EUCTWProber() {
+    MultiByteCharSetProber.apply(this);
 
     var self = this;
 
     function init() {
-        self._mCodingSM = new jschardet.CodingStateMachine(jschardet.EUCTWSMModel);
-        self._mDistributionAnalyzer = new jschardet.EUCTWDistributionAnalysis();
+        self._mCodingSM = new CodingStateMachine(EUCTWSMModel);
+        self._mDistributionAnalyzer = new EUCTWDistributionAnalysis();
         self.reset();
     }
 
@@ -3215,11 +3222,11 @@ jschardet.EUCTWProber = function() {
 
     init();
 }
-jschardet.EUCTWProber.prototype = new jschardet.MultiByteCharSetProber();
+EUCTWProber.prototype = new MultiByteCharSetProber();
 
-}(require('./init'));
+module.exports = EUCTWProber
 
-},{"./init":20}],16:[function(require,module,exports){
+},{"./chardistribution":4,"./codingstatemachine":7,"./mbcharsetprober":30,"./mbcssm/euctw":35}],16:[function(require,module,exports){
 /*
  * The Original Code is Mozilla Universal charset detector code.
  *
@@ -3248,8 +3255,6 @@ jschardet.EUCTWProber.prototype = new jschardet.MultiByteCharSetProber();
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301  USA
  */
-
-!function(jschardet) {
 
 // GB2312 most frequently used character table
 //
@@ -3265,11 +3270,11 @@ jschardet.EUCTWProber.prototype = new jschardet.MultiByteCharSetProber();
 //
 // Typical Distribution Ratio about 25% of Ideal one, still much higher that RDR
 
-jschardet.GB2312_TYPICAL_DISTRIBUTION_RATIO = 0.9;
+exports.GB2312_TYPICAL_DISTRIBUTION_RATIO = 0.9;
 
-jschardet.GB2312_TABLE_SIZE = 3760;
+exports.GB2312_TABLE_SIZE = 3760;
 
-jschardet.GB2312CharToFreqOrder = [
+exports.GB2312CharToFreqOrder = [
 1671, 749,1443,2364,3924,3807,2330,3921,1704,3463,2691,1511,1515, 572,3191,2205,
 2361, 224,2558, 479,1711, 963,3162, 440,4060,1905,2966,2947,3580,2647,3961,3842,
 2204, 869,4207, 970,2678,5626,2944,2956,1479,4048, 514,3595, 588,1346,2820,3409,
@@ -3696,9 +3701,7 @@ jschardet.GB2312CharToFreqOrder = [
 4866,4899,6099,6100,5559,6478,6765,3599,5868,6101,5869,5870,6275,6766,4527,6767
 ];
 
-}(require('./init'));
-
-},{"./init":20}],17:[function(require,module,exports){
+},{}],17:[function(require,module,exports){
 /*
  * The Original Code is Mozilla Universal charset detector code.
  *
@@ -3728,16 +3731,19 @@ jschardet.GB2312CharToFreqOrder = [
  * 02110-1301  USA
  */
 
-!function(jschardet) {
+var MultiByteCharSetProber = require('./mbcharsetprober');
+var CodingStateMachine = require('./codingstatemachine');
+var GB2312SMModel = require('./mbcssm/gb2312');
+var GB2312DistributionAnalysis = require('./chardistribution').GB2312DistributionAnalysis;
 
-jschardet.GB2312Prober = function() {
-    jschardet.MultiByteCharSetProber.apply(this);
+function GB2312Prober() {
+    MultiByteCharSetProber.apply(this);
 
     var self = this;
 
     function init() {
-        self._mCodingSM = new jschardet.CodingStateMachine(jschardet.GB2312SMModel);
-        self._mDistributionAnalyzer = new jschardet.GB2312DistributionAnalysis();
+        self._mCodingSM = new CodingStateMachine(GB2312SMModel);
+        self._mDistributionAnalyzer = new GB2312DistributionAnalysis();
         self.reset();
     }
 
@@ -3747,11 +3753,11 @@ jschardet.GB2312Prober = function() {
 
     init();
 }
-jschardet.GB2312Prober.prototype = new jschardet.MultiByteCharSetProber();
+GB2312Prober.prototype = new MultiByteCharSetProber();
 
-}(require('./init'));
+module.exports = GB2312Prober
 
-},{"./init":20}],18:[function(require,module,exports){
+},{"./chardistribution":4,"./codingstatemachine":7,"./mbcharsetprober":30,"./mbcssm/gb2312":36}],18:[function(require,module,exports){
 /*
  * The Original Code is Mozilla Universal charset detector code.
  *
@@ -3780,8 +3786,6 @@ jschardet.GB2312Prober.prototype = new jschardet.MultiByteCharSetProber();
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301  USA
  */
-
-!function(jschardet) {
 
 // This prober doesn't actually recognize a language or a charset.
 // It is a helper prober for the use of the Hebrew model probers
@@ -3880,8 +3884,35 @@ jschardet.GB2312Prober.prototype = new jschardet.MultiByteCharSetProber();
 // model probers scores. The answer is returned in the form of the name of the
 // charset identified, either "windows-1255" or "ISO-8859-8".
 
-jschardet.HebrewProber = function() {
-    jschardet.CharSetProber.apply(this);
+var CharSetProber = require('./charsetprober');
+var constants = require('./constants')
+
+// https://developer.mozilla.org/En/Core_JavaScript_1.5_Reference/Objects/Array/IndexOf
+if (!Array.prototype.indexOf)
+{
+    Array.prototype.indexOf = function(elt /*, from*/)
+    {
+        var len = this.length >>> 0;
+
+        var from = Number(arguments[1]) || 0;
+        from = (from < 0)
+             ? Math.ceil(from)
+             : Math.floor(from);
+        if (from < 0)
+            from += len;
+
+        for (; from < len; from++)
+        {
+            if (from in this &&
+                this[from] === elt)
+                return from;
+        }
+        return -1;
+    };
+}
+
+function HebrewProber() {
+    CharSetProber.apply(this);
 
     // windows-1255 / ISO-8859-8 code points of interest
     var FINAL_KAF = '\xea'
@@ -3972,9 +4003,9 @@ jschardet.HebrewProber = function() {
         // We automatically filter out all 7-bit characters (replace them with spaces)
         // so the word boundary detection works properly. [MAP]
 
-        if( this.getState() == jschardet.Constants.notMe ) {
+        if( this.getState() == constants.notMe ) {
             // Both model probers say it's not them. No reason to continue.
-            return jschardet.Constants.notMe;
+            return constants.notMe;
         }
 
         aBuf = this.filterHighBitOnly(aBuf);
@@ -4004,7 +4035,7 @@ jschardet.HebrewProber = function() {
             this._mPrev = cur;
         }
         // Forever detecting, till the end or until both model probers return eNotMe (handled above)
-        return jschardet.Constants.detecting;
+        return constants.detecting;
     }
 
     this.getCharsetName = function() {
@@ -4038,46 +4069,20 @@ jschardet.HebrewProber = function() {
 
     this.getState = function() {
         // Remain active as long as any of the model probers are active.
-        if( this._mLogicalProber.getState() == jschardet.Constants.notMe &&
-            this._mVisualProber.getState() == jschardet.Constants.notMe ) {
-            return jschardet.Constants.notMe;
+        if( this._mLogicalProber.getState() == constants.notMe &&
+            this._mVisualProber.getState() == constants.notMe ) {
+            return constants.notMe;
         }
-        return jschardet.Constants.detecting;
+        return constants.detecting;
     }
 
     init();
 }
-jschardet.HebrewProber.prototype = new jschardet.CharSetProber();
+HebrewProber.prototype = new CharSetProber();
 
-// https://developer.mozilla.org/En/Core_JavaScript_1.5_Reference/Objects/Array/IndexOf
-if (!Array.prototype.indexOf)
-{
-    Array.prototype.indexOf = function(elt /*, from*/)
-    {
-        var len = this.length >>> 0;
+module.exports = HebrewProber
 
-        var from = Number(arguments[1]) || 0;
-        from = (from < 0)
-             ? Math.ceil(from)
-             : Math.floor(from);
-        if (from < 0)
-            from += len;
-
-        for (; from < len; from++)
-        {
-            if (from in this &&
-                this[from] === elt)
-                return from;
-        }
-        return -1;
-    };
-}
-
-}(require('./init'));
-
-},{"./init":20}],19:[function(require,module,exports){
-module.exports = require('./init')
-},{"./init":20}],20:[function(require,module,exports){
+},{"./charsetprober":6,"./constants":8}],19:[function(require,module,exports){
 /*
  * The Original Code is Mozilla Universal charset detector code.
  *
@@ -4107,46 +4112,11 @@ module.exports = require('./init')
  * 02110-1301  USA
  */
 
-var jschardet = exports;
+var UniversalDetector = require('./universaldetector');
+var setLogger = require('./logger').setLogger;
 
-require('./constants');
-require('./codingstatemachine');
-require('./escsm');
-require('./mbcssm');
-require('./charsetprober');
-require('./mbcharsetprober');
-require('./jisfreq');
-require('./gb2312freq');
-require('./euckrfreq');
-require('./big5freq');
-require('./euctwfreq');
-require('./chardistribution');
-require('./jpcntx');
-require('./sjisprober');
-require('./utf8prober');
-require('./charsetgroupprober');
-require('./eucjpprober');
-require('./gb2312prober');
-require('./euckrprober');
-require('./big5prober');
-require('./euctwprober');
-require('./mbcsgroupprober');
-require('./sbcharsetprober');
-require('./langgreekmodel');
-require('./langthaimodel');
-require('./langbulgarianmodel');
-require('./langcyrillicmodel');
-require('./hebrewprober');
-require('./langhebrewmodel');
-require('./langhungarianmodel');
-require('./sbcsgroupprober');
-require('./latin1prober');
-require('./escprober');
-require('./universaldetector');
-
-jschardet.VERSION = "1.4.1";
-jschardet.detect = function(buffer) {
-    var u = new jschardet.UniversalDetector();
+exports.detect = function(buffer, options) {
+    var u = new UniversalDetector(options);
     u.reset();
     if( typeof Buffer == 'function' && buffer instanceof Buffer ) {
         u.feed(buffer.toString('binary'));
@@ -4156,11 +4126,12 @@ jschardet.detect = function(buffer) {
     u.close();
     return u.result;
 }
-jschardet.log = function() {
-  console.log.apply(console, arguments);
+exports.UniversalDetector = UniversalDetector;
+exports.enableDebug = function() {
+    setLogger(console.log.bind(console));
 }
 
-},{"./big5freq":2,"./big5prober":3,"./chardistribution":4,"./charsetgroupprober":5,"./charsetprober":6,"./codingstatemachine":7,"./constants":8,"./escprober":9,"./escsm":10,"./eucjpprober":11,"./euckrfreq":12,"./euckrprober":13,"./euctwfreq":14,"./euctwprober":15,"./gb2312freq":16,"./gb2312prober":17,"./hebrewprober":18,"./jisfreq":21,"./jpcntx":22,"./langbulgarianmodel":23,"./langcyrillicmodel":24,"./langgreekmodel":25,"./langhebrewmodel":26,"./langhungarianmodel":27,"./langthaimodel":28,"./latin1prober":29,"./mbcharsetprober":30,"./mbcsgroupprober":31,"./mbcssm":32,"./sbcharsetprober":33,"./sbcsgroupprober":34,"./sjisprober":35,"./universaldetector":36,"./utf8prober":37}],21:[function(require,module,exports){
+},{"./logger":29,"./universaldetector":42}],20:[function(require,module,exports){
 /*
  * The Original Code is Mozilla Universal charset detector code.
  *
@@ -4189,8 +4160,6 @@ jschardet.log = function() {
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301  USA
  */
-
-!function(jschardet) {
 
 // Sampling from about 20M text materials include literature and computer technology
 //
@@ -4208,11 +4177,11 @@ jschardet.log = function() {
 //
 // Typical Distribution Ratio, 25% of IDR
 
-jschardet.JIS_TYPICAL_DISTRIBUTION_RATIO = 3.0;
+exports.JIS_TYPICAL_DISTRIBUTION_RATIO = 3.0;
 
-jschardet.JIS_TABLE_SIZE = 4368;
+exports.JIS_TABLE_SIZE = 4368;
 
-jschardet.JISCharToFreqOrder = [
+exports.JISCharToFreqOrder = [
   40,   1,   6, 182, 152, 180, 295,2127, 285, 381,3295,4304,3068,4606,3165,3510, //   16
 3511,1822,2785,4607,1193,2226,5070,4608, 171,2996,1247,  18, 179,5071, 856,1661, //   32
 1262,5072, 619, 127,3431,3512,3230,1899,1700, 232, 228,1294,1298, 284, 283,2041, //   48
@@ -4733,9 +4702,7 @@ jschardet.JISCharToFreqOrder = [
 8256,8257,8258,8259,8260,8261,8262,8263,8264,8265,8266,8267,8268,8269,8270,8271 // 8272
 ];
 
-}(require('./init'));
-
-},{"./init":20}],22:[function(require,module,exports){
+},{}],21:[function(require,module,exports){
 /*
  * The Original Code is Mozilla Universal charset detector code.
  *
@@ -4765,10 +4732,8 @@ jschardet.JISCharToFreqOrder = [
  * 02110-1301  USA
  */
 
-!function(jschardet) {
-
 // This is hiragana 2-char sequence table, the number in each cell represents its frequency category
-jschardet.jp2CharContext = [
+exports.jp2CharContext = [
 [0,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,1],
 [2,4,0,4,0,3,0,4,0,3,4,4,4,2,4,3,3,4,3,2,3,3,4,2,3,3,3,2,4,1,4,3,3,1,5,4,3,4,3,4,3,5,3,0,3,5,4,2,0,3,1,0,3,3,0,3,3,0,1,1,0,4,3,0,3,3,0,4,0,2,0,3,5,5,5,5,4,0,4,1,0,3,4],
 [0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2],
@@ -4854,7 +4819,7 @@ jschardet.jp2CharContext = [
 [0,4,0,3,0,3,0,3,0,3,5,5,3,3,3,3,4,3,4,3,3,3,4,4,4,3,3,3,3,4,3,5,3,3,1,3,2,4,5,5,5,5,4,3,4,5,5,3,2,2,3,3,3,3,2,3,3,1,2,3,2,4,3,3,3,4,0,4,0,2,0,4,3,2,2,1,2,0,3,0,0,4,1]
 ];
 
-jschardet.JapaneseContextAnalysis = function() {
+function JapaneseContextAnalysis() {
     var NUM_OF_CATEGORY = 6;
     var DONT_KNOW = -1;
     var ENOUGH_REL_THRESHOLD = 100;
@@ -4900,7 +4865,7 @@ jschardet.JapaneseContextAnalysis = function() {
                         this._mDone = true;
                         break;
                     }
-                    this._mRelSample[jschardet.jp2CharContext[this._mLastCharOrder][order]] += 1;
+                    this._mRelSample[exports.jp2CharContext[this._mLastCharOrder][order]] += 1;
                 }
                 this._mLastCharOrder = order;
             }
@@ -4927,7 +4892,7 @@ jschardet.JapaneseContextAnalysis = function() {
     init();
 }
 
-jschardet.SJISContextAnalysis = function() {
+function SJISContextAnalysis() {
     this.getOrder = function(aStr) {
         if( !aStr ) return [-1, 1];
         // find out current char's byte length
@@ -4949,9 +4914,11 @@ jschardet.SJISContextAnalysis = function() {
         return [-1, charLen];
     }
 }
-jschardet.SJISContextAnalysis.prototype = new jschardet.JapaneseContextAnalysis();
+SJISContextAnalysis.prototype = new JapaneseContextAnalysis();
 
-jschardet.EUCJPContextAnalysis = function() {
+exports.SJISContextAnalysis = SJISContextAnalysis
+
+function EUCJPContextAnalysis() {
     this.getOrder = function(aStr) {
         if( !aStr ) return [-1, 1];
         // find out current char's byte length
@@ -4975,11 +4942,11 @@ jschardet.EUCJPContextAnalysis = function() {
         return [-1, charLen];
     }
 }
-jschardet.EUCJPContextAnalysis.prototype = new jschardet.JapaneseContextAnalysis();
+EUCJPContextAnalysis.prototype = new JapaneseContextAnalysis();
 
-}(require('./init'));
+exports.EUCJPContextAnalysis = EUCJPContextAnalysis
 
-},{"./init":20}],23:[function(require,module,exports){
+},{}],22:[function(require,module,exports){
 /*
  * The Original Code is Mozilla Universal charset detector code.
  *
@@ -5009,8 +4976,6 @@ jschardet.EUCJPContextAnalysis.prototype = new jschardet.JapaneseContextAnalysis
  * 02110-1301  USA
  */
 
-!function(jschardet) {
-
 // 255: Control characters that usually does not exist in any text
 // 254: Carriage/Return
 // 253: symbol (punctuation) that does not belong to word
@@ -5020,7 +4985,7 @@ jschardet.EUCJPContextAnalysis.prototype = new jschardet.JapaneseContextAnalysis
 // this table is modified base on win1251BulgarianCharToOrderMap, so
 // only number <64 is sure valid
 
-jschardet.Latin5_BulgarianCharToOrderMap = [
+exports.Latin5_BulgarianCharToOrderMap = [
 255,255,255,255,255,255,255,255,255,255,254,255,255,254,255,255,  // 00
 255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,  // 10
 253,253,253,253,253,253,253,253,253,253,253,253,253,253,253,253,  // 20
@@ -5039,7 +5004,7 @@ jschardet.Latin5_BulgarianCharToOrderMap = [
  62,242,243,244, 58,245, 98,246,247,248,249,250,251, 91,252,253   // f0
 ];
 
-jschardet.win1251BulgarianCharToOrderMap = [
+exports.win1251BulgarianCharToOrderMap = [
 255,255,255,255,255,255,255,255,255,255,254,255,255,254,255,255,  // 00
 255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,  // 10
 253,253,253,253,253,253,253,253,253,253,253,253,253,253,253,253,  // 20
@@ -5064,7 +5029,7 @@ jschardet.win1251BulgarianCharToOrderMap = [
 // first 1024 sequences:3.0618%
 // rest  sequences:     0.2992%
 // negative sequences:  0.0020%
-jschardet.BulgarianLangModel = [
+exports.BulgarianLangModel = [
 0,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,2,3,3,3,3,3,3,3,3,2,3,3,3,3,3,
 3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,0,3,3,3,2,2,3,2,2,1,2,2,
 3,1,3,3,2,3,3,3,3,3,3,3,3,3,3,3,3,0,3,3,3,3,3,3,3,3,3,3,0,3,0,1,
@@ -5195,25 +5160,23 @@ jschardet.BulgarianLangModel = [
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1
 ];
 
-jschardet.Latin5BulgarianModel = {
-    "charToOrderMap"        : jschardet.Latin5_BulgarianCharToOrderMap,
-    "precedenceMatrix"      : jschardet.BulgarianLangModel,
+exports.Latin5BulgarianModel = {
+    "charToOrderMap"        : exports.Latin5_BulgarianCharToOrderMap,
+    "precedenceMatrix"      : exports.BulgarianLangModel,
     "mTypicalPositiveRatio" : 0.969392,
     "keepEnglishLetter"     : false,
     "charsetName"           : "ISO-8859-5"
 };
 
-jschardet.Win1251BulgarianModel = {
-    "charToOrderMap"        : jschardet.win1251BulgarianCharToOrderMap,
-    "precedenceMatrix"      : jschardet.BulgarianLangModel,
+exports.Win1251BulgarianModel = {
+    "charToOrderMap"        : exports.win1251BulgarianCharToOrderMap,
+    "precedenceMatrix"      : exports.BulgarianLangModel,
     "mTypicalPositiveRatio" : 0.969392,
     "keepEnglishLetter"     : false,
     "charsetName"           : "windows-1251"
 };
 
-}(require('./init'));
-
-},{"./init":20}],24:[function(require,module,exports){
+},{}],23:[function(require,module,exports){
 /*
  * The Original Code is Mozilla Universal charset detector code.
  *
@@ -5243,11 +5206,9 @@ jschardet.Win1251BulgarianModel = {
  * 02110-1301  USA
  */
 
-!function(jschardet) {
-
 // KOI8-R language model
 // Character Mapping Table:
-jschardet.KOI8R_CharToOrderMap = [
+exports.KOI8R_CharToOrderMap = [
 255,255,255,255,255,255,255,255,255,255,254,255,255,254,255,255,  // 00
 255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,  // 10
 253,253,253,253,253,253,253,253,253,253,253,253,253,253,253,253,  // 20
@@ -5266,7 +5227,7 @@ jschardet.KOI8R_CharToOrderMap = [
  35, 43, 45, 32, 40, 52, 56, 33, 61, 62, 51, 57, 47, 63, 50, 70   // f0
 ];
 
-jschardet.win1251_CharToOrderMap = [
+exports.win1251_CharToOrderMap = [
 255,255,255,255,255,255,255,255,255,255,254,255,255,254,255,255,  // 00
 255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,  // 10
 253,253,253,253,253,253,253,253,253,253,253,253,253,253,253,253,  // 20
@@ -5285,7 +5246,7 @@ jschardet.win1251_CharToOrderMap = [
   9,  7,  6, 14, 39, 26, 28, 22, 25, 29, 54, 18, 17, 30, 27, 16
 ];
 
-jschardet.latin5_CharToOrderMap = [
+exports.latin5_CharToOrderMap = [
 255,255,255,255,255,255,255,255,255,255,254,255,255,254,255,255,  // 00
 255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,  // 10
 253,253,253,253,253,253,253,253,253,253,253,253,253,253,253,253,  // 20
@@ -5304,7 +5265,7 @@ jschardet.latin5_CharToOrderMap = [
 239, 68,240,241,242,243,244,245,246,247,248,249,250,251,252,255
 ];
 
-jschardet.macCyrillic_CharToOrderMap = [
+exports.macCyrillic_CharToOrderMap = [
 255,255,255,255,255,255,255,255,255,255,254,255,255,254,255,255,  // 00
 255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,  // 10
 253,253,253,253,253,253,253,253,253,253,253,253,253,253,253,253,  // 20
@@ -5323,7 +5284,7 @@ jschardet.macCyrillic_CharToOrderMap = [
   9,  7,  6, 14, 39, 26, 28, 22, 25, 29, 54, 18, 17, 30, 27,255
 ];
 
-jschardet.IBM855_CharToOrderMap = [
+exports.IBM855_CharToOrderMap = [
 255,255,255,255,255,255,255,255,255,255,254,255,255,254,255,255,  // 00
 255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,  // 10
 253,253,253,253,253,253,253,253,253,253,253,253,253,253,253,253,  // 20
@@ -5342,7 +5303,7 @@ jschardet.IBM855_CharToOrderMap = [
 250, 18, 62, 20, 51, 25, 57, 30, 47, 29, 63, 22, 50,251,252,255
 ];
 
-jschardet.IBM866_CharToOrderMap = [
+exports.IBM866_CharToOrderMap = [
 255,255,255,255,255,255,255,255,255,255,254,255,255,254,255,255,  // 00
 255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,  // 10
 253,253,253,253,253,253,253,253,253,253,253,253,253,253,253,253,  // 20
@@ -5367,7 +5328,7 @@ jschardet.IBM866_CharToOrderMap = [
 // first 1024 sequences: 2.3389%
 // rest  sequences:      0.1237%
 // negative sequences:   0.0009%
-jschardet.RussianLangModel = [
+exports.RussianLangModel = [
 0,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,1,1,3,3,3,3,1,3,3,3,2,3,2,3,3,
 3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,0,3,2,2,2,2,2,0,0,2,
 3,3,3,2,3,3,3,3,3,3,3,3,3,3,2,3,3,0,0,3,3,3,3,3,3,3,3,3,2,3,2,0,
@@ -5498,57 +5459,55 @@ jschardet.RussianLangModel = [
 0,0,0,0,0,1,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0
 ];
 
-jschardet.Koi8rModel = {
-    "charToOrderMap"          : jschardet.KOI8R_CharToOrderMap,
-    "precedenceMatrix"        : jschardet.RussianLangModel,
+exports.Koi8rModel = {
+    "charToOrderMap"          : exports.KOI8R_CharToOrderMap,
+    "precedenceMatrix"        : exports.RussianLangModel,
     "mTypicalPositiveRatio"   : 0.976601,
     "keepEnglishLetter"       : false,
     "charsetName"             : "KOI8-R"
 };
 
-jschardet.Win1251CyrillicModel = {
-    "charToOrderMap"          : jschardet.win1251_CharToOrderMap,
-    "precedenceMatrix"        : jschardet.RussianLangModel,
+exports.Win1251CyrillicModel = {
+    "charToOrderMap"          : exports.win1251_CharToOrderMap,
+    "precedenceMatrix"        : exports.RussianLangModel,
     "mTypicalPositiveRatio"   : 0.976601,
     "keepEnglishLetter"       : false,
     "charsetName"             : "windows-1251"
 };
 
-jschardet.Latin5CyrillicModel = {
-    "charToOrderMap"          : jschardet.latin5_CharToOrderMap,
-    "precedenceMatrix"        : jschardet.RussianLangModel,
+exports.Latin5CyrillicModel = {
+    "charToOrderMap"          : exports.latin5_CharToOrderMap,
+    "precedenceMatrix"        : exports.RussianLangModel,
     "mTypicalPositiveRatio"   : 0.976601,
     "keepEnglishLetter"       : false,
     "charsetName"             : "ISO-8859-5"
 };
 
-jschardet.MacCyrillicModel = {
-    "charToOrderMap"          : jschardet.macCyrillic_CharToOrderMap,
-    "precedenceMatrix"        : jschardet.RussianLangModel,
+exports.MacCyrillicModel = {
+    "charToOrderMap"          : exports.macCyrillic_CharToOrderMap,
+    "precedenceMatrix"        : exports.RussianLangModel,
     "mTypicalPositiveRatio"   : 0.976601,
     "keepEnglishLetter"       : false,
     "charsetName"             : "MacCyrillic"
 };
 
-jschardet.Ibm866Model = {
-    "charToOrderMap"          : jschardet.IBM866_CharToOrderMap,
-    "precedenceMatrix"        : jschardet.RussianLangModel,
+exports.Ibm866Model = {
+    "charToOrderMap"          : exports.IBM866_CharToOrderMap,
+    "precedenceMatrix"        : exports.RussianLangModel,
     "mTypicalPositiveRatio"   : 0.976601,
     "keepEnglishLetter"       : false,
     "charsetName"             : "IBM866"
 };
 
-jschardet.Ibm855Model = {
-    "charToOrderMap"          : jschardet.IBM855_CharToOrderMap,
-    "precedenceMatrix"        : jschardet.RussianLangModel,
+exports.Ibm855Model = {
+    "charToOrderMap"          : exports.IBM855_CharToOrderMap,
+    "precedenceMatrix"        : exports.RussianLangModel,
     "mTypicalPositiveRatio"   : 0.976601,
     "keepEnglishLetter"       : false,
     "charsetName"             : "IBM855"
 };
 
-}(require('./init'));
-
-},{"./init":20}],25:[function(require,module,exports){
+},{}],24:[function(require,module,exports){
 /*
  * The Original Code is Mozilla Universal charset detector code.
  *
@@ -5578,15 +5537,13 @@ jschardet.Ibm855Model = {
  * 02110-1301  USA
  */
 
-!function(jschardet) {
-
 // 255: Control characters that usually does not exist in any text
 // 254: Carriage/Return
 // 253: symbol (punctuation) that does not belong to word
 // 252: 0 - 9
 
 // Character Mapping Table:
-jschardet.Latin7_CharToOrderMap = [
+exports.Latin7_CharToOrderMap = [
 255,255,255,255,255,255,255,255,255,255,254,255,255,254,255,255,  // 00
 255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,  // 10
 253,253,253,253,253,253,253,253,253,253,253,253,253,253,253,253,  // 20
@@ -5605,7 +5562,7 @@ jschardet.Latin7_CharToOrderMap = [
   9,  8, 14,  7,  2, 12, 28, 23, 42, 24, 64, 75, 19, 26, 27,253   // f0
 ];
 
-jschardet.win1253_CharToOrderMap = [
+exports.win1253_CharToOrderMap = [
 255,255,255,255,255,255,255,255,255,255,254,255,255,254,255,255,  // 00
 255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,  // 10
 253,253,253,253,253,253,253,253,253,253,253,253,253,253,253,253,  // 20
@@ -5630,7 +5587,7 @@ jschardet.win1253_CharToOrderMap = [
 // first 1024 sequences:1.7001%
 // rest  sequences:     0.0359%
 // negative sequences:  0.0148%
-jschardet.GreekLangModel = [
+exports.GreekLangModel = [
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,3,2,2,3,3,3,3,3,3,3,3,1,3,3,3,0,2,2,3,3,0,3,0,3,2,0,3,3,3,0,
@@ -5761,25 +5718,23 @@ jschardet.GreekLangModel = [
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 ];
 
-jschardet.Latin7GreekModel = {
-    "charToOrderMap"        : jschardet.Latin7_CharToOrderMap,
-    "precedenceMatrix"      : jschardet.GreekLangModel,
+exports.Latin7GreekModel = {
+    "charToOrderMap"        : exports.Latin7_CharToOrderMap,
+    "precedenceMatrix"      : exports.GreekLangModel,
     "mTypicalPositiveRatio" : 0.982851,
     "keepEnglishLetter"     : false,
     "charsetName"           : "ISO-8859-7"
 };
 
-jschardet.Win1253GreekModel = {
-    "charToOrderMap"        : jschardet.win1253_CharToOrderMap,
-    "precedenceMatrix"      : jschardet.GreekLangModel,
+exports.Win1253GreekModel = {
+    "charToOrderMap"        : exports.win1253_CharToOrderMap,
+    "precedenceMatrix"      : exports.GreekLangModel,
     "mTypicalPositiveRatio" : 0.982851,
     "keepEnglishLetter"     : false,
     "charsetName"           : "windows-1253"
 };
 
-}(require('./init'));
-
-},{"./init":20}],26:[function(require,module,exports){
+},{}],25:[function(require,module,exports){
 /*
  * The Original Code is Mozilla Universal charset detector code.
  *
@@ -5809,8 +5764,6 @@ jschardet.Win1253GreekModel = {
  * 02110-1301  USA
  */
 
-!function(jschardet) {
-
 // 255: Control characters that usually does not exist in any text
 // 254: Carriage/Return
 // 253: symbol (punctuation) that does not belong to word
@@ -5818,7 +5771,7 @@ jschardet.Win1253GreekModel = {
 
 // Windows-1255 language model
 // Character Mapping Table:
-jschardet.win1255_CharToOrderMap = [
+exports.win1255_CharToOrderMap = [
 255,255,255,255,255,255,255,255,255,255,254,255,255,254,255,255,  // 00
 255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,  // 10
 253,253,253,253,253,253,253,253,253,253,253,253,253,253,253,253,  // 20
@@ -5843,7 +5796,7 @@ jschardet.win1255_CharToOrderMap = [
 // first 1024 sequences: 1.5981%
 // rest  sequences:      0.087%
 // negative sequences:   0.0015%
-jschardet.HebrewLangModel = [
+exports.HebrewLangModel = [
 0,3,3,3,3,3,3,3,3,3,3,2,3,3,3,3,3,3,3,3,3,3,3,2,3,2,1,2,0,1,0,0,
 3,0,3,1,0,0,1,3,2,0,1,1,2,0,2,2,2,1,1,1,1,2,1,1,1,2,0,0,2,2,0,1,
 3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,2,2,2,2,
@@ -5974,17 +5927,15 @@ jschardet.HebrewLangModel = [
 0,0,0,0,0,0,0,0,0,0,1,2,1,0,0,0,0,0,1,1,1,1,1,0,1,0,0,0,1,1,0,0
 ];
 
-jschardet.Win1255HebrewModel = {
-    "charToOrderMap"        : jschardet.win1255_CharToOrderMap,
-    "precedenceMatrix"      : jschardet.HebrewLangModel,
+exports.Win1255HebrewModel = {
+    "charToOrderMap"        : exports.win1255_CharToOrderMap,
+    "precedenceMatrix"      : exports.HebrewLangModel,
     "mTypicalPositiveRatio" : 0.984004,
     "keepEnglishLetter"     : false,
     "charsetName"           : "windows-1255"
 };
 
-}(require('./init'));
-
-},{"./init":20}],27:[function(require,module,exports){
+},{}],26:[function(require,module,exports){
 /*
  * The Original Code is Mozilla Universal charset detector code.
  *
@@ -6014,15 +5965,13 @@ jschardet.Win1255HebrewModel = {
  * 02110-1301  USA
  */
 
-!function(jschardet) {
-
 // 255: Control characters that usually does not exist in any text
 // 254: Carriage/Return
 // 253: symbol (punctuation) that does not belong to word
 // 252: 0 - 9
 
 // Character Mapping Table:
-jschardet.Latin2_HungarianCharToOrderMap = [
+exports.Latin2_HungarianCharToOrderMap = [
 255,255,255,255,255,255,255,255,255,255,254,255,255,254,255,255,  // 00
 255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,  // 10
 253,253,253,253,253,253,253,253,253,253,253,253,253,253,253,253,  // 20
@@ -6041,7 +5990,7 @@ jschardet.Latin2_HungarianCharToOrderMap = [
 245,246,247, 25, 73, 42, 24,248,249,250, 31, 56, 29,251,252,253
 ]
 
-jschardet.win1250HungarianCharToOrderMap = [
+exports.win1250HungarianCharToOrderMap = [
 255,255,255,255,255,255,255,255,255,255,254,255,255,254,255,255,  // 00
 255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,  // 10
 253,253,253,253,253,253,253,253,253,253,253,253,253,253,253,253,  // 20
@@ -6066,7 +6015,7 @@ jschardet.win1250HungarianCharToOrderMap = [
 // first 1024 sequences:5.2623%
 // rest  sequences:     0.8894%
 // negative sequences:  0.0009%
-jschardet.HungarianLangModel = [
+exports.HungarianLangModel = [
 0,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,1,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,
 3,3,3,3,3,3,3,3,3,3,2,3,3,3,3,3,3,3,3,2,2,3,3,1,1,2,2,2,2,2,1,2,
 3,2,2,3,3,3,3,3,2,3,3,3,3,3,3,1,2,3,3,3,3,2,3,3,1,1,3,3,0,1,1,1,
@@ -6197,25 +6146,23 @@ jschardet.HungarianLangModel = [
 0,1,1,1,1,1,1,0,1,1,0,1,0,1,0,0,1,1,0,0,1,1,0,0,0,0,0,0,0,0,0,0
 ];
 
-jschardet.Latin2HungarianModel = {
-    "charToOrderMap"        : jschardet.Latin2_HungarianCharToOrderMap,
-    "precedenceMatrix"      : jschardet.HungarianLangModel,
+exports.Latin2HungarianModel = {
+    "charToOrderMap"        : exports.Latin2_HungarianCharToOrderMap,
+    "precedenceMatrix"      : exports.HungarianLangModel,
     "mTypicalPositiveRatio" : 0.947368,
     "keepEnglishLetter"     : true,
     "charsetName"           : "ISO-8859-2"
 };
 
-jschardet.Win1250HungarianModel = {
-    "charToOrderMap"        : jschardet.win1250HungarianCharToOrderMap,
-    "precedenceMatrix"      : jschardet.HungarianLangModel,
+exports.Win1250HungarianModel = {
+    "charToOrderMap"        : exports.win1250HungarianCharToOrderMap,
+    "precedenceMatrix"      : exports.HungarianLangModel,
     "mTypicalPositiveRatio" : 0.947368,
     "keepEnglishLetter"     : true,
     "charsetName"           : "windows-1250"
 };
 
-}(require('./init'));
-
-},{"./init":20}],28:[function(require,module,exports){
+},{}],27:[function(require,module,exports){
 /*
  * The Original Code is Mozilla Universal charset detector code.
  *
@@ -6245,8 +6192,6 @@ jschardet.Win1250HungarianModel = {
  * 02110-1301  USA
  */
 
-!function(jschardet) {
-
 // 255: Control characters that usually does not exist in any text
 // 254: Carriage/Return
 // 253: symbol (punctuation) that does not belong to word
@@ -6255,7 +6200,7 @@ jschardet.Win1250HungarianModel = {
 // The following result for thai was collected from a limited sample (1M).
 
 // Character Mapping Table:
-jschardet.TIS620CharToOrderMap = [
+exports.TIS620CharToOrderMap = [
 255,255,255,255,255,255,255,255,255,255,254,255,255,254,255,255,  // 00
 255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,  // 10
 253,253,253,253,253,253,253,253,253,253,253,253,253,253,253,253,  // 20
@@ -6280,7 +6225,7 @@ jschardet.TIS620CharToOrderMap = [
 // first 1024 sequences:7.3177%
 // rest  sequences:     1.0230%
 // negative sequences:  0.0436%
-jschardet.ThaiLangModel = [
+exports.ThaiLangModel = [
 0,1,3,3,3,3,0,0,3,3,0,3,3,0,3,3,3,3,3,3,3,3,0,0,3,3,3,0,3,3,3,3,
 0,3,3,0,0,0,1,3,0,3,3,2,3,3,0,1,2,3,3,3,3,0,2,0,2,0,0,3,2,1,2,2,
 3,0,3,3,2,3,0,0,3,3,0,3,3,0,3,3,3,3,3,3,3,3,3,0,3,2,3,0,2,2,2,3,
@@ -6411,17 +6356,15 @@ jschardet.ThaiLangModel = [
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 ];
 
-jschardet.TIS620ThaiModel = {
-    "charToOrderMap"        : jschardet.TIS620CharToOrderMap,
-    "precedenceMatrix"      : jschardet.ThaiLangModel,
+exports.TIS620ThaiModel = {
+    "charToOrderMap"        : exports.TIS620CharToOrderMap,
+    "precedenceMatrix"      : exports.ThaiLangModel,
     "mTypicalPositiveRatio" : 0.926386,
     "keepEnglishLetter"     : false,
     "charsetName"           : "TIS-620"
 };
 
-}(require('./init'));
-
-},{"./init":20}],29:[function(require,module,exports){
+},{}],28:[function(require,module,exports){
 /*
  * The Original Code is Mozilla Universal charset detector code.
  *
@@ -6451,73 +6394,71 @@ jschardet.TIS620ThaiModel = {
  * 02110-1301  USA
  */
 
-!function(jschardet) {
+var CharSetProber = require('./charsetprober');
+var Constants = require('./constants');
 
-(function() {
-    var UDF = 0; // undefined
-    var OTH = 1; // other
-    jschardet.OTH = 1;
-    var ASC = 2; // ascii capital letter
-    var ASS = 3; // ascii small letter
-    var ACV = 4; // accent capital vowel
-    var ACO = 5; // accent capital other
-    var ASV = 6; // accent small vowel
-    var ASO = 7; // accent small other
+var UDF = 0; // undefined
+var OTH = 1; // other
+var ASC = 2; // ascii capital letter
+var ASS = 3; // ascii small letter
+var ACV = 4; // accent capital vowel
+var ACO = 5; // accent capital other
+var ASV = 6; // accent small vowel
+var ASO = 7; // accent small other
 
-    jschardet.Latin1_CharToClass = [
-      OTH, OTH, OTH, OTH, OTH, OTH, OTH, OTH,   // 00 - 07
-      OTH, OTH, OTH, OTH, OTH, OTH, OTH, OTH,   // 08 - 0F
-      OTH, OTH, OTH, OTH, OTH, OTH, OTH, OTH,   // 10 - 17
-      OTH, OTH, OTH, OTH, OTH, OTH, OTH, OTH,   // 18 - 1F
-      OTH, OTH, OTH, OTH, OTH, OTH, OTH, OTH,   // 20 - 27
-      OTH, OTH, OTH, OTH, OTH, OTH, OTH, OTH,   // 28 - 2F
-      OTH, OTH, OTH, OTH, OTH, OTH, OTH, OTH,   // 30 - 37
-      OTH, OTH, OTH, OTH, OTH, OTH, OTH, OTH,   // 38 - 3F
-      OTH, ASC, ASC, ASC, ASC, ASC, ASC, ASC,   // 40 - 47
-      ASC, ASC, ASC, ASC, ASC, ASC, ASC, ASC,   // 48 - 4F
-      ASC, ASC, ASC, ASC, ASC, ASC, ASC, ASC,   // 50 - 57
-      ASC, ASC, ASC, OTH, OTH, OTH, OTH, OTH,   // 58 - 5F
-      OTH, ASS, ASS, ASS, ASS, ASS, ASS, ASS,   // 60 - 67
-      ASS, ASS, ASS, ASS, ASS, ASS, ASS, ASS,   // 68 - 6F
-      ASS, ASS, ASS, ASS, ASS, ASS, ASS, ASS,   // 70 - 77
-      ASS, ASS, ASS, OTH, OTH, OTH, OTH, OTH,   // 78 - 7F
-      OTH, UDF, OTH, ASO, OTH, OTH, OTH, OTH,   // 80 - 87
-      OTH, OTH, ACO, OTH, ACO, UDF, ACO, UDF,   // 88 - 8F
-      UDF, OTH, OTH, OTH, OTH, OTH, OTH, OTH,   // 90 - 97
-      OTH, OTH, ASO, OTH, ASO, UDF, ASO, ACO,   // 98 - 9F
-      OTH, OTH, OTH, OTH, OTH, OTH, OTH, OTH,   // A0 - A7
-      OTH, OTH, OTH, OTH, OTH, OTH, OTH, OTH,   // A8 - AF
-      OTH, OTH, OTH, OTH, OTH, OTH, OTH, OTH,   // B0 - B7
-      OTH, OTH, OTH, OTH, OTH, OTH, OTH, OTH,   // B8 - BF
-      ACV, ACV, ACV, ACV, ACV, ACV, ACO, ACO,   // C0 - C7
-      ACV, ACV, ACV, ACV, ACV, ACV, ACV, ACV,   // C8 - CF
-      ACO, ACO, ACV, ACV, ACV, ACV, ACV, OTH,   // D0 - D7
-      ACV, ACV, ACV, ACV, ACV, ACO, ACO, ACO,   // D8 - DF
-      ASV, ASV, ASV, ASV, ASV, ASV, ASO, ASO,   // E0 - E7
-      ASV, ASV, ASV, ASV, ASV, ASV, ASV, ASV,   // E8 - EF
-      ASO, ASO, ASV, ASV, ASV, ASV, ASV, OTH,   // F0 - F7
-      ASV, ASV, ASV, ASV, ASV, ASO, ASO, ASO    // F8 - FF
-    ];
+var Latin1_CharToClass = [
+  OTH, OTH, OTH, OTH, OTH, OTH, OTH, OTH,   // 00 - 07
+  OTH, OTH, OTH, OTH, OTH, OTH, OTH, OTH,   // 08 - 0F
+  OTH, OTH, OTH, OTH, OTH, OTH, OTH, OTH,   // 10 - 17
+  OTH, OTH, OTH, OTH, OTH, OTH, OTH, OTH,   // 18 - 1F
+  OTH, OTH, OTH, OTH, OTH, OTH, OTH, OTH,   // 20 - 27
+  OTH, OTH, OTH, OTH, OTH, OTH, OTH, OTH,   // 28 - 2F
+  OTH, OTH, OTH, OTH, OTH, OTH, OTH, OTH,   // 30 - 37
+  OTH, OTH, OTH, OTH, OTH, OTH, OTH, OTH,   // 38 - 3F
+  OTH, ASC, ASC, ASC, ASC, ASC, ASC, ASC,   // 40 - 47
+  ASC, ASC, ASC, ASC, ASC, ASC, ASC, ASC,   // 48 - 4F
+  ASC, ASC, ASC, ASC, ASC, ASC, ASC, ASC,   // 50 - 57
+  ASC, ASC, ASC, OTH, OTH, OTH, OTH, OTH,   // 58 - 5F
+  OTH, ASS, ASS, ASS, ASS, ASS, ASS, ASS,   // 60 - 67
+  ASS, ASS, ASS, ASS, ASS, ASS, ASS, ASS,   // 68 - 6F
+  ASS, ASS, ASS, ASS, ASS, ASS, ASS, ASS,   // 70 - 77
+  ASS, ASS, ASS, OTH, OTH, OTH, OTH, OTH,   // 78 - 7F
+  OTH, UDF, OTH, ASO, OTH, OTH, OTH, OTH,   // 80 - 87
+  OTH, OTH, ACO, OTH, ACO, UDF, ACO, UDF,   // 88 - 8F
+  UDF, OTH, OTH, OTH, OTH, OTH, OTH, OTH,   // 90 - 97
+  OTH, OTH, ASO, OTH, ASO, UDF, ASO, ACO,   // 98 - 9F
+  OTH, OTH, OTH, OTH, OTH, OTH, OTH, OTH,   // A0 - A7
+  OTH, OTH, OTH, OTH, OTH, OTH, OTH, OTH,   // A8 - AF
+  OTH, OTH, OTH, OTH, OTH, OTH, OTH, OTH,   // B0 - B7
+  OTH, OTH, OTH, OTH, OTH, OTH, OTH, OTH,   // B8 - BF
+  ACV, ACV, ACV, ACV, ACV, ACV, ACO, ACO,   // C0 - C7
+  ACV, ACV, ACV, ACV, ACV, ACV, ACV, ACV,   // C8 - CF
+  ACO, ACO, ACV, ACV, ACV, ACV, ACV, OTH,   // D0 - D7
+  ACV, ACV, ACV, ACV, ACV, ACO, ACO, ACO,   // D8 - DF
+  ASV, ASV, ASV, ASV, ASV, ASV, ASO, ASO,   // E0 - E7
+  ASV, ASV, ASV, ASV, ASV, ASV, ASV, ASV,   // E8 - EF
+  ASO, ASO, ASV, ASV, ASV, ASV, ASV, OTH,   // F0 - F7
+  ASV, ASV, ASV, ASV, ASV, ASO, ASO, ASO    // F8 - FF
+];
 
-    // 0 : illegal
-    // 1 : very unlikely
-    // 2 : normal
-    // 3 : very likely
-    jschardet.Latin1ClassModel = [
-    // UDF OTH ASC ASS ACV ACO ASV ASO
-       0,  0,  0,  0,  0,  0,  0,  0,  // UDF
-       0,  3,  3,  3,  3,  3,  3,  3,  // OTH
-       0,  3,  3,  3,  3,  3,  3,  3,  // ASC
-       0,  3,  3,  3,  1,  1,  3,  3,  // ASS
-       0,  3,  3,  3,  1,  2,  1,  2,  // ACV
-       0,  3,  3,  3,  3,  3,  3,  3,  // ACO
-       0,  3,  1,  3,  1,  1,  1,  3,  // ASV
-       0,  3,  1,  3,  1,  1,  3,  3   // ASO
-    ];
-})();
+// 0 : illegal
+// 1 : very unlikely
+// 2 : normal
+// 3 : very likely
+var Latin1ClassModel = [
+// UDF OTH ASC ASS ACV ACO ASV ASO
+   0,  0,  0,  0,  0,  0,  0,  0,  // UDF
+   0,  3,  3,  3,  3,  3,  3,  3,  // OTH
+   0,  3,  3,  3,  3,  3,  3,  3,  // ASC
+   0,  3,  3,  3,  1,  1,  3,  3,  // ASS
+   0,  3,  3,  3,  1,  2,  1,  2,  // ACV
+   0,  3,  3,  3,  3,  3,  3,  3,  // ACO
+   0,  3,  1,  3,  1,  1,  1,  3,  // ASV
+   0,  3,  1,  3,  1,  1,  3,  3   // ASO
+];
 
-jschardet.Latin1Prober = function() {
-    jschardet.CharSetProber.apply(this);
+function Latin1Prober() {
+    CharSetProber.apply(this);
 
     var FREQ_CAT_NUM = 4;
     var CLASS_NUM = 8; // total classes
@@ -6528,10 +6469,10 @@ jschardet.Latin1Prober = function() {
     }
 
     this.reset = function() {
-        this._mLastCharClass = jschardet.OTH;
+        this._mLastCharClass = OTH;
         this._mFreqCounter = [];
         for( var i = 0; i < FREQ_CAT_NUM; this._mFreqCounter[i++] = 0 );
-        jschardet.Latin1Prober.prototype.reset.apply(this);
+        Latin1Prober.prototype.reset.apply(this);
     }
 
     this.getCharsetName = function() {
@@ -6542,10 +6483,10 @@ jschardet.Latin1Prober = function() {
         aBuf = this.filterWithEnglishLetters(aBuf);
         for( var i = 0; i < aBuf.length; i++ ) {
             var c = aBuf.charCodeAt(i);
-            var charClass = jschardet.Latin1_CharToClass[c];
-            var freq = jschardet.Latin1ClassModel[(this._mLastCharClass * CLASS_NUM) + charClass];
+            var charClass = Latin1_CharToClass[c];
+            var freq = Latin1ClassModel[(this._mLastCharClass * CLASS_NUM) + charClass];
             if( freq == 0 ) {
-                this._mState = jschardet.Constants.notMe;
+                this._mState = Constants.notMe;
                 break;
             }
             this._mFreqCounter[freq]++;
@@ -6558,8 +6499,8 @@ jschardet.Latin1Prober = function() {
     this.getConfidence = function() {
         var confidence;
         var constants;
-        
-        if( this.getState() == jschardet.Constants.notMe ) {
+
+        if( this.getState() == Constants.notMe ) {
             return 0.01;
         }
 
@@ -6585,11 +6526,20 @@ jschardet.Latin1Prober = function() {
 
     init();
 }
-jschardet.Latin1Prober.prototype = new jschardet.CharSetProber();
+Latin1Prober.prototype = new CharSetProber();
 
-}(require('./init'));
+module.exports = Latin1Prober
 
-},{"./init":20}],30:[function(require,module,exports){
+},{"./charsetprober":6,"./constants":8}],29:[function(require,module,exports){
+// By default, do nothing
+exports.log = function () {};
+
+exports.setLogger = function setLogger(loggerFunction) {
+  exports.enabled = true;
+  exports.log = loggerFunction;
+};
+
+},{}],30:[function(require,module,exports){
 /*
  * The Original Code is Mozilla Universal charset detector code.
  *
@@ -6619,10 +6569,12 @@ jschardet.Latin1Prober.prototype = new jschardet.CharSetProber();
  * 02110-1301  USA
  */
 
-!function(jschardet) {
+var CharSetProber = require('./charsetprober');
+var constants = require('./constants');
+var logger = require('./logger');
 
-jschardet.MultiByteCharSetProber = function() {
-    jschardet.CharSetProber.apply(this);
+ function MultiByteCharSetProber() {
+    CharSetProber.apply(this);
 
     var self = this;
 
@@ -6634,7 +6586,7 @@ jschardet.MultiByteCharSetProber = function() {
     }
 
     this.reset = function() {
-        jschardet.MultiByteCharSetProber.prototype.reset.apply(this);
+        MultiByteCharSetProber.prototype.reset.apply(this);
         if( this._mCodingSM ) {
             this._mCodingSM.reset();
         }
@@ -6652,16 +6604,14 @@ jschardet.MultiByteCharSetProber = function() {
         var aLen = aBuf.length;
         for( var i = 0; i < aLen; i++ ) {
             var codingState = this._mCodingSM.nextState(aBuf[i]);
-            if( codingState == jschardet.Constants.error ) {
-                if( jschardet.Constants._debug ) {
-                    jschardet.log(this.getCharsetName() + " prober hit error at byte " + i + "\n");
-                }
-                this._mState = jschardet.Constants.notMe;
+            if( codingState == constants.error ) {
+                logger.log(this.getCharsetName() + " prober hit error at byte " + i + "\n");
+                this._mState = constants.notMe;
                 break;
-            } else if( codingState == jschardet.Constants.itsMe ) {
-                this._mState = jschardet.Constants.foundIt;
+            } else if( codingState == constants.itsMe ) {
+                this._mState = constants.foundIt;
                 break;
-            } else if( codingState == jschardet.Constants.start ) {
+            } else if( codingState == constants.start ) {
                 var charLen = this._mCodingSM.getCurrentCharLen();
                 if( i == 0 ) {
                     this._mLastChar[1] = aBuf[0];
@@ -6674,10 +6624,10 @@ jschardet.MultiByteCharSetProber = function() {
 
         this._mLastChar[0] = aBuf[aLen - 1];
 
-        if( this.getState() == jschardet.Constants.detecting ) {
+        if( this.getState() == constants.detecting ) {
             if( this._mDistributionAnalyzer.gotEnoughData() &&
-                this.getConfidence() > jschardet.Constants.SHORTCUT_THRESHOLD ) {
-                this._mState = jschardet.Constants.foundIt;
+                this.getConfidence() > constants.SHORTCUT_THRESHOLD ) {
+                this._mState = constants.foundIt;
             }
         }
 
@@ -6688,11 +6638,11 @@ jschardet.MultiByteCharSetProber = function() {
         return this._mDistributionAnalyzer.getConfidence();
     }
 }
-jschardet.MultiByteCharSetProber.prototype = new jschardet.CharSetProber();
+MultiByteCharSetProber.prototype = new CharSetProber();
 
-}(require('./init'));
+module.exports = MultiByteCharSetProber
 
-},{"./init":20}],31:[function(require,module,exports){
+},{"./charsetprober":6,"./constants":8,"./logger":29}],31:[function(require,module,exports){
 /*
  * The Original Code is Mozilla Universal charset detector code.
  *
@@ -6722,62 +6672,36 @@ jschardet.MultiByteCharSetProber.prototype = new jschardet.CharSetProber();
  * 02110-1301  USA
  */
 
-!function(jschardet) {
+var CharSetGroupProber = require('./charsetgroupprober');
+var Big5Prober = require('./big5prober');
+var UTF8Prober = require('./utf8prober');
+var SJISProber = require('./sjisprober');
+var EUCJPProber = require('./eucjpprober');
+var GB2312Prober = require('./gb2312prober');
+var EUCKRProber = require('./euckrprober');
+var EUCTWProber = require('./euctwprober');
 
-jschardet.MBCSGroupProber = function() {
-    jschardet.CharSetGroupProber.apply(this);
+function MBCSGroupProber() {
+    CharSetGroupProber.apply(this);
     this._mProbers = [
-        new jschardet.UTF8Prober(),
-        new jschardet.SJISProber(),
-        new jschardet.EUCJPProber(),
-        new jschardet.GB2312Prober(),
-        new jschardet.EUCKRProber(),
-        new jschardet.Big5Prober(),
-        new jschardet.EUCTWProber()
+        new UTF8Prober(),
+        new SJISProber(),
+        new EUCJPProber(),
+        new GB2312Prober(),
+        new EUCKRProber(),
+        new Big5Prober(),
+        new EUCTWProber()
     ];
     this.reset();
 }
-jschardet.MBCSGroupProber.prototype = new jschardet.CharSetGroupProber();
+MBCSGroupProber.prototype = new CharSetGroupProber();
 
-}(require('./init'));
+module.exports = MBCSGroupProber
 
-},{"./init":20}],32:[function(require,module,exports){
-/*
- * The Original Code is Mozilla Universal charset detector code.
- *
- * The Initial Developer of the Original Code is
- * Netscape Communications Corporation.
- * Portions created by the Initial Developer are Copyright (C) 2001
- * the Initial Developer. All Rights Reserved.
- *
- * Contributor(s):
- *   António Afonso (antonio.afonso gmail.com) - port to JavaScript
- *   Mark Pilgrim - port to Python
- *   Shy Shalom - original C code
- *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301  USA
- */
+},{"./big5prober":3,"./charsetgroupprober":5,"./eucjpprober":11,"./euckrprober":13,"./euctwprober":15,"./gb2312prober":17,"./sjisprober":41,"./utf8prober":43}],32:[function(require,module,exports){
+var consts = require('../constants');
 
-!function(jschardet) {
-
-var consts = jschardet.Constants;
-
-// BIG5
-
-jschardet.BIG5_cls = [
+var BIG5_cls = [
     1,1,1,1,1,1,1,1,  // 00 - 07    //allow 0x00 as legal value
     1,1,1,1,1,1,0,0,  // 08 - 0f
     1,1,1,1,1,1,1,1,  // 10 - 17
@@ -6812,25 +6736,26 @@ jschardet.BIG5_cls = [
     3,3,3,3,3,3,3,0   // f8 - ff
 ];
 
-jschardet.BIG5_st = [
+var BIG5_st = [
     consts.error,consts.start,consts.start,    3,consts.error,consts.error,consts.error,consts.error, //00-07
     consts.error,consts.error,consts.itsMe,consts.itsMe,consts.itsMe,consts.itsMe,consts.itsMe,consts.error, //08-0f
     consts.error,consts.start,consts.start,consts.start,consts.start,consts.start,consts.start,consts.start  //10-17
 ];
 
-jschardet.Big5CharLenTable = [0, 1, 1, 2, 0];
+var Big5CharLenTable = [0, 1, 1, 2, 0];
 
-jschardet.Big5SMModel = {
-    "classTable"    : jschardet.BIG5_cls,
+module.exports = {
+    "classTable"    : BIG5_cls,
     "classFactor"   : 5,
-    "stateTable"    : jschardet.BIG5_st,
-    "charLenTable"  : jschardet.Big5CharLenTable,
+    "stateTable"    : BIG5_st,
+    "charLenTable"  : Big5CharLenTable,
     "name"          : "Big5"
 };
 
-// EUC-JP
+},{"../constants":8}],33:[function(require,module,exports){
+var consts = require('../constants');
 
-jschardet.EUCJP_cls = [
+var EUCJP_cls = [
     4,4,4,4,4,4,4,4,  // 00 - 07
     4,4,4,4,4,4,5,5,  // 08 - 0f
     4,4,4,4,4,4,4,4,  // 10 - 17
@@ -6865,7 +6790,7 @@ jschardet.EUCJP_cls = [
     0,0,0,0,0,0,0,5   // f8 - ff
 ];
 
-jschardet.EUCJP_st = [
+var EUCJP_st = [
          3,    4,    3,    5,consts.start,consts.error,consts.error,consts.error, //00-07
      consts.error,consts.error,consts.error,consts.error,consts.itsMe,consts.itsMe,consts.itsMe,consts.itsMe, //08-0f
      consts.itsMe,consts.itsMe,consts.start,consts.error,consts.start,consts.error,consts.error,consts.error, //10-17
@@ -6873,19 +6798,20 @@ jschardet.EUCJP_st = [
          3,consts.error,consts.error,consts.error,consts.start,consts.start,consts.start,consts.start  //20-27
 ];
 
-jschardet.EUCJPCharLenTable = [2, 2, 2, 3, 1, 0];
+var EUCJPCharLenTable = [2, 2, 2, 3, 1, 0];
 
-jschardet.EUCJPSMModel = {
-    "classTable"    : jschardet.EUCJP_cls,
+module.exports = {
+    "classTable"    : EUCJP_cls,
     "classFactor"   : 6,
-    "stateTable"    : jschardet.EUCJP_st,
-    "charLenTable"  : jschardet.EUCJPCharLenTable,
+    "stateTable"    : EUCJP_st,
+    "charLenTable"  : EUCJPCharLenTable,
     "name"          : "EUC-JP"
 };
 
-// EUC-KR
+},{"../constants":8}],34:[function(require,module,exports){
+var consts = require('../constants');
 
-jschardet.EUCKR_cls  = [
+var EUCKR_cls  = [
     1,1,1,1,1,1,1,1,  // 00 - 07
     1,1,1,1,1,1,0,0,  // 08 - 0f
     1,1,1,1,1,1,1,1,  // 10 - 17
@@ -6920,24 +6846,25 @@ jschardet.EUCKR_cls  = [
     2,2,2,2,2,2,2,0   // f8 - ff
 ];
 
-jschardet.EUCKR_st = [
+var EUCKR_st = [
     consts.error,consts.start,    3,consts.error,consts.error,consts.error,consts.error,consts.error, //00-07
     consts.itsMe,consts.itsMe,consts.itsMe,consts.itsMe,consts.error,consts.error,consts.start,consts.start  //08-0f
 ];
 
-jschardet.EUCKRCharLenTable = [0, 1, 2, 0];
+var EUCKRCharLenTable = [0, 1, 2, 0];
 
-jschardet.EUCKRSMModel = {
-    "classTable"    : jschardet.EUCKR_cls,
+module.exports = {
+    "classTable"    : EUCKR_cls,
     "classFactor"   : 4,
-    "stateTable"    : jschardet.EUCKR_st,
-    "charLenTable"  : jschardet.EUCKRCharLenTable,
+    "stateTable"    : EUCKR_st,
+    "charLenTable"  : EUCKRCharLenTable,
     "name"          : "EUC-KR"
 };
 
-// EUC-TW
+},{"../constants":8}],35:[function(require,module,exports){
+var consts = require('../constants');
 
-jschardet.EUCTW_cls = [
+var EUCTW_cls = [
     2,2,2,2,2,2,2,2,  // 00 - 07
     2,2,2,2,2,2,0,0,  // 08 - 0f
     2,2,2,2,2,2,2,2,  // 10 - 17
@@ -6972,7 +6899,7 @@ jschardet.EUCTW_cls = [
     3,3,3,3,3,3,3,0   // f8 - ff
 ];
 
-jschardet.EUCTW_st = [
+var EUCTW_st = [
     consts.error,consts.error,consts.start,    3,    3,    3,    4,consts.error, //00-07
     consts.error,consts.error,consts.error,consts.error,consts.error,consts.error,consts.itsMe,consts.itsMe, //08-0f
     consts.itsMe,consts.itsMe,consts.itsMe,consts.itsMe,consts.itsMe,consts.error,consts.start,consts.error, //10-17
@@ -6981,19 +6908,20 @@ jschardet.EUCTW_st = [
     consts.start,consts.error,consts.start,consts.start,consts.start,consts.start,consts.start,consts.start  //28-2f
 ];
 
-jschardet.EUCTWCharLenTable = [0, 0, 1, 2, 2, 2, 3];
+var EUCTWCharLenTable = [0, 0, 1, 2, 2, 2, 3];
 
-jschardet.EUCTWSMModel = {
-    "classTable"    : jschardet.EUCTW_cls,
+module.exports = {
+    "classTable"    : EUCTW_cls,
     "classFactor"   : 7,
-    "stateTable"    : jschardet.EUCTW_st,
-    "charLenTable"  : jschardet.EUCTWCharLenTable,
+    "stateTable"    : EUCTW_st,
+    "charLenTable"  : EUCTWCharLenTable,
     "name"          : "x-euc-tw"
 };
 
-// GB2312
+},{"../constants":8}],36:[function(require,module,exports){
+var consts = require('../constants');
 
-jschardet.GB2312_cls = [
+var GB2312_cls = [
     1,1,1,1,1,1,1,1,  // 00 - 07
     1,1,1,1,1,1,0,0,  // 08 - 0f
     1,1,1,1,1,1,1,1,  // 10 - 17
@@ -7028,7 +6956,7 @@ jschardet.GB2312_cls = [
     6,6,6,6,6,6,6,0   // f8 - ff
 ];
 
-jschardet.GB2312_st = [
+var GB2312_st = [
     consts.error,consts.start,consts.start,consts.start,consts.start,consts.start,    3,consts.error, //00-07
     consts.error,consts.error,consts.error,consts.error,consts.error,consts.error,consts.itsMe,consts.itsMe, //08-0f
     consts.itsMe,consts.itsMe,consts.itsMe,consts.itsMe,consts.itsMe,consts.error,consts.error,consts.start, //10-17
@@ -7042,19 +6970,20 @@ jschardet.GB2312_st = [
 // it is used for frequency analysis only, and we are validing
 // each code range there as well. So it is safe to set it to be
 // 2 here.
-jschardet.GB2312CharLenTable = [0, 1, 1, 1, 1, 1, 2];
+var GB2312CharLenTable = [0, 1, 1, 1, 1, 1, 2];
 
-jschardet.GB2312SMModel = {
-    "classTable"    : jschardet.GB2312_cls,
+module.exports = {
+    "classTable"    : GB2312_cls,
     "classFactor"   : 7,
-    "stateTable"    : jschardet.GB2312_st,
-    "charLenTable"  : jschardet.GB2312CharLenTable,
+    "stateTable"    : GB2312_st,
+    "charLenTable"  : GB2312CharLenTable,
     "name"          : "GB2312"
 };
 
-// Shift_JIS
+},{"../constants":8}],37:[function(require,module,exports){
+var consts = require('../constants');
 
-jschardet.SJIS_cls = [
+var SJIS_cls = [
     1,1,1,1,1,1,1,1,  // 00 - 07
     1,1,1,1,1,1,0,0,  // 08 - 0f
     1,1,1,1,1,1,1,1,  // 10 - 17
@@ -7091,139 +7020,26 @@ jschardet.SJIS_cls = [
     3,3,3,3,3,0,0,0   // f8 - ff
 ];
 
-jschardet.SJIS_st = [
+var SJIS_st = [
     consts.error,consts.start,consts.start,    3,consts.error,consts.error,consts.error,consts.error, //00-07
     consts.error,consts.error,consts.error,consts.error,consts.itsMe,consts.itsMe,consts.itsMe,consts.itsMe, //08-0f
     consts.itsMe,consts.itsMe,consts.error,consts.error,consts.start,consts.start,consts.start,consts.start  //10-17
 ];
 
-jschardet.SJISCharLenTable = [0, 1, 1, 2, 0, 0];
+var SJISCharLenTable = [0, 1, 1, 2, 0, 0];
 
-jschardet.SJISSMModel = {
-    "classTable"    : jschardet.SJIS_cls,
+module.exports = {
+    "classTable"    : SJIS_cls,
     "classFactor"   : 6,
-    "stateTable"    : jschardet.SJIS_st,
-    "charLenTable"  : jschardet.SJISCharLenTable,
+    "stateTable"    : SJIS_st,
+    "charLenTable"  : SJISCharLenTable,
     "name"          : "Shift_JIS"
 };
 
-//UCS2-BE
+},{"../constants":8}],38:[function(require,module,exports){
+var consts = require('../constants');
 
-jschardet.UCS2BE_cls = [
-    0,0,0,0,0,0,0,0,  // 00 - 07
-    0,0,1,0,0,2,0,0,  // 08 - 0f
-    0,0,0,0,0,0,0,0,  // 10 - 17
-    0,0,0,3,0,0,0,0,  // 18 - 1f
-    0,0,0,0,0,0,0,0,  // 20 - 27
-    0,3,3,3,3,3,0,0,  // 28 - 2f
-    0,0,0,0,0,0,0,0,  // 30 - 37
-    0,0,0,0,0,0,0,0,  // 38 - 3f
-    0,0,0,0,0,0,0,0,  // 40 - 47
-    0,0,0,0,0,0,0,0,  // 48 - 4f
-    0,0,0,0,0,0,0,0,  // 50 - 57
-    0,0,0,0,0,0,0,0,  // 58 - 5f
-    0,0,0,0,0,0,0,0,  // 60 - 67
-    0,0,0,0,0,0,0,0,  // 68 - 6f
-    0,0,0,0,0,0,0,0,  // 70 - 77
-    0,0,0,0,0,0,0,0,  // 78 - 7f
-    0,0,0,0,0,0,0,0,  // 80 - 87
-    0,0,0,0,0,0,0,0,  // 88 - 8f
-    0,0,0,0,0,0,0,0,  // 90 - 97
-    0,0,0,0,0,0,0,0,  // 98 - 9f
-    0,0,0,0,0,0,0,0,  // a0 - a7
-    0,0,0,0,0,0,0,0,  // a8 - af
-    0,0,0,0,0,0,0,0,  // b0 - b7
-    0,0,0,0,0,0,0,0,  // b8 - bf
-    0,0,0,0,0,0,0,0,  // c0 - c7
-    0,0,0,0,0,0,0,0,  // c8 - cf
-    0,0,0,0,0,0,0,0,  // d0 - d7
-    0,0,0,0,0,0,0,0,  // d8 - df
-    0,0,0,0,0,0,0,0,  // e0 - e7
-    0,0,0,0,0,0,0,0,  // e8 - ef
-    0,0,0,0,0,0,0,0,  // f0 - f7
-    0,0,0,0,0,0,4,5   // f8 - ff
-];
-
-jschardet.UCS2BE_st  = [
-         5,    7,    7,consts.error,    4,    3,consts.error,consts.error, //00-07
-     consts.error,consts.error,consts.error,consts.error,consts.itsMe,consts.itsMe,consts.itsMe,consts.itsMe, //08-0f
-     consts.itsMe,consts.itsMe,    6,    6,    6,    6,consts.error,consts.error, //10-17
-         6,    6,    6,    6,    6,consts.itsMe,    6,    6, //18-1f
-         6,    6,    6,    6,    5,    7,    7,consts.error, //20-27
-         5,    8,    6,    6,consts.error,    6,    6,    6, //28-2f
-         6,    6,    6,    6,consts.error,consts.error,consts.start,consts.start  //30-37
-];
-
-jschardet.UCS2BECharLenTable = [2, 2, 2, 0, 2, 2];
-
-jschardet.UCS2BESMModel = {
-    "classTable"    : jschardet.UCS2BE_cls,
-    "classFactor"   : 6,
-    "stateTable"    : jschardet.UCS2BE_st,
-    "charLenTable"  : jschardet.UCS2BECharLenTable,
-    "name"          : "UTF-16BE"
-};
-
-// UCS2-LE
-
-jschardet.UCS2LE_cls = [
-    0,0,0,0,0,0,0,0,  // 00 - 07
-    0,0,1,0,0,2,0,0,  // 08 - 0f
-    0,0,0,0,0,0,0,0,  // 10 - 17
-    0,0,0,3,0,0,0,0,  // 18 - 1f
-    0,0,0,0,0,0,0,0,  // 20 - 27
-    0,3,3,3,3,3,0,0,  // 28 - 2f
-    0,0,0,0,0,0,0,0,  // 30 - 37
-    0,0,0,0,0,0,0,0,  // 38 - 3f
-    0,0,0,0,0,0,0,0,  // 40 - 47
-    0,0,0,0,0,0,0,0,  // 48 - 4f
-    0,0,0,0,0,0,0,0,  // 50 - 57
-    0,0,0,0,0,0,0,0,  // 58 - 5f
-    0,0,0,0,0,0,0,0,  // 60 - 67
-    0,0,0,0,0,0,0,0,  // 68 - 6f
-    0,0,0,0,0,0,0,0,  // 70 - 77
-    0,0,0,0,0,0,0,0,  // 78 - 7f
-    0,0,0,0,0,0,0,0,  // 80 - 87
-    0,0,0,0,0,0,0,0,  // 88 - 8f
-    0,0,0,0,0,0,0,0,  // 90 - 97
-    0,0,0,0,0,0,0,0,  // 98 - 9f
-    0,0,0,0,0,0,0,0,  // a0 - a7
-    0,0,0,0,0,0,0,0,  // a8 - af
-    0,0,0,0,0,0,0,0,  // b0 - b7
-    0,0,0,0,0,0,0,0,  // b8 - bf
-    0,0,0,0,0,0,0,0,  // c0 - c7
-    0,0,0,0,0,0,0,0,  // c8 - cf
-    0,0,0,0,0,0,0,0,  // d0 - d7
-    0,0,0,0,0,0,0,0,  // d8 - df
-    0,0,0,0,0,0,0,0,  // e0 - e7
-    0,0,0,0,0,0,0,0,  // e8 - ef
-    0,0,0,0,0,0,0,0,  // f0 - f7
-    0,0,0,0,0,0,4,5   // f8 - ff
-];
-
-jschardet.UCS2LE_st = [
-         6,    6,    7,    6,    4,    3,consts.error,consts.error, //00-07
-     consts.error,consts.error,consts.error,consts.error,consts.itsMe,consts.itsMe,consts.itsMe,consts.itsMe, //08-0f
-     consts.itsMe,consts.itsMe,    5,    5,    5,consts.error,consts.itsMe,consts.error, //10-17
-         5,    5,    5,consts.error,    5,consts.error,    6,    6, //18-1f
-         7,    6,    8,    8,    5,    5,    5,consts.error, //20-27
-         5,    5,    5,consts.error,consts.error,consts.error,    5,    5, //28-2f
-         5,    5,    5,consts.error,    5,consts.error,consts.start,consts.start  //30-37
-];
-
-jschardet.UCS2LECharLenTable = [2, 2, 2, 2, 2, 2];
-
-jschardet.UCS2LESMModel = {
-    "classTable"    : jschardet.UCS2LE_cls,
-    "classFactor"   : 6,
-    "stateTable"    : jschardet.UCS2LE_st,
-    "charLenTable"  : jschardet.UCS2LECharLenTable,
-    "name"          : "UTF-16LE"
-};
-
-// UTF-8
-
-jschardet.UTF8_cls = [
+var UTF8_cls = [
     1,1,1,1,1,1,1,1,  // 00 - 07  //allow 0x00 as a legal value
     1,1,1,1,1,1,0,0,  // 08 - 0f
     1,1,1,1,1,1,1,1,  // 10 - 17
@@ -7258,7 +7074,7 @@ jschardet.UTF8_cls = [
     12,13,13,13,14,15,0,0    // f8 - ff
 ];
 
-jschardet.UTF8_st = [
+var UTF8_st = [
     consts.error,consts.start,consts.error,consts.error,consts.error,consts.error,    12,  10, //00-07
         9,    11,    8,    7,    6,    5,    4,   3, //08-0f
     consts.error,consts.error,consts.error,consts.error,consts.error,consts.error,consts.error,consts.error, //10-17
@@ -7287,19 +7103,17 @@ jschardet.UTF8_st = [
     consts.error,consts.error,consts.error,consts.error,consts.error,consts.error,consts.error,consts.error  //c8-cf
 ];
 
-jschardet.UTF8CharLenTable = [0, 1, 0, 0, 0, 0, 2, 3, 3, 3, 4, 4, 5, 5, 6, 6];
+var UTF8CharLenTable = [0, 1, 0, 0, 0, 0, 2, 3, 3, 3, 4, 4, 5, 5, 6, 6];
 
-jschardet.UTF8SMModel = {
-    "classTable"    : jschardet.UTF8_cls,
+module.exports = {
+    "classTable"    : UTF8_cls,
     "classFactor"   : 16,
-    "stateTable"    : jschardet.UTF8_st,
-    "charLenTable"  : jschardet.UTF8CharLenTable,
+    "stateTable"    : UTF8_st,
+    "charLenTable"  : UTF8CharLenTable,
     "name"          : "UTF-8"
 };
 
-}(require('./init'));
-
-},{"./init":20}],33:[function(require,module,exports){
+},{"../constants":8}],39:[function(require,module,exports){
 /*
  * The Original Code is Mozilla Universal charset detector code.
  *
@@ -7329,10 +7143,12 @@ jschardet.UTF8SMModel = {
  * 02110-1301  USA
  */
 
-!function(jschardet) {
+var CharSetProber = require('./charsetprober');
+var constants = require('./constants');
+var logger = require('./logger');
 
-jschardet.SingleByteCharSetProber = function(model, reversed, nameProber) {
-    jschardet.CharSetProber.apply(this);
+function SingleByteCharSetProber(model, reversed, nameProber) {
+    CharSetProber.apply(this);
 
     var SAMPLE_SIZE = 64;
     var SB_ENOUGH_REL_THRESHOLD = 1024;
@@ -7353,7 +7169,7 @@ jschardet.SingleByteCharSetProber = function(model, reversed, nameProber) {
     }
 
     this.reset = function() {
-        jschardet.SingleByteCharSetProber.prototype.reset.apply(this);
+        SingleByteCharSetProber.prototype.reset.apply(this);
         this._mLastOrder = 255; // char order of last character
         this._mSeqCounters = [];
         for( var i = 0; i < NUMBER_OF_SEQ_CAT; this._mSeqCounters[i++] = 0 );
@@ -7399,18 +7215,14 @@ jschardet.SingleByteCharSetProber = function(model, reversed, nameProber) {
             this._mLastOrder = order;
         }
 
-        if( this.getState() == jschardet.Constants.detecting ) {
+        if( this.getState() == constants.detecting ) {
             if( self._mTotalSeqs > SB_ENOUGH_REL_THRESHOLD ) {
                 var cf = this.getConfidence();
                 if( cf > POSITIVE_SHORTCUT_THRESHOLD ) {
-                    if( jschardet.Constants._debug ) {
-                        jschardet.log(this._mModel.charsetName + " confidence = " + cf + ", we have a winner\n");
-                    }
+                    logger.log(this._mModel.charsetName + " confidence = " + cf + ", we have a winner\n");
                 } else if( cf < NEGATIVE_SHORTCUT_THRESHOLD ) {
-                    if( jschardet.Constants._debug ) {
-                        jschardet.log(this._mModel.charsetName + " confidence = " + cf + ", below negative shortcut threshhold " + NEGATIVE_SHORTCUT_THRESHOLD + "\n");
-                    }
-                    this._mState = jschardet.Constants.notMe;
+                    logger.log(this._mModel.charsetName + " confidence = " + cf + ", below negative shortcut threshhold " + NEGATIVE_SHORTCUT_THRESHOLD + "\n");
+                    this._mState = constants.notMe;
                 }
             }
         }
@@ -7421,9 +7233,9 @@ jschardet.SingleByteCharSetProber = function(model, reversed, nameProber) {
     this.getConfidence = function() {
         var r = 0.01;
         if( this._mTotalSeqs > 0 ) {
-            //jschardet.log(this._mSeqCounters[POSITIVE_CAT] + " " + this._mTotalSeqs + " " + this._mModel.mTypicalPositiveRatio);
+            //logger.log(this._mSeqCounters[POSITIVE_CAT] + " " + this._mTotalSeqs + " " + this._mModel.mTypicalPositiveRatio);
             r = (1.0 * this._mSeqCounters[POSITIVE_CAT]) / this._mTotalSeqs / this._mModel.mTypicalPositiveRatio;
-            //jschardet.log(r + " " + this._mFreqChar + " " + this._mTotalChar);
+            //logger.log(r + " " + this._mFreqChar + " " + this._mTotalChar);
             r *= this._mFreqChar / this._mTotalChar;
             if( r >= 1.0 ) {
                 r = 0.99;
@@ -7436,11 +7248,11 @@ jschardet.SingleByteCharSetProber = function(model, reversed, nameProber) {
     nameProber = nameProber !== undefined ? nameProber : null;
     init(model, reversed, nameProber);
 }
-jschardet.SingleByteCharSetProber.prototype = new jschardet.CharSetProber();
+SingleByteCharSetProber.prototype = new CharSetProber();
 
-}(require('./init'));
+module.exports = SingleByteCharSetProber
 
-},{"./init":20}],34:[function(require,module,exports){
+},{"./charsetprober":6,"./constants":8,"./logger":29}],40:[function(require,module,exports){
 /*
  * The Original Code is Mozilla Universal charset detector code.
  *
@@ -7470,32 +7282,40 @@ jschardet.SingleByteCharSetProber.prototype = new jschardet.CharSetProber();
  * 02110-1301  USA
  */
 
-!function(jschardet) {
+var SingleByteCharSetProber = require('./sbcharsetprober');
+var CharSetGroupProber = require('./charsetgroupprober');
+var Win1255HebrewModel = require('./langhebrewmodel').Win1255HebrewModel;
+var HebrewProber = require('./hebrewprober');
+var cyrillicModels = require('./langcyrillicmodel');
+var greekModels = require('./langgreekmodel');
+var TIS620ThaiModel = require('./langthaimodel').TIS620ThaiModel;
+var hungarianModels = require('./langhungarianmodel');
+var bulgarianModels = require('./langbulgarianmodel')
 
-jschardet.SBCSGroupProber = function() {
-    jschardet.CharSetGroupProber.apply(this);
+function SBCSGroupProber() {
+    CharSetGroupProber.apply(this);
 
     var self = this;
 
     function init() {
         self._mProbers = [
-            new jschardet.SingleByteCharSetProber(jschardet.Win1251CyrillicModel),
-            new jschardet.SingleByteCharSetProber(jschardet.Koi8rModel),
-            new jschardet.SingleByteCharSetProber(jschardet.Latin5CyrillicModel),
-            new jschardet.SingleByteCharSetProber(jschardet.MacCyrillicModel),
-            new jschardet.SingleByteCharSetProber(jschardet.Ibm866Model),
-            new jschardet.SingleByteCharSetProber(jschardet.Ibm855Model),
-            new jschardet.SingleByteCharSetProber(jschardet.Latin7GreekModel),
-            new jschardet.SingleByteCharSetProber(jschardet.Win1253GreekModel),
-            new jschardet.SingleByteCharSetProber(jschardet.Latin5BulgarianModel),
-            new jschardet.SingleByteCharSetProber(jschardet.Win1251BulgarianModel),
-            new jschardet.SingleByteCharSetProber(jschardet.Latin2HungarianModel),
-            new jschardet.SingleByteCharSetProber(jschardet.Win1250HungarianModel),
-            new jschardet.SingleByteCharSetProber(jschardet.TIS620ThaiModel)
+            new SingleByteCharSetProber(cyrillicModels.Win1251CyrillicModel),
+            new SingleByteCharSetProber(cyrillicModels.Koi8rModel),
+            new SingleByteCharSetProber(cyrillicModels.Latin5CyrillicModel),
+            new SingleByteCharSetProber(cyrillicModels.MacCyrillicModel),
+            new SingleByteCharSetProber(cyrillicModels.Ibm866Model),
+            new SingleByteCharSetProber(cyrillicModels.Ibm855Model),
+            new SingleByteCharSetProber(greekModels.Latin7GreekModel),
+            new SingleByteCharSetProber(greekModels.Win1253GreekModel),
+            new SingleByteCharSetProber(bulgarianModels.Latin5BulgarianModel),
+            new SingleByteCharSetProber(bulgarianModels.Win1251BulgarianModel),
+            new SingleByteCharSetProber(hungarianModels.Latin2HungarianModel),
+            new SingleByteCharSetProber(hungarianModels.Win1250HungarianModel),
+            new SingleByteCharSetProber(TIS620ThaiModel)
         ];
-        var hebrewProber = new jschardet.HebrewProber();
-        var logicalHebrewProber = new jschardet.SingleByteCharSetProber(jschardet.Win1255HebrewModel, false, hebrewProber);
-        var visualHebrewProber = new jschardet.SingleByteCharSetProber(jschardet.Win1255HebrewModel, true, hebrewProber);
+        var hebrewProber = new HebrewProber();
+        var logicalHebrewProber = new SingleByteCharSetProber(Win1255HebrewModel, false, hebrewProber);
+        var visualHebrewProber = new SingleByteCharSetProber(Win1255HebrewModel, true, hebrewProber);
         hebrewProber.setModelProbers(logicalHebrewProber, visualHebrewProber);
         self._mProbers.push(hebrewProber, logicalHebrewProber, visualHebrewProber);
 
@@ -7504,11 +7324,11 @@ jschardet.SBCSGroupProber = function() {
 
     init();
 }
-jschardet.SBCSGroupProber.prototype = new jschardet.CharSetGroupProber();
+SBCSGroupProber.prototype = new CharSetGroupProber();
 
-}(require('./init'));
+module.exports = SBCSGroupProber;
 
-},{"./init":20}],35:[function(require,module,exports){
+},{"./charsetgroupprober":5,"./hebrewprober":18,"./langbulgarianmodel":22,"./langcyrillicmodel":23,"./langgreekmodel":24,"./langhebrewmodel":25,"./langhungarianmodel":26,"./langthaimodel":27,"./sbcharsetprober":39}],41:[function(require,module,exports){
 /*
  * The Original Code is Mozilla Universal charset detector code.
  *
@@ -7538,22 +7358,28 @@ jschardet.SBCSGroupProber.prototype = new jschardet.CharSetGroupProber();
  * 02110-1301  USA
  */
 
-!function(jschardet) {
+var CodingStateMachine = require('./codingstatemachine');
+var MultiByteCharSetProber = require('./mbcharsetprober');
+var SJISSMModel = require('./mbcssm/sjis');
+var SJISDistributionAnalysis = require('./chardistribution').SJISDistributionAnalysis;
+var SJISContextAnalysis = require('./jpcntx').SJISContextAnalysis;
+var constants = require('./constants');
+var logger = require('./logger');
 
-jschardet.SJISProber = function() {
-    jschardet.MultiByteCharSetProber.apply(this);
+function SJISProber() {
+    MultiByteCharSetProber.apply(this);
 
     var self = this;
 
     function init() {
-        self._mCodingSM = new jschardet.CodingStateMachine(jschardet.SJISSMModel);
-        self._mDistributionAnalyzer = new jschardet.SJISDistributionAnalysis();
-        self._mContextAnalyzer = new jschardet.SJISContextAnalysis();
+        self._mCodingSM = new CodingStateMachine(SJISSMModel);
+        self._mDistributionAnalyzer = new SJISDistributionAnalysis();
+        self._mContextAnalyzer = new SJISContextAnalysis();
         self.reset();
     }
 
     this.reset = function() {
-        jschardet.SJISProber.prototype.reset.apply(this);
+        SJISProber.prototype.reset.apply(this);
         this._mContextAnalyzer.reset();
     }
 
@@ -7565,16 +7391,14 @@ jschardet.SJISProber = function() {
         var aLen = aBuf.length;
         for( var i = 0; i < aLen; i++ ) {
             var codingState = this._mCodingSM.nextState(aBuf[i]);
-            if( codingState == jschardet.Constants.error ) {
-                if( jschardet.Constants._debug ) {
-                    jschardet.log(this.getCharsetName() + " prober hit error at byte " + i + "\n");
-                }
-                this._mState = jschardet.Constants.notMe;
+            if( codingState == constants.error ) {
+                logger.log(this.getCharsetName() + " prober hit error at byte " + i + "\n");
+                this._mState = constants.notMe;
                 break;
-            } else if( codingState == jschardet.Constants.itsMe ) {
-                this._mState = jschardet.Constants.foundIt;
+            } else if( codingState == constants.itsMe ) {
+                this._mState = constants.foundIt;
                 break;
-            } else if( codingState == jschardet.Constants.start ) {
+            } else if( codingState == constants.start ) {
                 var charLen = this._mCodingSM.getCurrentCharLen();
                 if( i == 0 ) {
                     this._mLastChar[1] = aBuf[0];
@@ -7589,10 +7413,10 @@ jschardet.SJISProber = function() {
 
         this._mLastChar[0] = aBuf[aLen - 1];
 
-        if( this.getState() == jschardet.Constants.detecting ) {
+        if( this.getState() == constants.detecting ) {
             if( this._mContextAnalyzer.gotEnoughData() &&
-                this.getConfidence() > jschardet.Constants.SHORTCUT_THRESHOLD ) {
-                this._mState = jschardet.Constants.foundIt;
+                this.getConfidence() > constants.SHORTCUT_THRESHOLD ) {
+                this._mState = constants.foundIt;
             }
         }
 
@@ -7607,11 +7431,11 @@ jschardet.SJISProber = function() {
 
     init();
 }
-jschardet.SJISProber.prototype = new jschardet.MultiByteCharSetProber();
+SJISProber.prototype = new MultiByteCharSetProber();
 
-}(require('./init'));
+module.exports = SJISProber
 
-},{"./init":20}],36:[function(require,module,exports){
+},{"./chardistribution":4,"./codingstatemachine":7,"./constants":8,"./jpcntx":21,"./logger":29,"./mbcharsetprober":30,"./mbcssm/sjis":37}],42:[function(require,module,exports){
 /*
  * The Original Code is Mozilla Universal charset detector code.
  *
@@ -7645,10 +7469,17 @@ jschardet.SJISProber.prototype = new jschardet.MultiByteCharSetProber();
  * This is a port from the python port, version "2.0.1"
  */
 
-!function(jschardet) {
+var constants = require('./constants');
+var MBCSGroupProber = require('./mbcsgroupprober');
+var SBCSGroupProber = require('./sbcsgroupprober');
+var Latin1Prober = require('./latin1prober');
+var EscCharSetProber = require('./escprober')
+var logger = require('./logger');
 
-jschardet.UniversalDetector = function() {
-    var MINIMUM_THRESHOLD = jschardet.Constants.MINIMUM_THRESHOLD;
+function UniversalDetector(options) {
+    if (!options) options = {};
+    if (!options.minimumThreshold)  options.minimumThreshold = 0.20;
+
     var _state = {
         pureAscii   : 0,
         escAscii    : 1,
@@ -7736,9 +7567,9 @@ jschardet.UniversalDetector = function() {
 
         if( this._mInputState == _state.escAscii ) {
             if( !this._mEscCharsetProber ) {
-                this._mEscCharsetProber = new jschardet.EscCharSetProber();
+                this._mEscCharsetProber = new EscCharSetProber();
             }
-            if( this._mEscCharsetProber.feed(aBuf) == jschardet.Constants.foundIt ) {
+            if( this._mEscCharsetProber.feed(aBuf) == constants.foundIt ) {
                 this.result = {
                     "encoding": this._mEscCharsetProber.getCharsetName(),
                     "confidence": this._mEscCharsetProber.getConfidence()
@@ -7748,13 +7579,13 @@ jschardet.UniversalDetector = function() {
         } else if( this._mInputState == _state.highbyte ) {
             if( this._mCharsetProbers.length == 0 ) {
                 this._mCharsetProbers = [
-                    new jschardet.MBCSGroupProber(),
-                    new jschardet.SBCSGroupProber(),
-                    new jschardet.Latin1Prober()
+                    new MBCSGroupProber(),
+                    new SBCSGroupProber(),
+                    new Latin1Prober()
                 ];
             }
             for( var i = 0, prober; prober = this._mCharsetProbers[i]; i++ ) {
-                if( prober.feed(aBuf) == jschardet.Constants.foundIt ) {
+                if( prober.feed(aBuf) == constants.foundIt ) {
                     this.result = {
                         "encoding": prober.getCharsetName(),
                         "confidence": prober.getConfidence()
@@ -7769,17 +7600,13 @@ jschardet.UniversalDetector = function() {
     this.close = function() {
         if( this.done ) return;
         if( this._mBOM.length === 0 ) {
-            if( jschardet.Constants._debug ) {
-                jschardet.log("no data received!\n");
-            }
+            logger.log("no data received!\n");
             return;
         }
         this.done = true;
 
         if( this._mInputState == _state.pureAscii ) {
-            if( jschardet.Constants._debug ) {
-                jschardet.log("pure ascii")
-            }
+            logger.log("pure ascii")
             this.result = {"encoding": "ascii", "confidence": 1.0};
             return this.result;
         }
@@ -7795,11 +7622,9 @@ jschardet.UniversalDetector = function() {
                     maxProberConfidence = proberConfidence;
                     maxProber = prober;
                 }
-                if( jschardet.Constants._debug ) {
-                    jschardet.log(prober.getCharsetName() + " confidence " + prober.getConfidence());
-                }
+                logger.log(prober.getCharsetName() + " confidence " + prober.getConfidence());
             }
-            if( maxProber && maxProberConfidence > MINIMUM_THRESHOLD ) {
+            if( maxProber && maxProberConfidence > options.minimumThreshold ) {
                 this.result = {
                     "encoding": maxProber.getCharsetName(),
                     "confidence": maxProber.getConfidence()
@@ -7808,11 +7633,11 @@ jschardet.UniversalDetector = function() {
             }
         }
 
-        if( jschardet.Constants._debug ) {
-            jschardet.log("no probers hit minimum threshhold\n");
+        if( logger.enabled ) {
+            logger.log("no probers hit minimum threshhold\n");
             for( var i = 0, prober; prober = this._mCharsetProbers[i]; i++ ) {
                 if( !prober ) continue;
-                jschardet.log(prober.getCharsetName() + " confidence = " +
+                logger.log(prober.getCharsetName() + " confidence = " +
                     prober.getConfidence() + "\n");
             }
         }
@@ -7821,9 +7646,9 @@ jschardet.UniversalDetector = function() {
     init();
 }
 
-}(require('./init'));
+module.exports = UniversalDetector;
 
-},{"./init":20}],37:[function(require,module,exports){
+},{"./constants":8,"./escprober":9,"./latin1prober":28,"./logger":29,"./mbcsgroupprober":31,"./sbcsgroupprober":40}],43:[function(require,module,exports){
 /*
  * The Original Code is Mozilla Universal charset detector code.
  *
@@ -7853,21 +7678,24 @@ jschardet.UniversalDetector = function() {
  * 02110-1301  USA
  */
 
-!function(jschardet) {
+var CodingStateMachine = require('./codingstatemachine');
+var CharSetProber = require('./charsetprober');
+var constants = require('./constants');
+var UTF8SMModel = require('./mbcssm/utf8');
 
-jschardet.UTF8Prober = function() {
-    jschardet.CharSetProber.apply(this);
+function UTF8Prober() {
+    CharSetProber.apply(this);
 
     var ONE_CHAR_PROB = 0.5;
     var self = this;
 
     function init() {
-        self._mCodingSM = new jschardet.CodingStateMachine(jschardet.UTF8SMModel);
+        self._mCodingSM = new CodingStateMachine(UTF8SMModel);
         self.reset();
     }
 
     this.reset = function() {
-        jschardet.UTF8Prober.prototype.reset.apply(this);
+        UTF8Prober.prototype.reset.apply(this);
         this._mCodingSM.reset();
         this._mNumOfMBChar = 0;
     }
@@ -7880,22 +7708,22 @@ jschardet.UTF8Prober = function() {
         for( var i = 0, c; i < aBuf.length; i++ ) {
             c = aBuf[i];
             var codingState = this._mCodingSM.nextState(c);
-            if( codingState == jschardet.Constants.error ) {
-                this._mState = jschardet.Constants.notMe;
+            if( codingState == constants.error ) {
+                this._mState = constants.notMe;
                 break;
-            } else if( codingState == jschardet.Constants.itsMe ) {
-                this._mState = jschardet.Constants.foundIt;
+            } else if( codingState == constants.itsMe ) {
+                this._mState = constants.foundIt;
                 break;
-            } else if( codingState == jschardet.Constants.start ) {
+            } else if( codingState == constants.start ) {
                 if( this._mCodingSM.getCurrentCharLen() >= 2 ) {
                     this._mNumOfMBChar++;
                 }
             }
         }
 
-        if( this.getState() == jschardet.Constants.detecting ) {
-            if( this.getConfidence() > jschardet.Constants.SHORTCUT_THRESHOLD ) {
-                this._mState = jschardet.Constants.foundIt;
+        if( this.getState() == constants.detecting ) {
+            if( this.getConfidence() > constants.SHORTCUT_THRESHOLD ) {
+                this._mState = constants.foundIt;
             }
         }
 
@@ -7916,9 +7744,9 @@ jschardet.UTF8Prober = function() {
 
     init();
 }
-jschardet.UTF8Prober.prototype = new jschardet.CharSetProber();
+UTF8Prober.prototype = new CharSetProber();
 
-}(require('./init'));
+module.exports = UTF8Prober;
 
-},{"./init":20}]},{},[1])(1)
+},{"./charsetprober":6,"./codingstatemachine":7,"./constants":8,"./mbcssm/utf8":38}]},{},[1])(1)
 });
