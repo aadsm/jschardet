@@ -39,7 +39,7 @@ Options
 ```javascript
 // See all information related to the confidence levels of each encoding.
 // This is useful to see why you're not getting the expected encoding.
-jschardet.setLogger();
+jschardet.enableDebug();
 
 // Default minimum accepted confidence level is 0.20 but sometimes this is not
 // enough, specially when dealing with files mostly with numbers.

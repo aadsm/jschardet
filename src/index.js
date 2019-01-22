@@ -30,7 +30,6 @@
 var UniversalDetector = require('./universaldetector');
 var setLogger = require('./logger').setLogger;
 
-exports.VERSION = "1.4.1";
 exports.detect = function(buffer, options) {
     var u = new UniversalDetector(options);
     u.reset();
@@ -43,4 +42,6 @@ exports.detect = function(buffer, options) {
     return u.result;
 }
 exports.UniversalDetector = UniversalDetector;
-exports.setLogger = setLogger;
+exports.enableDebug = function() {
+    setLogger(console.log.bind(console));
+}

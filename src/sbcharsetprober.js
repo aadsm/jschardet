@@ -103,13 +103,9 @@ function SingleByteCharSetProber(model, reversed, nameProber) {
             if( self._mTotalSeqs > SB_ENOUGH_REL_THRESHOLD ) {
                 var cf = this.getConfidence();
                 if( cf > POSITIVE_SHORTCUT_THRESHOLD ) {
-                    if( logger.enabled ) {
-                        logger.log(this._mModel.charsetName + " confidence = " + cf + ", we have a winner\n");
-                    }
+                    logger.log(this._mModel.charsetName + " confidence = " + cf + ", we have a winner\n");
                 } else if( cf < NEGATIVE_SHORTCUT_THRESHOLD ) {
-                    if( logger.enabled ) {
-                        logger.log(this._mModel.charsetName + " confidence = " + cf + ", below negative shortcut threshhold " + NEGATIVE_SHORTCUT_THRESHOLD + "\n");
-                    }
+                    logger.log(this._mModel.charsetName + " confidence = " + cf + ", below negative shortcut threshhold " + NEGATIVE_SHORTCUT_THRESHOLD + "\n");
                     this._mState = constants.notMe;
                 }
             }
