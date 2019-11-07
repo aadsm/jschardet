@@ -9,6 +9,7 @@
         "type": "git",
         "url": "https://github.com/aadsm/jschardet.git"
     },
+    "types": "index.d.ts",
     "directories": {
         "lib": "./lib",
         "test": "./test"
