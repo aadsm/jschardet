@@ -4,8 +4,4 @@ export interface IDetectedMap {
 }
 export function detect(buffer: Buffer, options?: { minimumThreshold: number }): IDetectedMap;
 
-export const Constants: {
-    MINIMUM_THRESHOLD: number,
-}
-
 export function enableDebug(): void;
