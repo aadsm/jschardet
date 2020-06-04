@@ -47,6 +47,8 @@ function UTF8Prober() {
         UTF8Prober.prototype.reset.apply(this);
         this._mCodingSM.reset();
         this._mNumOfMBChar = 0;
+        this._mMBCharLen = 0;
+        this._mFullLen = 0;
     }
 
     this.getCharsetName = function() {
@@ -54,6 +56,7 @@ function UTF8Prober() {
     }
 
     this.feed = function(aBuf) {
+        this._mFullLen = aBuf.length;
         for( var i = 0, c; i < aBuf.length; i++ ) {
             c = aBuf[i];
             var codingState = this._mCodingSM.nextState(c);
@@ -66,6 +69,7 @@ function UTF8Prober() {
             } else if( codingState == constants.start ) {
                 if( this._mCodingSM.getCurrentCharLen() >= 2 ) {
                     this._mNumOfMBChar++;
+                    this._mMBCharLen += this._mCodingSM.getCurrentCharLen();
                 }
             }
         }
@@ -81,9 +85,9 @@ function UTF8Prober() {
 
     this.getConfidence = function() {
         var unlike = 0.99;
-        if( this._mNumOfMBChar < 6 ) {
+        if( this._mNumOfMBChar < 6 && (this._mMBCharLen / this._mFullLen) <= 0.6 ) {
             for( var i = 0; i < this._mNumOfMBChar; i++ ) {
-                unlike *= ONE_CHAR_PROB;
+                unlike *= Math.pow(ONE_CHAR_PROB, this._mNumOfMBChar);
             }
             return 1 - unlike;
         } else {

@@ -22,6 +22,27 @@ test("ASCII", function() {
     equals( jschardet.detect(str).encoding, "ascii" );
 });
 
+test("UTF-8 w/o BOM (short)", function() {
+    // àí
+    var str = "\xc3\xa0\xc3\xad";
+    equals( jschardet.detect(str).encoding, "UTF-8" );
+});
+
+test("UTF-8 w/o BOM (short, stream)", function() {
+    var u = new jschardet.UniversalDetector();
+    u.reset();
+    u.feed("\xc3\xa0");
+    u.feed("\xc3\xadabc");
+    u.close();
+    equals( u.result.encoding, "UTF-8" );
+});
+
+test("UTF-8 w/o BOM (short, with some ascii)", function() {
+    // àíà
+    var str = "\xc3\xa0\xc3\xad\xc3\xa0abc";
+    equals( jschardet.detect(str).encoding, "UTF-8" );
+});
+
 test("UTF-8 w/o BOM", function() {
     // àíàçã
     var str = "\xc3\xa0\xc3\xad\xc3\xa0\xc3\xa7\xc3\xa3";
