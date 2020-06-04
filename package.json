@@ -5,7 +5,7 @@
     "author": "António Afonso",
     "license": "LGPL-2.1+",
     "keywords": ["encoding", "charset"],
-    "repository" : {
+    "repository": {
         "type": "git",
         "url": "https://github.com/aadsm/jschardet.git"
     },
