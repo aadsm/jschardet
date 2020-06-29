@@ -32,14 +32,16 @@ test("UTF-8 w/o BOM (short, stream)", function() {
     var u = new jschardet.UniversalDetector();
     u.reset();
     u.feed("\xc3\xa0");
-    u.feed("\xc3\xadabc");
+    u.feed("\xc3\xad");
+    u.feed("this is a very loooong basic ascii string");
+    u.feed("this is another very loooong basci ascii string");
     u.close();
     equals( u.result.encoding, "UTF-8" );
 });
 
 test("UTF-8 w/o BOM (short, with some ascii)", function() {
     // àíà
-    var str = "\xc3\xa0\xc3\xad\xc3\xa0abc";
+    var str = "\xc3\xa0\xc3\xad\xc3\xa0this is a very loooong  basic ascii string, and this is another very long basic ascii string";
     equals( jschardet.detect(str).encoding, "UTF-8" );
 });
 
