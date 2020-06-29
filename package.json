@@ -4,7 +4,10 @@
     "description": "Character encoding auto-detection in JavaScript (port of python's chardet)",
     "author": "António Afonso",
     "license": "LGPL-2.1+",
-    "keywords": ["encoding", "charset"],
+    "keywords": [
+        "encoding",
+        "charset"
+    ],
     "repository": {
         "type": "git",
         "url": "https://github.com/aadsm/jschardet.git"
