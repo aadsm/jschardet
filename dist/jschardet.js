@@ -4116,6 +4116,19 @@ var UniversalDetector = require('./universaldetector');
 var setLogger = require('./logger').setLogger;
 
 exports.detect = function(buffer, options) {
+    var u = runUniversalDetector(buffer, options);
+    return u.result;
+}
+exports.detectAll = function(buffer, options) {
+    var u = runUniversalDetector(buffer, options);
+    return u.results;
+}
+exports.UniversalDetector = UniversalDetector;
+exports.enableDebug = function() {
+    setLogger(console.log.bind(console));
+}
+
+function runUniversalDetector(buffer, options) {
     var u = new UniversalDetector(options);
     u.reset();
     if( typeof Buffer == 'function' && buffer instanceof Buffer ) {
@@ -4124,13 +4137,8 @@ exports.detect = function(buffer, options) {
         u.feed(buffer);
     }
     u.close();
-    return u.result;
+    return u;
 }
-exports.UniversalDetector = UniversalDetector;
-exports.enableDebug = function() {
-    setLogger(console.log.bind(console));
-}
-
 },{"./logger":29,"./universaldetector":42}],20:[function(require,module,exports){
 /*
  * The Original Code is Mozilla Universal charset detector code.
@@ -7497,6 +7505,7 @@ function UniversalDetector(options) {
 
     this.reset = function() {
         this.result = {"encoding": null, "confidence": 0.0};
+        this.results = []
         this.done = false;
         this._mStart = true;
         this._mGotData = false;
@@ -7543,6 +7552,10 @@ function UniversalDetector(options) {
                 this.result = {"encoding": "UTF-16BE", "confidence": 1.0};
             }
 
+            if (this.result.confidence > 0) {
+                this.results = [this.result];
+            }
+
             // If we got to 4 chars without being able to detect a BOM we
             // stop trying.
             if( this._mBOM.length > 3 ) {
@@ -7574,6 +7587,7 @@ function UniversalDetector(options) {
                     "encoding": this._mEscCharsetProber.getCharsetName(),
                     "confidence": this._mEscCharsetProber.getConfidence()
                 };
+                this.results = [this.result];
                 this.done = true;
             }
         } else if( this._mInputState == _state.highbyte ) {
@@ -7590,6 +7604,7 @@ function UniversalDetector(options) {
                         "encoding": prober.getCharsetName(),
                         "confidence": prober.getConfidence()
                     };
+                    this.results = [this.result];
                     this.done = true;
                     break;
                 }
@@ -7608,28 +7623,28 @@ function UniversalDetector(options) {
         if( this._mInputState == _state.pureAscii ) {
             logger.log("pure ascii")
             this.result = {"encoding": "ascii", "confidence": 1.0};
+            this.results.push(this.result);
             return this.result;
         }
 
         if( this._mInputState == _state.highbyte ) {
-            var proberConfidence = null;
-            var maxProberConfidence = 0.0;
-            var maxProber = null;
             for( var i = 0, prober; prober = this._mCharsetProbers[i]; i++ ) {
-                if( !prober ) continue;
-                proberConfidence = prober.getConfidence();
-                if( proberConfidence > maxProberConfidence ) {
-                    maxProberConfidence = proberConfidence;
-                    maxProber = prober;
-                }
+                if( !prober || !prober.getCharsetName()) continue;
+                this.results.push({
+                    "encoding": prober.getCharsetName(),
+                    "confidence": prober.getConfidence()
+                });
                 logger.log(prober.getCharsetName() + " confidence " + prober.getConfidence());
             }
-            if( maxProber && maxProberConfidence > options.minimumThreshold ) {
-                this.result = {
-                    "encoding": maxProber.getCharsetName(),
-                    "confidence": maxProber.getConfidence()
-                };
-                return this.result;
+            this.results.sort(function(a, b) {
+                return b.confidence - a.confidence;
+            });
+            if (this.results.length > 0) {
+                var topResult = this.results[0];
+                if (topResult.confidence >= options.minimumThreshold) {
+                    this.result = topResult;
+                    return topResult;
+                }
             }
         }
 

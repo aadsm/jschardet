@@ -28,6 +28,14 @@ npm install jschardet
     jschardet.detect("\xa6\xb8\xb1\x60\xa5\xce\xb0\xea\xa6\x72\xbc\xd0\xb7\xc7\xa6\x72\xc5\xe9\xaa\xed")
     // { encoding: "Big5", confidence: 0.99 }
 
+    // Martin Kühl
+    // jschardet.detectAll("\x3c\x73\x74\x72\x69\x6e\x67\x3e\x4d\x61\x72\x74\x69\x6e\x20\x4b\xfc\x68\x6c\x3c\x2f\x73\x74\x72\x69\x6e\x67\x3e")
+    // [
+    //   {encoding: "windows-1252", confidence: 0.95},
+    //   {encoding: "ISO-8859-2", confidence: 0.8796300205763055},
+    //   {encoding: "SHIFT_JIS", confidence: 0.01}
+    // ]
+
 ### Browser
 Copy and include [jschardet.min.js](https://github.com/aadsm/jschardet/tree/master/dist/jschardet.min.js) in your web page.
 

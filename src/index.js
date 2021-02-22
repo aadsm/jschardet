@@ -31,6 +31,19 @@ var UniversalDetector = require('./universaldetector');
 var setLogger = require('./logger').setLogger;
 
 exports.detect = function(buffer, options) {
+    var u = runUniversalDetector(buffer, options);
+    return u.result;
+}
+exports.detectAll = function(buffer, options) {
+    var u = runUniversalDetector(buffer, options);
+    return u.results;
+}
+exports.UniversalDetector = UniversalDetector;
+exports.enableDebug = function() {
+    setLogger(console.log.bind(console));
+}
+
+function runUniversalDetector(buffer, options) {
     var u = new UniversalDetector(options);
     u.reset();
     if( typeof Buffer == 'function' && buffer instanceof Buffer ) {
@@ -39,9 +52,5 @@ exports.detect = function(buffer, options) {
         u.feed(buffer);
     }
     u.close();
-    return u.result;
-}
-exports.UniversalDetector = UniversalDetector;
-exports.enableDebug = function() {
-    setLogger(console.log.bind(console));
+    return u;
 }
