@@ -309,7 +309,7 @@ exports.MacCyrillicModel = {
     "precedenceMatrix"        : exports.RussianLangModel,
     "mTypicalPositiveRatio"   : 0.976601,
     "keepEnglishLetter"       : false,
-    "charsetName"             : "MacCyrillic"
+    "charsetName"             : "x-mac-cyrillic"
 };
 
 exports.Ibm866Model = {
