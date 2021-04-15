@@ -94,9 +94,7 @@ function UTF8Prober() {
             mbCharRatio = this._mMBCharLen / nonBasciAsciiLen;
         }
         if( this._mNumOfMBChar < 6 && mbCharRatio <= 0.6 ) {
-            for( var i = 0; i < this._mNumOfMBChar; i++ ) {
-                unlike *= Math.pow(ONE_CHAR_PROB, this._mNumOfMBChar);
-            }
+            unlike *= Math.pow(ONE_CHAR_PROB, this._mNumOfMBChar);
             return 1 - unlike;
         } else {
             return unlike;
