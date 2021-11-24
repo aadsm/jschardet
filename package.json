@@ -17,6 +17,7 @@
         "lib": "./lib",
         "test": "./test"
     },
+    "main": "./dist/jschardet.min.js",
     "dependencies": {},
     "devDependencies": {
         "browserify": "~12.0.1",
