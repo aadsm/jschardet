@@ -4,4 +4,6 @@ export interface IDetectedMap {
 }
 export function detect(buffer: Buffer | string, options?: { minimumThreshold: number }): IDetectedMap;
 
+export function detectAll(buffer: Buffer | string, options?: { minimumThreshold: number }): IDetectedMap[];
+
 export function enableDebug(): void;
