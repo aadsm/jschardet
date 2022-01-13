@@ -2,8 +2,12 @@ export interface IDetectedMap {
     encoding: string,
     confidence: number
 }
-export function detect(buffer: Buffer | string, options?: { minimumThreshold: number }): IDetectedMap;
+export interface IOptionsMap {
+    minimumThreshold?: number,
+    detectEncodings?: Array<string>
+}
+export function detect(buffer: Buffer | string, options?: IOptionsMap): IDetectedMap;
 
-export function detectAll(buffer: Buffer | string, options?: { minimumThreshold: number }): IDetectedMap[];
+export function detectAll(buffer: Buffer | string, options?: IOptionsMap): IDetectedMap[];
 
 export function enableDebug(): void;
