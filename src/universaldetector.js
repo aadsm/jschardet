@@ -57,6 +57,16 @@ function UniversalDetector(options) {
         self.reset();
     }
 
+    function canDetectEncoding(encoding) {
+        if (!options.detectEncodings) {
+            return true;
+        }
+        // TODO: we probably should normalize detectEncodings
+        //       and/or somehow indicate to the user that a given
+        //       encoding does not exist.
+        return options.detectEncodings.includes(encoding);
+    }
+
     this.reset = function() {
         this.result = {"encoding": null, "confidence": 0.0};
         this.results = []
@@ -83,25 +93,25 @@ function UniversalDetector(options) {
         if( !this._mGotData ) {
             this._mBOM += aBuf;
             // If the data starts with BOM, we know it is UTF
-            if( this._mBOM.slice(0,3) == "\xEF\xBB\xBF" ) {
+            if( this._mBOM.slice(0,3) == "\xEF\xBB\xBF" && canDetectEncoding("UTF-8")) {
                 // EF BB BF  UTF-8 with BOM
                 this.result = {"encoding": "UTF-8", "confidence": 1.0};
-            } else if( this._mBOM.slice(0,4) == "\xFF\xFE\x00\x00" ) {
+            } else if( this._mBOM.slice(0,4) == "\xFF\xFE\x00\x00"  && canDetectEncoding("UTF-32LE") ) {
                 // FF FE 00 00  UTF-32, little-endian BOM
                 this.result = {"encoding": "UTF-32LE", "confidence": 1.0};
-            } else if( this._mBOM.slice(0,4) == "\x00\x00\xFE\xFF" ) {
+            } else if( this._mBOM.slice(0,4) == "\x00\x00\xFE\xFF"  && canDetectEncoding("UTF-32BE")) {
                 // 00 00 FE FF  UTF-32, big-endian BOM
                 this.result = {"encoding": "UTF-32BE", "confidence": 1.0};
-            } else if( this._mBOM.slice(0,4) == "\xFE\xFF\x00\x00" ) {
+            } else if( this._mBOM.slice(0,4) == "\xFE\xFF\x00\x00"  && canDetectEncoding("X-ISO-10646-UCS-4-3412")) {
                 // FE FF 00 00  UCS-4, unusual octet order BOM (3412)
                 this.result = {"encoding": "X-ISO-10646-UCS-4-3412", "confidence": 1.0};
-            } else if( this._mBOM.slice(0,4) == "\x00\x00\xFF\xFE" ) {
+            } else if( this._mBOM.slice(0,4) == "\x00\x00\xFF\xFE"  && canDetectEncoding("X-ISO-10646-UCS-4-2143")) {
                 // 00 00 FF FE  UCS-4, unusual octet order BOM (2143)
                 this.result = {"encoding": "X-ISO-10646-UCS-4-2143", "confidence": 1.0};
-            } else if( this._mBOM.slice(0,2) == "\xFF\xFE" ) {
+            } else if( this._mBOM.slice(0,2) == "\xFF\xFE" && canDetectEncoding("UTF-16LE")) {
                 // FF FE  UTF-16, little endian BOM
                 this.result = {"encoding": "UTF-16LE", "confidence": 1.0};
-            } else if( this._mBOM.slice(0,2) == "\xFE\xFF" ) {
+            } else if( this._mBOM.slice(0,2) == "\xFE\xFF"  && canDetectEncoding("UTF-16BE")) {
                 // FE FF  UTF-16, big endian BOM
                 this.result = {"encoding": "UTF-16BE", "confidence": 1.0};
             }
@@ -136,7 +146,7 @@ function UniversalDetector(options) {
             if( !this._mEscCharsetProber ) {
                 this._mEscCharsetProber = new EscCharSetProber();
             }
-            if( this._mEscCharsetProber.feed(aBuf) == constants.foundIt ) {
+            if( this._mEscCharsetProber.feed(aBuf) == constants.foundIt && canDetectEncoding(this._mEscCharsetProber.getCharsetName()) ) {
                 this.result = {
                     "encoding": this._mEscCharsetProber.getCharsetName(),
                     "confidence": this._mEscCharsetProber.getConfidence()
@@ -153,7 +163,7 @@ function UniversalDetector(options) {
                 ];
             }
             for( var i = 0, prober; prober = this._mCharsetProbers[i]; i++ ) {
-                if( prober.feed(aBuf) == constants.foundIt ) {
+                if( prober.feed(aBuf) == constants.foundIt && canDetectEncoding(prober.getCharsetName()) ) {
                     this.result = {
                         "encoding": prober.getCharsetName(),
                         "confidence": prober.getConfidence()
@@ -174,7 +184,7 @@ function UniversalDetector(options) {
         }
         this.done = true;
 
-        if( this._mInputState == _state.pureAscii ) {
+        if( this._mInputState == _state.pureAscii && canDetectEncoding("ascii") ) {
             logger.log("pure ascii")
             this.result = {"encoding": "ascii", "confidence": 1.0};
             this.results.push(this.result);
@@ -183,7 +193,7 @@ function UniversalDetector(options) {
 
         if( this._mInputState == _state.highbyte ) {
             for( var i = 0, prober; prober = this._mCharsetProbers[i]; i++ ) {
-                if( !prober || !prober.getCharsetName()) continue;
+                if( !prober || !prober.getCharsetName() || !canDetectEncoding(prober.getCharsetName()) ) continue;
                 this.results.push({
                     "encoding": prober.getCharsetName(),
                     "confidence": prober.getConfidence()
@@ -205,7 +215,7 @@ function UniversalDetector(options) {
         if( logger.enabled ) {
             logger.log("no probers hit minimum threshhold\n");
             for( var i = 0, prober; prober = this._mCharsetProbers[i]; i++ ) {
-                if( !prober ) continue;
+                if( !prober || !canDetectEncoding(prober.getCharsetName()) ) continue;
                 logger.log(prober.getCharsetName() + " confidence = " +
                     prober.getConfidence() + "\n");
             }

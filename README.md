@@ -14,7 +14,7 @@ How To Use It
 -------------
 
 ### Node
-```   
+```
 npm install jschardet
 ```
 
@@ -54,6 +54,10 @@ jschardet.enableDebug();
 // To change this to 0 to always get something or any other value that can
 // work for you.
 jschardet.detect(str, { minimumThreshold: 0 });
+
+// Lock down which encodings to detect, can be useful in situations jschardet
+// is giving a higher probability to encodings that you never use.
+jschardet.detect(str, { detectEncodings: ["UTF-8", "windows-1252"] });
 ```
 
 Supported Charsets
