@@ -44,6 +44,10 @@ function EscCharSetProber() {
             new CodingStateMachine(escsm.ISO2022JPSMModel),
             new CodingStateMachine(escsm.ISO2022KRSMModel)
         ];
+        self._supportedCharsetNames = [];
+        for (const codingSM of self._mCodingSM) {
+            self._supportedCharsetNames.push(codingSM.getCodingStateMachine());
+        }
         self.reset();
     }
 
@@ -60,6 +64,10 @@ function EscCharSetProber() {
 
     this.getCharsetName = function() {
         return this._mDetectedCharset;
+    }
+
+    this.getSupportedCharsetNames = function() {
+        return self._supportedCharsetNames;
     }
 
     this.getConfidence = function() {

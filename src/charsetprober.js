@@ -38,6 +38,10 @@ function CharSetProber() {
         return null;
     }
 
+    this.getSupportedCharsetNames = function() {
+      throw new Error("Unimplemented method getSupportedCharsetNames()");
+    }
+
     this.feed = function(aBuf) {
     }
 

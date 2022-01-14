@@ -112,6 +112,10 @@ function Latin1Prober() {
         return "windows-1252";
     }
 
+    this.getSupportedCharsetNames = function() {
+        return [this.getCharsetName()];
+    }
+
     this.feed = function(aBuf) {
         aBuf = this.filterWithEnglishLetters(aBuf);
         for( var i = 0; i < aBuf.length; i++ ) {

@@ -64,7 +64,16 @@ function SBCSGroupProber() {
         hebrewProber.setModelProbers(logicalHebrewProber, visualHebrewProber);
         self._mProbers.push(hebrewProber, logicalHebrewProber, visualHebrewProber);
 
+        self._supportedCharsetNames = [];
+        for (const prober of self._mProbers) {
+            self._supportedCharsetNames.push(prober.getCharsetName())
+        }
+
         self.reset();
+    }
+
+    this.getSupportedCharsetNames = function() {
+        return  self._supportedCharsetNames;
     }
 
     init();

@@ -63,6 +63,10 @@ function CharSetGroupProber() {
         return this._mBestGuessProber.getCharsetName();
     }
 
+    this.getSupportedCharsetNames = function() {
+        throw new Error("Unimplemented method getSupportedCharsetNames()");
+    }
+
     this.feed = function(aBuf) {
         for( var i = 0, prober; prober = this._mProbers[i]; i++ ) {
             if( !prober || !prober.active ) continue;

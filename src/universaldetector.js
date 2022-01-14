@@ -35,12 +35,49 @@ var constants = require('./constants');
 var MBCSGroupProber = require('./mbcsgroupprober');
 var SBCSGroupProber = require('./sbcsgroupprober');
 var Latin1Prober = require('./latin1prober');
-var EscCharSetProber = require('./escprober')
+var EscCharSetProber = require('./escprober');
 var logger = require('./logger');
+
+const supportedEncodings = (function() {
+    const BOM_UTF = [
+        "UTF-8", "UTF-32LE", "UTF-32BE", "UTF-32BE", "UTF-16LE", "UTF-16BE",
+        "X-ISO-10646-UCS-4-3412", "X-ISO-10646-UCS-4-2143"
+    ]
+    const probers = [
+        new EscCharSetProber(),
+        new MBCSGroupProber(),
+        new SBCSGroupProber(),
+        new Latin1Prober()
+    ];
+    const encodings = BOM_UTF.slice(0);
+    for (const prober of probers) {
+        [].push.apply(encodings, prober.getSupportedCharsetNames());
+    }
+    return encodings;
+})();
+
+const supportedEncodingsDenormalized = (function() {
+    denormalizedEncodings = [];
+    for (const encoding of supportedEncodings) {
+        denormalizedEncodings.push(
+            encoding.toLocaleLowerCase(),
+            encoding.toLocaleLowerCase().replace(/-/g, "")
+        );
+    }
+    return denormalizedEncodings;
+})();
 
 function UniversalDetector(options) {
     if (!options) options = {};
     if (!options.minimumThreshold)  options.minimumThreshold = 0.20;
+
+    if (options.detectEncodings) {
+        for (const encoding of options.detectEncodings) {
+            if (!supportedEncodingsDenormalized.includes(encoding.toLowerCase())) {
+                throw new Error(`Encoding ${encoding} is not supported. Supported encodings: ${supportedEncodings}.`);
+            }
+        }
+    }
 
     var _state = {
         pureAscii   : 0,
@@ -61,10 +98,7 @@ function UniversalDetector(options) {
         if (!options.detectEncodings) {
             return true;
         }
-        // TODO: we probably should normalize detectEncodings
-        //       and/or somehow indicate to the user that a given
-        //       encoding does not exist.
-        return options.detectEncodings.includes(encoding);
+        return options.detectEncodings.includes(encoding.toLowerCase());
     }
 
     this.reset = function() {
