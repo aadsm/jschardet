@@ -71,8 +71,9 @@ function EUCJPProber() {
                 var charLen = this._mCodingSM.getCurrentCharLen();
                 if( i == 0 ) {
                     this._mLastChar[1] = aBuf[0];
-                    this._mContextAnalyzer.feed(this._mLastChar, charLen);
-                    this._mDistributionAnalyzer.feed(this._mLastChar, charLen);
+                    var lastCharStr = this._mLastChar.join('');
+                    this._mContextAnalyzer.feed(lastCharStr, charLen);
+                    this._mDistributionAnalyzer.feed(lastCharStr, charLen);
                 } else {
                     this._mContextAnalyzer.feed(aBuf.slice(i-1,i+1), charLen);
                     this._mDistributionAnalyzer.feed(aBuf.slice(i-1,i+1), charLen);

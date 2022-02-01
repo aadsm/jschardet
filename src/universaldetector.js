@@ -108,7 +108,7 @@ function UniversalDetector(options) {
         this._mStart = true;
         this._mGotData = false;
         this._mInputState = _state.pureAscii;
-        this._mLastChar = "";
+        this._mLastChar = [];
         this._mBOM = "";
         if( this._mEscCharsetProber ) {
             this._mEscCharsetProber.reset();
@@ -169,12 +169,12 @@ function UniversalDetector(options) {
         if( this._mInputState == _state.pureAscii ) {
             if( this._highBitDetector.test(aBuf) ) {
                 this._mInputState = _state.highbyte;
-            } else if( this._escDetector.test(this._mLastChar + aBuf) ) {
+            } else if( this._escDetector.test(this._mLastChar.join('') + aBuf) ) {
                 this._mInputState = _state.escAscii;
             }
         }
 
-        this._mLastChar = aBuf.slice(-1);
+        this._mLastChar = aBuf.slice(-1).split('');
 
         if( this._mInputState == _state.escAscii ) {
             if( !this._mEscCharsetProber ) {

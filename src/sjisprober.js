@@ -71,8 +71,8 @@ function SJISProber() {
                 var charLen = this._mCodingSM.getCurrentCharLen();
                 if( i == 0 ) {
                     this._mLastChar[1] = aBuf[0];
-                    this._mContextAnalyzer.feed(this._mLastChar.slice(2 - charLen), charLen);
-                    this._mDistributionAnalyzer.feed(this._mLastChar, charLen);
+                    this._mContextAnalyzer.feed(this._mLastChar.slice(2 - charLen).join(''), charLen);
+                    this._mDistributionAnalyzer.feed(this._mLastChar.join(''), charLen);
                 } else {
                     this._mContextAnalyzer.feed(aBuf.slice(i + 1 - charLen, i + 3 - charLen), charLen);
                     this._mDistributionAnalyzer.feed(aBuf.slice(i - 1, i + 1), charLen);
