@@ -39,8 +39,7 @@ var logger = require('./logger');
     function init() {
         self._mDistributionAnalyzer = null;
         self._mCodingSM = null;
-        //self._mLastChar = ["\x00", "\x00"];
-        self._mLastChar = "\x00\x00";
+        self._mLastChar = ["\x00", "\x00"];
     }
 
     this.reset = function() {
@@ -51,8 +50,7 @@ var logger = require('./logger');
         if( this._mDistributionAnalyzer ) {
             this._mDistributionAnalyzer.reset();
         }
-        //this._mLastChar = ["\x00", "\x00"];
-        this._mLastChar = "\x00\x00";
+        this._mLastChar = ["\x00", "\x00"];
     }
 
     this.getCharsetName = function() {
@@ -73,7 +71,7 @@ var logger = require('./logger');
                 var charLen = this._mCodingSM.getCurrentCharLen();
                 if( i == 0 ) {
                     this._mLastChar[1] = aBuf[0];
-                    this._mDistributionAnalyzer.feed(this._mLastChar, charLen);
+                    this._mDistributionAnalyzer.feed(this._mLastChar.join(''), charLen);
                 } else {
                     this._mDistributionAnalyzer.feed(aBuf.slice(i-1,i+1), charLen);
                 }
