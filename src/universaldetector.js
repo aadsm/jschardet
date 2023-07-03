@@ -57,7 +57,7 @@ const supportedEncodings = (function() {
 })();
 
 const supportedEncodingsDenormalized = (function() {
-    denormalizedEncodings = [];
+    const denormalizedEncodings = [];
     for (const encoding of supportedEncodings) {
         denormalizedEncodings.push(
             encoding.toLocaleLowerCase(),
