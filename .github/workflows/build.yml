@@ -11,4 +11,7 @@ jobs:
       - run: npm ci
       - run: npm test
       - run: npm run dist
-      - run: git diff --stat --no-color --exit-code
+      - run: >-
+          git diff --stat --no-color --exit-code
+          || echo "dist files at commit ${{github.workflow_sha}} do not match the source code.
+          Please run 'npm run dist' and commit before trying to publish again."
