@@ -10,4 +10,5 @@ jobs:
           node-version: 16
       - run: npm ci
       - run: npm test
+      - run: npm run dist
       - run: git diff --stat --no-color --exit-code
