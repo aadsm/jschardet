@@ -6,7 +6,11 @@ on:
         description: 'npm version to publish'
         type: choice
         required: true
-        options: ${{toJSON(vars.versions).labels}}
+        options:
+          # these are defined in ${{vars.versions}}, but ghw doesn't yet support the use of expressions in inputs.
+          - 'patch (x.y.z+1, bug fixes)'
+          - 'minor (x.y+1.0, new functionality)'
+          - 'major (x+1.0.0, api breaking changes)'
       dry_run:
         description: 'Perform all steps except npm publish'
         type: boolean
