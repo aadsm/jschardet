@@ -20,7 +20,7 @@ jobs:
     uses: ./.github/workflows/build.yml
 
   publish-npm:
-    needs: build
+    # needs: build
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v3
