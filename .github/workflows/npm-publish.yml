@@ -1,0 +1,39 @@
+name: Publish to npm
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'npm version to publish'
+        type: choise
+        required: true
+        options:
+          - patch (x.y.z+1, bug fixes)
+          - minor (x.y+1.0, new functionality)
+          - major (x+1.0.0, api breaking changes)
+      dry_run:
+        description: 'Perform all steps except npm publish'
+        type: boolean
+        default: true
+        required: true
+jobs:
+  build:
+    uses: ./.github/workflows/build.yml
+
+  publish-npm:
+    needs: build
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 20
+          registry-url: https://registry.npmjs.org/
+      - run: npm ci
+      - run: npm dist
+      - name: Publish to npm
+        if: inputs.dry_run == false
+        run: |
+          echo "npm version ${{inputs.version}}"
+          echo "npm publish"
+        env:
+          NODE_AUTH_TOKEN: ${{secrets.npm_token}}
