@@ -6,10 +6,7 @@ on:
         description: 'npm version to publish'
         type: choice
         required: true
-        options:
-          - patch (x.y.z+1, bug fixes)
-          - minor (x.y+1.0, new functionality)
-          - major (x+1.0.0, api breaking changes)
+        options: ${{toJSON(vars.versions).labels}}
       dry_run:
         description: 'Perform all steps except npm publish'
         type: boolean
@@ -33,7 +30,8 @@ jobs:
       - name: Publish to npm
         if: inputs.dry_run == false
         run: |
-          echo "npm version ${{inputs.version}}"
+          echo "npm version ${{env.PKG_VERSION}}"
           echo "npm publish"
         env:
+          PKG_VERSION: ${{toJSON(vars.versions).values[inputs.version]}}
           NODE_AUTH_TOKEN: ${{secrets.npm_token}}
