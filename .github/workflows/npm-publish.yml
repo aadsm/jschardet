@@ -29,7 +29,7 @@ jobs:
           node-version: 20
           registry-url: https://registry.npmjs.org/
       - run: npm ci
-      - run: npm dist
+      - run: npm run dist
       - name: Publish to npm
         if: inputs.dry_run == false
         run: |
