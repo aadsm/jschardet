@@ -4,7 +4,7 @@ on:
     inputs:
       version:
         description: 'npm version to publish'
-        type: choise
+        type: choice
         required: true
         options:
           - patch (x.y.z+1, bug fixes)
