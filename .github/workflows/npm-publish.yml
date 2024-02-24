@@ -34,6 +34,11 @@ jobs:
       - name: Publish to npm
         if: inputs.dry_run == false
         run: |
+          echo "${{vars.versions}}"
+          echo "${{toJSON(vars.versions)}}"
+          echo "${{toJSON(vars.versions).values}}"
+          echo "${{toJSON(vars.versions).labels}}"
+          echo "${{toJSON(vars.versions).labels[0]}}"
           echo "npm version ${{env.PKG_VERSION}}"
           echo "npm publish"
         env:
