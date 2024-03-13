@@ -27,7 +27,11 @@ function calc_perc {
 EOF
 }
 
-eval "git diff-index HEAD $@" | {
+PUBLISHED_VERSION="$(npm view jschardet version)"
+PUBLISHED_VERSION_HASH="$(git rev-list -n 1 v$PUBLISHED_VERSION)"
+
+echo "Size changes since v$PUBLISHED_VERSION:"
+eval "git diff-index "$PUBLISHED_VERSION_HASH" $@" | {
   # vars: B=before / A=after
   # mode: A=added / D=deleted
   while read maskB maskA hashB zero mode path; do
@@ -51,12 +55,7 @@ eval "git diff-index HEAD $@" | {
       size_diff_color=$GREEN
     fi
 
-    # Calculate the percentage up to 2 decimal places and leading 0 when the
-    # percentage only has the decimal part. Only print percentages >= 0.01%.
-    # bc_expr="scale=2; v=$size_diff/$sizeB"
-    # bc_expr=$bc_expr'; if (v >= 0.01) { if (v < 0) { print "-" } else { print "+" }; if (abs(v) < 1) print "0"; print abs(v); print "% " }; print ""'
-    # perc=$(echo "$bc_expr" | bc)
     perc=$(calc_perc $size_diff $sizeB)
-    echo -e "$path $size_diff_color$size_diff_signal$size_diff $perc$TC($sizeB -> $sizeA)"
+    echo -e "* $path $size_diff_color$size_diff_signal$size_diff $perc$TC($sizeB -> $sizeA)"
   done
 }
