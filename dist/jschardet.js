@@ -1352,6 +1352,10 @@ function CharSetGroupProber() {
         return this._mBestGuessProber.getCharsetName();
     }
 
+    this.getSupportedCharsetNames = function() {
+        throw new Error("Unimplemented method getSupportedCharsetNames()");
+    }
+
     this.feed = function(aBuf) {
         for( var i = 0, prober; prober = this._mProbers[i]; i++ ) {
             if( !prober || !prober.active ) continue;
@@ -1443,6 +1447,10 @@ function CharSetProber() {
 
     this.getCharsetName = function() {
         return null;
+    }
+
+    this.getSupportedCharsetNames = function() {
+      throw new Error("Unimplemented method getSupportedCharsetNames()");
     }
 
     this.feed = function(aBuf) {
@@ -1668,6 +1676,10 @@ function EscCharSetProber() {
             new CodingStateMachine(escsm.ISO2022JPSMModel),
             new CodingStateMachine(escsm.ISO2022KRSMModel)
         ];
+        self._supportedCharsetNames = [];
+        for (const codingSM of self._mCodingSM) {
+            self._supportedCharsetNames.push(codingSM.getCodingStateMachine());
+        }
         self.reset();
     }
 
@@ -1684,6 +1696,10 @@ function EscCharSetProber() {
 
     this.getCharsetName = function() {
         return this._mDetectedCharset;
+    }
+
+    this.getSupportedCharsetNames = function() {
+        return self._supportedCharsetNames;
     }
 
     this.getConfidence = function() {
@@ -2050,8 +2066,9 @@ function EUCJPProber() {
                 var charLen = this._mCodingSM.getCurrentCharLen();
                 if( i == 0 ) {
                     this._mLastChar[1] = aBuf[0];
-                    this._mContextAnalyzer.feed(this._mLastChar, charLen);
-                    this._mDistributionAnalyzer.feed(this._mLastChar, charLen);
+                    var lastCharStr = this._mLastChar.join('');
+                    this._mContextAnalyzer.feed(lastCharStr, charLen);
+                    this._mDistributionAnalyzer.feed(lastCharStr, charLen);
                 } else {
                     this._mContextAnalyzer.feed(aBuf.slice(i-1,i+1), charLen);
                     this._mDistributionAnalyzer.feed(aBuf.slice(i-1,i+1), charLen);
@@ -6487,6 +6504,10 @@ function Latin1Prober() {
         return "windows-1252";
     }
 
+    this.getSupportedCharsetNames = function() {
+        return [this.getCharsetName()];
+    }
+
     this.feed = function(aBuf) {
         aBuf = this.filterWithEnglishLetters(aBuf);
         for( var i = 0; i < aBuf.length; i++ ) {
@@ -6589,8 +6610,7 @@ var logger = require('./logger');
     function init() {
         self._mDistributionAnalyzer = null;
         self._mCodingSM = null;
-        //self._mLastChar = ["\x00", "\x00"];
-        self._mLastChar = "\x00\x00";
+        self._mLastChar = ["\x00", "\x00"];
     }
 
     this.reset = function() {
@@ -6601,8 +6621,7 @@ var logger = require('./logger');
         if( this._mDistributionAnalyzer ) {
             this._mDistributionAnalyzer.reset();
         }
-        //this._mLastChar = ["\x00", "\x00"];
-        this._mLastChar = "\x00\x00";
+        this._mLastChar = ["\x00", "\x00"];
     }
 
     this.getCharsetName = function() {
@@ -6623,7 +6642,7 @@ var logger = require('./logger');
                 var charLen = this._mCodingSM.getCurrentCharLen();
                 if( i == 0 ) {
                     this._mLastChar[1] = aBuf[0];
-                    this._mDistributionAnalyzer.feed(this._mLastChar, charLen);
+                    this._mDistributionAnalyzer.feed(this._mLastChar.join(''), charLen);
                 } else {
                     this._mDistributionAnalyzer.feed(aBuf.slice(i-1,i+1), charLen);
                 }
@@ -6700,6 +6719,16 @@ function MBCSGroupProber() {
         new Big5Prober(),
         new EUCTWProber()
     ];
+    const supportedCharsetNames = (function() {
+        const charsetNames = [];
+        for (const prober of this._mProbers) {
+            charsetNames.push(prober.getCharsetName())
+        }
+        return charsetNames;
+    });
+    this.getSupportedCharsetNames = function() {
+        return supportedCharsetNames;
+    }
     this.reset();
 }
 MBCSGroupProber.prototype = new CharSetGroupProber();
@@ -7327,7 +7356,16 @@ function SBCSGroupProber() {
         hebrewProber.setModelProbers(logicalHebrewProber, visualHebrewProber);
         self._mProbers.push(hebrewProber, logicalHebrewProber, visualHebrewProber);
 
+        self._supportedCharsetNames = [];
+        for (const prober of self._mProbers) {
+            self._supportedCharsetNames.push(prober.getCharsetName())
+        }
+
         self.reset();
+    }
+
+    this.getSupportedCharsetNames = function() {
+        return  self._supportedCharsetNames;
     }
 
     init();
@@ -7410,8 +7448,8 @@ function SJISProber() {
                 var charLen = this._mCodingSM.getCurrentCharLen();
                 if( i == 0 ) {
                     this._mLastChar[1] = aBuf[0];
-                    this._mContextAnalyzer.feed(this._mLastChar.slice(2 - charLen), charLen);
-                    this._mDistributionAnalyzer.feed(this._mLastChar, charLen);
+                    this._mContextAnalyzer.feed(this._mLastChar.slice(2 - charLen).join(''), charLen);
+                    this._mDistributionAnalyzer.feed(this._mLastChar.join(''), charLen);
                 } else {
                     this._mContextAnalyzer.feed(aBuf.slice(i + 1 - charLen, i + 3 - charLen), charLen);
                     this._mDistributionAnalyzer.feed(aBuf.slice(i - 1, i + 1), charLen);
@@ -7481,12 +7519,49 @@ var constants = require('./constants');
 var MBCSGroupProber = require('./mbcsgroupprober');
 var SBCSGroupProber = require('./sbcsgroupprober');
 var Latin1Prober = require('./latin1prober');
-var EscCharSetProber = require('./escprober')
+var EscCharSetProber = require('./escprober');
 var logger = require('./logger');
+
+const supportedEncodings = (function() {
+    const BOM_UTF = [
+        "UTF-8", "UTF-32LE", "UTF-32BE", "UTF-32BE", "UTF-16LE", "UTF-16BE",
+        "X-ISO-10646-UCS-4-3412", "X-ISO-10646-UCS-4-2143"
+    ]
+    const probers = [
+        new EscCharSetProber(),
+        new MBCSGroupProber(),
+        new SBCSGroupProber(),
+        new Latin1Prober()
+    ];
+    const encodings = BOM_UTF.slice(0);
+    for (const prober of probers) {
+        [].push.apply(encodings, prober.getSupportedCharsetNames());
+    }
+    return encodings;
+})();
+
+const supportedEncodingsDenormalized = (function() {
+    denormalizedEncodings = [];
+    for (const encoding of supportedEncodings) {
+        denormalizedEncodings.push(
+            encoding.toLocaleLowerCase(),
+            encoding.toLocaleLowerCase().replace(/-/g, "")
+        );
+    }
+    return denormalizedEncodings;
+})();
 
 function UniversalDetector(options) {
     if (!options) options = {};
     if (!options.minimumThreshold)  options.minimumThreshold = 0.20;
+
+    if (options.detectEncodings) {
+        for (const encoding of options.detectEncodings) {
+            if (!supportedEncodingsDenormalized.includes(encoding.toLowerCase())) {
+                throw new Error(`Encoding ${encoding} is not supported. Supported encodings: ${supportedEncodings}.`);
+            }
+        }
+    }
 
     var _state = {
         pureAscii   : 0,
@@ -7503,6 +7578,13 @@ function UniversalDetector(options) {
         self.reset();
     }
 
+    function canDetectEncoding(encoding) {
+        if (!options.detectEncodings) {
+            return true;
+        }
+        return options.detectEncodings.includes(encoding.toLowerCase());
+    }
+
     this.reset = function() {
         this.result = {"encoding": null, "confidence": 0.0};
         this.results = []
@@ -7510,7 +7592,7 @@ function UniversalDetector(options) {
         this._mStart = true;
         this._mGotData = false;
         this._mInputState = _state.pureAscii;
-        this._mLastChar = "";
+        this._mLastChar = [];
         this._mBOM = "";
         if( this._mEscCharsetProber ) {
             this._mEscCharsetProber.reset();
@@ -7529,25 +7611,25 @@ function UniversalDetector(options) {
         if( !this._mGotData ) {
             this._mBOM += aBuf;
             // If the data starts with BOM, we know it is UTF
-            if( this._mBOM.slice(0,3) == "\xEF\xBB\xBF" ) {
+            if( this._mBOM.slice(0,3) == "\xEF\xBB\xBF" && canDetectEncoding("UTF-8")) {
                 // EF BB BF  UTF-8 with BOM
                 this.result = {"encoding": "UTF-8", "confidence": 1.0};
-            } else if( this._mBOM.slice(0,4) == "\xFF\xFE\x00\x00" ) {
+            } else if( this._mBOM.slice(0,4) == "\xFF\xFE\x00\x00"  && canDetectEncoding("UTF-32LE") ) {
                 // FF FE 00 00  UTF-32, little-endian BOM
                 this.result = {"encoding": "UTF-32LE", "confidence": 1.0};
-            } else if( this._mBOM.slice(0,4) == "\x00\x00\xFE\xFF" ) {
+            } else if( this._mBOM.slice(0,4) == "\x00\x00\xFE\xFF"  && canDetectEncoding("UTF-32BE")) {
                 // 00 00 FE FF  UTF-32, big-endian BOM
                 this.result = {"encoding": "UTF-32BE", "confidence": 1.0};
-            } else if( this._mBOM.slice(0,4) == "\xFE\xFF\x00\x00" ) {
+            } else if( this._mBOM.slice(0,4) == "\xFE\xFF\x00\x00"  && canDetectEncoding("X-ISO-10646-UCS-4-3412")) {
                 // FE FF 00 00  UCS-4, unusual octet order BOM (3412)
                 this.result = {"encoding": "X-ISO-10646-UCS-4-3412", "confidence": 1.0};
-            } else if( this._mBOM.slice(0,4) == "\x00\x00\xFF\xFE" ) {
+            } else if( this._mBOM.slice(0,4) == "\x00\x00\xFF\xFE"  && canDetectEncoding("X-ISO-10646-UCS-4-2143")) {
                 // 00 00 FF FE  UCS-4, unusual octet order BOM (2143)
                 this.result = {"encoding": "X-ISO-10646-UCS-4-2143", "confidence": 1.0};
-            } else if( this._mBOM.slice(0,2) == "\xFF\xFE" ) {
+            } else if( this._mBOM.slice(0,2) == "\xFF\xFE" && canDetectEncoding("UTF-16LE")) {
                 // FF FE  UTF-16, little endian BOM
                 this.result = {"encoding": "UTF-16LE", "confidence": 1.0};
-            } else if( this._mBOM.slice(0,2) == "\xFE\xFF" ) {
+            } else if( this._mBOM.slice(0,2) == "\xFE\xFF"  && canDetectEncoding("UTF-16BE")) {
                 // FE FF  UTF-16, big endian BOM
                 this.result = {"encoding": "UTF-16BE", "confidence": 1.0};
             }
@@ -7571,18 +7653,18 @@ function UniversalDetector(options) {
         if( this._mInputState == _state.pureAscii ) {
             if( this._highBitDetector.test(aBuf) ) {
                 this._mInputState = _state.highbyte;
-            } else if( this._escDetector.test(this._mLastChar + aBuf) ) {
+            } else if( this._escDetector.test(this._mLastChar.join('') + aBuf) ) {
                 this._mInputState = _state.escAscii;
             }
         }
 
-        this._mLastChar = aBuf.slice(-1);
+        this._mLastChar = aBuf.slice(-1).split('');
 
         if( this._mInputState == _state.escAscii ) {
             if( !this._mEscCharsetProber ) {
                 this._mEscCharsetProber = new EscCharSetProber();
             }
-            if( this._mEscCharsetProber.feed(aBuf) == constants.foundIt ) {
+            if( this._mEscCharsetProber.feed(aBuf) == constants.foundIt && canDetectEncoding(this._mEscCharsetProber.getCharsetName()) ) {
                 this.result = {
                     "encoding": this._mEscCharsetProber.getCharsetName(),
                     "confidence": this._mEscCharsetProber.getConfidence()
@@ -7599,7 +7681,7 @@ function UniversalDetector(options) {
                 ];
             }
             for( var i = 0, prober; prober = this._mCharsetProbers[i]; i++ ) {
-                if( prober.feed(aBuf) == constants.foundIt ) {
+                if( prober.feed(aBuf) == constants.foundIt && canDetectEncoding(prober.getCharsetName()) ) {
                     this.result = {
                         "encoding": prober.getCharsetName(),
                         "confidence": prober.getConfidence()
@@ -7620,7 +7702,7 @@ function UniversalDetector(options) {
         }
         this.done = true;
 
-        if( this._mInputState == _state.pureAscii ) {
+        if( this._mInputState == _state.pureAscii && canDetectEncoding("ascii") ) {
             logger.log("pure ascii")
             this.result = {"encoding": "ascii", "confidence": 1.0};
             this.results.push(this.result);
@@ -7629,7 +7711,7 @@ function UniversalDetector(options) {
 
         if( this._mInputState == _state.highbyte ) {
             for( var i = 0, prober; prober = this._mCharsetProbers[i]; i++ ) {
-                if( !prober || !prober.getCharsetName()) continue;
+                if( !prober || !prober.getCharsetName() || !canDetectEncoding(prober.getCharsetName()) ) continue;
                 this.results.push({
                     "encoding": prober.getCharsetName(),
                     "confidence": prober.getConfidence()
@@ -7651,7 +7733,7 @@ function UniversalDetector(options) {
         if( logger.enabled ) {
             logger.log("no probers hit minimum threshhold\n");
             for( var i = 0, prober; prober = this._mCharsetProbers[i]; i++ ) {
-                if( !prober ) continue;
+                if( !prober || !canDetectEncoding(prober.getCharsetName()) ) continue;
                 logger.log(prober.getCharsetName() + " confidence = " +
                     prober.getConfidence() + "\n");
             }
