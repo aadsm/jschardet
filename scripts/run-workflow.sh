@@ -28,8 +28,10 @@ function upload-changes {
 
 function run-workflow {
   LAST_RUN_ID=$(gh run list --workflow="$WORKFLOW" --json number,databaseId --jq 'sort_by(.number) | .[-1] | .databaseId')
-  # gh workflow run "$WORKFLOW" --ref "$BRANCH" -f "version=$VERSION"
-  gh workflow run "$WORKFLOW" --ref "$BRANCH"
+  if [ "$WORKFLOW" = "npm-publish.yml" ]; then
+    WORKFLOW_ARGS=(-f "version=$VERSION")
+  fi
+  gh workflow run "$WORKFLOW" --ref "$BRANCH" "${WORKFLOW_ARGS[@]}"
   RUN_ID="$LAST_RUN_ID"
 }
 
