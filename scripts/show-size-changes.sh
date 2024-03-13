@@ -1,9 +1,13 @@
 #!/bin/bash
 
-# ANSI colors
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-TC='\033[0m' # Terminal color
+# https://stackoverflow.com/a/30520299
+# Checks if stdout is not being redirected, and if not, colorizes the output.
+if [[ -t 1 || -p /dev/stdout ]]; then
+  # ANSI colors
+  RED='\033[0;31m'
+  GREEN='\033[0;32m'
+  TC='\033[0m' # Terminal color
+fi
 
 function calc_perc {
   # Calculate the percentage up to 2 decimal places and leading 0 when the
@@ -30,7 +34,7 @@ EOF
 PUBLISHED_VERSION="$(npm view jschardet version)"
 PUBLISHED_VERSION_HASH="$(git rev-list -n 1 v$PUBLISHED_VERSION)"
 
-echo "Size changes since v$PUBLISHED_VERSION:"
+echo "Bundle size changes since v$PUBLISHED_VERSION:"
 eval "git diff-index "$PUBLISHED_VERSION_HASH" $@" | {
   # vars: B=before / A=after
   # mode: A=added / D=deleted

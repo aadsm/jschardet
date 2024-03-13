@@ -22,7 +22,7 @@ jobs:
     uses: ./.github/workflows/build.yml
 
   publish-npm:
-    # needs: build
+    needs: build
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
@@ -65,9 +65,13 @@ jobs:
           CHANGELOG="${{runner.temp}}/changelog.txt"
           echo -e "Version ${{env.VERSION}} (${{env.PKG_VERSION}} update)\n" >> "$CHANGELOG"
           echo -e "Changes since ${{env.CURRENT_PKG_VERSION}}:" >> "$CHANGELOG"
-          git log --pretty='format:%h %s' ${{env.CURRENT_TAG_VERSION}}..HEAD~1 | grep -v '.yml' >> "$CHANGELOG"
+          git log --pretty='format:%h %s' ${{env.CURRENT_TAG_VERSION}}..HEAD~1 | grep -v '.yml' | grep -v '\[devop\]' >> "$CHANGELOG"
+          echo "" >> "$CHANGELOG"
+          ./scripts/show-size-changes.sh dist/* >> "$CHANGELOG"
           git commit --amend -F "$CHANGELOG"
+          git show -s --format=%B
       - name: Push new version
+        if: inputs.dry_run == false
         run: git push --atomic origin ${{github.ref_name}} $(git tag --points-at HEAD)
       - name: Publish to npm
         if: inputs.dry_run == false
