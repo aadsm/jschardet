@@ -18,7 +18,6 @@ on:
         required: true
 jobs:
   build:
-    if: false
     uses: ./.github/workflows/build.yml
 
   publish-npm:
