@@ -31,7 +31,9 @@ function calc_perc {
 EOF
 }
 
-PUBLISHED_VERSION="$(npm view jschardet version)"
+if [ -z "$PUBLISHED_VERSION" ]; then
+  PUBLISHED_VERSION="$(npm view jschardet version)"
+fi
 PUBLISHED_VERSION_HASH="$(git rev-list -n 1 v$PUBLISHED_VERSION)"
 
 echo "Bundle size changes since v$PUBLISHED_VERSION:"

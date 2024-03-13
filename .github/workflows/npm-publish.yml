@@ -36,8 +36,8 @@ jobs:
       - run: npm ci
       - name: Setup versions in ${{'${{env}}'}}
         run: |
-          git tag -d v3.2.0 || true
-          git push --delete origin v3.2.0 || true # for testing purposes only
+          # git tag -d v3.2.0 || true
+          # git push --delete origin v3.2.0 || true # for testing purposes only
           # It sounds like a joke, but npm version doesn't have a way to print the version of the current package.
           # Using python here instead of nodejs because it's too convoluted to just read the whole stdin.
           CURRENT_PKG_VERSION="$(npm version --json | python3 -c 'import json; import sys; print(json.loads(sys.stdin.read()).get("jschardet"))')"
@@ -49,7 +49,7 @@ jobs:
           if [ "$CURRENT_PKG_VERSION" != "$CURRENT_PUBLISHED_VERSION" ]; then
             echo "::warning::Current package version doesn't match current published version ($CURRENT_PKG_VERSION ≠ $CURRENT_PUBLISHED_VERSION)"
           fi
-          if [ "$CURRENT_TAG_VERSION" != "$CURRENT_PKG_VERSION" ]; then
+          if [ "$CURRENT_TAG_VERSION" != "v$CURRENT_PKG_VERSION" ]; then
             echo "::warning::Current tag version doesn't match current package version ($CURRENT_TAG_VERSION ≠ $CURRENT_PKG_VERSION)"
           fi
           echo "CURRENT_PKG_VERSION=$CURRENT_PKG_VERSION" >> "$GITHUB_ENV"
@@ -66,6 +66,7 @@ jobs:
           echo -e "Changes since ${{env.CURRENT_PKG_VERSION}}:" >> "$CHANGELOG"
           git log --pretty='format:%h %s' ${{env.CURRENT_TAG_VERSION}}..HEAD~1 | grep -v '.yml' | grep -v '\[devop\]' >> "$CHANGELOG"
           echo "" >> "$CHANGELOG"
+          ./scripts/show-size-changes.sh dist/*
           ./scripts/show-size-changes.sh dist/* >> "$CHANGELOG"
           git commit --amend -F "$CHANGELOG"
           git show -s --format=%B
