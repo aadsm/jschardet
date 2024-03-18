@@ -70,11 +70,11 @@ jobs:
           ./scripts/show-size-changes.sh dist/* >> "$CHANGELOG"
           git commit --amend -F "$CHANGELOG"
           git show -s --format=%B
+      - name: Publish to npm
+        if: inputs.dry_run == false
+        run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{secrets.npm_token}}
       - name: Push new version
         if: inputs.dry_run == false
         run: git push --atomic origin ${{github.ref_name}} $(git tag --points-at HEAD)
-      - name: Publish to npm
-        if: inputs.dry_run == false
-        run: echo "npm publish"
-        env:
-          NODE_AUTH_TOKEN: ${{secrets.npm_token}}
