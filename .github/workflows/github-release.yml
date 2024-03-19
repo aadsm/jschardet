@@ -29,7 +29,7 @@ jobs:
           RELEASE_TAG: ${{ inputs.tag }}
           DRAFT: ${{ inputs.draft && '--draft' }}
         run: |
-          echo "git show -s --format=%B
+          git show -s --format=%B
           echo "git show -s --format=%B | \
           gh release create "$RELEASE_TAG" \
               --repo="$GITHUB_REPOSITORY" \
