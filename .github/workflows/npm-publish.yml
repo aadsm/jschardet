@@ -69,6 +69,8 @@ jobs:
           ./scripts/show-size-changes.sh dist/*
           ./scripts/show-size-changes.sh dist/* >> "$CHANGELOG"
           git commit --amend -F "$CHANGELOG"
+          # Move the version tag to the new amended commit.
+          git tag -f -m '${{env.VERSION}}' 'v${{env.VERSION}}'
           git show -s --format=%B
       - name: Publish to npm
         if: inputs.dry_run == false
