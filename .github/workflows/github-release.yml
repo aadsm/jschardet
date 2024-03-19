@@ -20,7 +20,9 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          ref: '${{inputs.tag}}'
+          ref: ${{inputs.tag}}
+          fetch-depth: 0
+          fetch-tags: true
       - name: Create release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
