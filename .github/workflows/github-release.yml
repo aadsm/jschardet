@@ -27,9 +27,9 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           RELEASE_TAG: ${{ inputs.tag }}
-          NOTES_FILE: "${{runner.temp}}/notes.txt"
           DRAFT: ${{ inputs.draft && '--draft' }}
         run: |
+          echo "git show -s --format=%B
           echo "git show -s --format=%B | \
           gh release create "$RELEASE_TAG" \
               --repo="$GITHUB_REPOSITORY" \
