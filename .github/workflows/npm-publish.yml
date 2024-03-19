@@ -12,7 +12,7 @@ on:
           - 'minor (x.y+1.0, new functionality)'
           - 'major (x+1.0.0, api breaking changes)'
       dry_run:
-        description: 'Perform all steps except npm publish'
+        description: 'Dry run (perform all steps except git push & npm publish)'
         type: boolean
         default: true
         required: true
@@ -54,15 +54,15 @@ jobs:
           fi
           echo "CURRENT_PKG_VERSION=$CURRENT_PKG_VERSION" >> "$GITHUB_ENV"
           echo "CURRENT_TAG_VERSION=$CURRENT_TAG_VERSION" >> "$GITHUB_ENV"
-          echo "PKG_VERSION=${{fromJSON(vars.versions).values[inputs.version]}}" >> "$GITHUB_ENV"
+          echo "SEMVER_UPDATE=${{fromJSON(vars.versions).values[inputs.version]}}" >> "$GITHUB_ENV"
       - name: Version package
         run: |
-          npm version ${{env.PKG_VERSION}}
+          npm version ${{env.SEMVER_UPDATE}}
           echo "VERSION=$(git show -s --format=%s)" >> "$GITHUB_ENV"
       - name: Amend with changelog
         run: |
           CHANGELOG="${{runner.temp}}/changelog.txt"
-          echo -e "Version ${{env.VERSION}} (${{env.PKG_VERSION}} update)\n" >> "$CHANGELOG"
+          echo -e "Version ${{env.VERSION}} (${{env.SEMVER_UPDATE}} update)\n" >> "$CHANGELOG"
           echo -e "Changes since ${{env.CURRENT_PKG_VERSION}}:" >> "$CHANGELOG"
           git log --pretty='format:%h %s' ${{env.CURRENT_TAG_VERSION}}..HEAD~1 | grep -v '.yml' | grep -v '\[devop\]' >> "$CHANGELOG"
           echo "" >> "$CHANGELOG"
@@ -72,11 +72,11 @@ jobs:
           # Move the version tag to the new amended commit.
           git tag -f -m '${{env.VERSION}}' 'v${{env.VERSION}}'
           git show -s --format=%B
+      - name: Push new version
+        if: inputs.dry_run == false
+        run: git push --atomic origin ${{github.ref_name}} $(git tag --points-at HEAD)
       - name: Publish to npm
         if: inputs.dry_run == false
         run: npm publish
         env:
           NODE_AUTH_TOKEN: ${{secrets.npm_token}}
-      - name: Push new version
-        if: inputs.dry_run == false
-        run: git push --atomic origin ${{github.ref_name}} $(git tag --points-at HEAD)
