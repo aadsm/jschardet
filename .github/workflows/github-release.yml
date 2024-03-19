@@ -20,18 +20,19 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          ref: '${{inputs.tag}}'
+          ref: ${{inputs.tag}}
+          fetch-depth: 0
+          fetch-tags: true
       - name: Create release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           RELEASE_TAG: ${{ inputs.tag }}
-          NOTES_FILE: "${{runner.temp}}/notes.txt"
           DRAFT: ${{ inputs.draft && '--draft' }}
         run: |
-          echo "git show -s --format=%B | \
+          git show -s --format=%B | \
           gh release create "$RELEASE_TAG" \
               --repo="$GITHUB_REPOSITORY" \
               --title="Version ${RELEASE_TAG#v}" \
               --verify-tag \
               "$DRAFT" \
-              -F -"
+              -F -
