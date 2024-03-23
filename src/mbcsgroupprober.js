@@ -47,13 +47,7 @@ function MBCSGroupProber() {
         new Big5Prober(),
         new EUCTWProber()
     ];
-    const supportedCharsetNames = (function() {
-        const charsetNames = [];
-        for (const prober of this._mProbers) {
-            charsetNames.push(prober.getCharsetName())
-        }
-        return charsetNames;
-    });
+    const supportedCharsetNames = this._mProbers.map(prober => prober.getCharsetName());
     this.getSupportedCharsetNames = function() {
         return supportedCharsetNames;
     }

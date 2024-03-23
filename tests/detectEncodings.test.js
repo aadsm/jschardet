@@ -26,10 +26,10 @@ test('detectEncodings locks down which encodings to detect', async () => {
     fileContents = await readFileAsBuffer(fixturePath)
 
     const possibleEncodings = jschardet.detectAll(fileContents, {
-        detectEncodings: ["UTF-8", "windows-1252"]
+        detectEncodings: ["UTF-8", "windows-1252", "Shift_JIS"]
     });
     const singleEncoding = jschardet.detect(fileContents, {
-        detectEncodings: ["UTF-8", "windows-1252"]
+        detectEncodings: ["UTF-8", "windows-1252", "Shift_JIS"]
     });
     expect(possibleEncodings.length).toBe(1)
     expect(possibleEncodings[0].encoding).toBe("windows-1252")
