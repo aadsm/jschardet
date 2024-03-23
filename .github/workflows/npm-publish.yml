@@ -26,7 +26,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: github-workflows
           fetch-depth: 0
           fetch-tags: true
       - uses: actions/setup-node@v4
@@ -54,6 +53,7 @@ jobs:
           fi
           echo "CURRENT_PKG_VERSION=$CURRENT_PKG_VERSION" >> "$GITHUB_ENV"
           echo "CURRENT_TAG_VERSION=$CURRENT_TAG_VERSION" >> "$GITHUB_ENV"
+          echo "CURRENT_PUBLISHED_VERSION=$CURRENT_PUBLISHED_VERSION" >> "$GITHUB_ENV"
           echo "SEMVER_UPDATE=${{fromJSON(vars.versions).values[inputs.version]}}" >> "$GITHUB_ENV"
       - name: Version package
         run: |
@@ -66,8 +66,7 @@ jobs:
           echo -e "Changes since ${{env.CURRENT_PKG_VERSION}}:" >> "$CHANGELOG"
           git log --pretty='format:%h %s' ${{env.CURRENT_TAG_VERSION}}..HEAD~1 | grep -v '.yml' | grep -v '\[devop\]' >> "$CHANGELOG"
           echo "" >> "$CHANGELOG"
-          ./scripts/show-size-changes.sh dist/*
-          ./scripts/show-size-changes.sh dist/* >> "$CHANGELOG"
+          BASE_PKG_VERSION="$CURRENT_PUBLISHED_VERSION" ./scripts/show-size-changes.sh dist/* | tee -a "$CHANGELOG"
           git commit --amend -F "$CHANGELOG"
           # Move the version tag to the new amended commit.
           git tag -f -m '${{env.VERSION}}' 'v${{env.VERSION}}'

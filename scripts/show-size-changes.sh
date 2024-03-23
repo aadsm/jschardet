@@ -31,11 +31,13 @@ function calc_perc {
 EOF
 }
 
-LAST_PKG_VERSION="$(npm version --json | python3 -c 'import json; import sys; print(json.loads(sys.stdin.read()).get("jschardet"))')"
-LAST_PKG_VERSION_HASH="$(git rev-list -n 1 v$LAST_PKG_VERSION)"
+if [ -z "$BASE_PKG_VERSION" ]; then
+  BASE_PKG_VERSION="$(npm version --json | python3 -c 'import json; import sys; print(json.loads(sys.stdin.read()).get("jschardet"))')"
+fi
+BASE_PKG_VERSION_HASH="$(git rev-list -n 1 v$BASE_PKG_VERSION)"
 
-echo "Bundle size changes since v$LAST_PKG_VERSION:"
-eval "git diff-index "$LAST_PKG_VERSION_HASH" $@" | {
+echo "Bundle size changes since v$BASE_PKG_VERSION:"
+eval "git diff-index "$BASE_PKG_VERSION_HASH" $@" | {
   # vars: B=before / A=after
   # mode: A=added / D=deleted
   while read maskB maskA hashB zero mode path; do
