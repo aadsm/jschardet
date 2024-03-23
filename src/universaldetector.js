@@ -69,7 +69,10 @@ const supportedEncodingsDenormalized = (function() {
 
 function UniversalDetector(options) {
     if (!options) options = {};
-    if (!options.minimumThreshold)  options.minimumThreshold = 0.20;
+
+    if (typeof options.minimumThreshold !== "number") {
+        options.minimumThreshold = 0.20;
+    }
 
     if (options.detectEncodings) {
         for (const encoding of options.detectEncodings) {

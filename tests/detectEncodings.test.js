@@ -49,4 +49,14 @@ test('detectEncodings locks down which encodings to detect (SHIFT_JIS)', async (
     expect(possibleEncodings.length).toBe(1)
     expect(possibleEncodings[0].encoding).toBe("SHIFT_JIS")
     expect(singleEncoding.encoding).toBe("SHIFT_JIS")
+
+    // Now we test that the minimumThreshold is working
+    const shortFixturePath = `${__dirname}/fixtures/Shift_JIS-ja_JP-short.txt`;
+    fileContents = await readFileAsBuffer(shortFixturePath)
+
+    const shortSingleEncoding = jschardet.detect(fileContents, {
+        minimumThreshold: 0,
+        detectEncodings: ["UTF-8", "SHIFT_JIS", "EUC-JP"]
+    });
+    expect(shortSingleEncoding.encoding).toBe("SHIFT_JIS")
 });
