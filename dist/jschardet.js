@@ -1474,34 +1474,29 @@ function CharSetProber() {
         return aBuf;
     }
 
-    // Input: aBuf is a string containing all different types of characters
-    // Output: a string that contains all alphabetic letters, high-byte characters, and word immediately preceding `>`, but nothing else within `<>`
-    // Ex: input - '¡£º <div blah blah> abcdef</div> apples! * and oranges 9jd93jd>'
-    //     output - '¡£º blah div apples and oranges jd jd '
-    this.filterWithEnglishLetters = function(aBuf) {
+    // Returns a copy of aBuf that retains only the sequences of English
+    // alphabet and high byte characters that are not between <> characters.
+    // The exception are PHP tags which start with '<?' and end with '?>'.
+    // This filter can be applied to all scripts which contain both English
+    // characters and extended ASCII characters, but is currently only used by
+    // Latin1Prober.
+    this.removeXmlTags = function(aBuf) {
         var result = '';
         var inTag = false;
         var prev = 0;
 
         for (var curr = 0; curr < aBuf.length; curr++) {
-          var c = aBuf[curr];
+            var c = aBuf[curr];
 
-          if (c == '>') {
-            inTag = false;
-          } else if (c == '<') {
-            inTag = true;
-          }
-
-          var isAlpha = /[a-zA-Z]/.test(c);
-          var isASCII = /^[\x00-\x7F]*$/.test(c);
-
-          if (isASCII && !isAlpha) {
-            if (curr > prev && !inTag) {
-              result = result + aBuf.substring(prev, curr) + ' ';
+            if (c == '>' && aBuf[curr-1] !== '?') {
+                prev = curr + 1
+                inTag = false;
+            } else if (c == '<' && aBuf[curr+1] !== '?') {
+                if (curr > prev && !inTag) {
+                    result = result + aBuf.substring(prev, curr) + ' ';
+                }
+                inTag = true;
             }
-
-            prev = curr + 1;
-          }
         }
 
         if (!inTag) {
@@ -6508,8 +6503,8 @@ function Latin1Prober() {
         return [this.getCharsetName()];
     }
 
-    this.feed = function(aBuf) {
-        aBuf = this.filterWithEnglishLetters(aBuf);
+    this.feed = function (aBuf) {
+        aBuf = this.removeXmlTags(aBuf);
         for( var i = 0; i < aBuf.length; i++ ) {
             var c = aBuf.charCodeAt(i);
             var charClass = Latin1_CharToClass[c];
@@ -6527,7 +6522,6 @@ function Latin1Prober() {
 
     this.getConfidence = function() {
         var confidence;
-        var constants;
 
         if( this.getState() == Constants.notMe ) {
             return 0.01;
@@ -6538,7 +6532,7 @@ function Latin1Prober() {
             total += this._mFreqCounter[i];
         }
         if( total < 0.01 ) {
-            constants = 0.0;
+            confidence = 0.0;
         } else {
             confidence = (this._mFreqCounter[3] / total) - (this._mFreqCounter[1] * 20 / total);
         }
@@ -7535,7 +7529,7 @@ const supportedEncodings = (function() {
 })();
 
 const supportedEncodingsDenormalized = (function() {
-    denormalizedEncodings = [];
+    const denormalizedEncodings = [];
     for (const encoding of supportedEncodings) {
         denormalizedEncodings.push(
             encoding.toLocaleLowerCase(),
@@ -7549,7 +7543,13 @@ function UniversalDetector(options) {
     if (!options) options = {};
 
     if (typeof options.minimumThreshold !== "number") {
-        options.minimumThreshold = 0.20;
+        if (options.detectEncodings) {
+            // If encodings are narrowed down by the user allow for
+            // any threshold to be returned.
+            options.minimumThreshold = 0;
+        } else {
+            options.minimumThreshold = 0.20;
+        }
     }
 
     if (options.detectEncodings) {
