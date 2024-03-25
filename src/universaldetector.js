@@ -71,7 +71,13 @@ function UniversalDetector(options) {
     if (!options) options = {};
 
     if (typeof options.minimumThreshold !== "number") {
-        options.minimumThreshold = 0.20;
+        if (options.detectEncodings) {
+            // If encodings are narrowed down by the user allow for
+            // any threshold to be returned.
+            options.minimumThreshold = 0;
+        } else {
+            options.minimumThreshold = 0.20;
+        }
     }
 
     if (options.detectEncodings) {

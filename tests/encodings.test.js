@@ -15,7 +15,8 @@
  ASCII
 */
 
-const jschardet = require('../src')
+const jschardet = require('../src');
+const utils = require('./utils');
 
 test("ASCII", function() {
     var str = "Normal ascii letters.";
@@ -153,6 +154,17 @@ test("windows-1252 (latin1)", function() {
     var str = "\x3c\x73\x74\x72\x69\x6e\x67\x3e\x4d\x61\x72\x74\x69\x6e\x20\x4b\xfc\x68\x6c\x3c\x2f\x73\x74\x72\x69\x6e\x67\x3e";
     expect(jschardet.detect(str).encoding).toBe("windows-1252")
 });
+
+test('windows-1252 (inside PHP tags)', async () => {
+    const fixturePath = `${__dirname}/fixtures/charset_test_file.php.txt`;
+    fileContents = await utils.readFileAsBuffer(fixturePath)
+
+    const singleEncoding = jschardet.detect(fileContents, {
+        detectEncodings: ["UTF-8", "windows-1252"]
+    });
+    expect(singleEncoding.encoding).toBe("windows-1252");
+    expect(singleEncoding.confidence).toBeGreaterThan(0);
+})
 
 test("windows-1255 (Logical Hebrew)", function() {
     // mשנה! – סטודנטים חדשים יכולים להרשם ל

@@ -1,19 +1,9 @@
 const jschardet = require('../src')
-const fs = require('fs/promises');
-
-// TODO: move this to some test utils function
-async function readFileAsBuffer(path) {
-    const fileHandler = await fs.open(path, 'r');
-    const fileStats = await fs.stat(path);
-    var fileContents = Buffer.alloc(fileStats.size);
-    await fileHandler.read(fileContents, 0, fileContents.length);
-    fileHandler.close();
-    return fileContents;
-}
+const utils = require('./utils')
 
 test('detectEncodings shouldn\'t accept unknown encodings', async () => {
     const fixturePath = `${__dirname}/fixtures/windows-1252-de_DE.txt`;
-    fileContents = await readFileAsBuffer(fixturePath)
+    fileContents = await utils.readFileAsBuffer(fixturePath)
     expect(function() {
         jschardet.detect(fileContents, {
             detectEncodings: ["UTF-14"]
@@ -23,7 +13,7 @@ test('detectEncodings shouldn\'t accept unknown encodings', async () => {
 
 test('detectEncodings locks down which encodings to detect', async () => {
     const fixturePath = `${__dirname}/fixtures/windows-1252-de_DE.txt`;
-    fileContents = await readFileAsBuffer(fixturePath)
+    fileContents = await utils.readFileAsBuffer(fixturePath)
 
     const possibleEncodings = jschardet.detectAll(fileContents, {
         detectEncodings: ["UTF-8", "windows-1252"]
@@ -38,7 +28,7 @@ test('detectEncodings locks down which encodings to detect', async () => {
 
 test('detectEncodings locks down which encodings to detect (SHIFT_JIS)', async () => {
     const fixturePath = `${__dirname}/fixtures/Shift_JIS-ja_JP.txt`;
-    fileContents = await readFileAsBuffer(fixturePath)
+    fileContents = await utils.readFileAsBuffer(fixturePath)
 
     const possibleEncodings = jschardet.detectAll(fileContents, {
         detectEncodings: ["UTF-8", "SHIFT_JIS", "EUC-JP"],
@@ -52,7 +42,7 @@ test('detectEncodings locks down which encodings to detect (SHIFT_JIS)', async (
 
     // Now we test that the minimumThreshold is working
     const shortFixturePath = `${__dirname}/fixtures/Shift_JIS-ja_JP-short.txt`;
-    fileContents = await readFileAsBuffer(shortFixturePath)
+    fileContents = await utils.readFileAsBuffer(shortFixturePath)
 
     const shortSingleEncoding = jschardet.detect(fileContents, {
         minimumThreshold: 0,

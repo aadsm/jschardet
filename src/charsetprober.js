@@ -63,34 +63,29 @@ function CharSetProber() {
         return aBuf;
     }
 
-    // Input: aBuf is a string containing all different types of characters
-    // Output: a string that contains all alphabetic letters, high-byte characters, and word immediately preceding `>`, but nothing else within `<>`
-    // Ex: input - '¡£º <div blah blah> abcdef</div> apples! * and oranges 9jd93jd>'
-    //     output - '¡£º blah div apples and oranges jd jd '
-    this.filterWithEnglishLetters = function(aBuf) {
+    // Returns a copy of aBuf that retains only the sequences of English
+    // alphabet and high byte characters that are not between <> characters.
+    // The exception are PHP tags which start with '<?' and end with '?>'.
+    // This filter can be applied to all scripts which contain both English
+    // characters and extended ASCII characters, but is currently only used by
+    // Latin1Prober.
+    this.removeXmlTags = function(aBuf) {
         var result = '';
         var inTag = false;
         var prev = 0;
 
         for (var curr = 0; curr < aBuf.length; curr++) {
-          var c = aBuf[curr];
+            var c = aBuf[curr];
 
-          if (c == '>') {
-            inTag = false;
-          } else if (c == '<') {
-            inTag = true;
-          }
-
-          var isAlpha = /[a-zA-Z]/.test(c);
-          var isASCII = /^[\x00-\x7F]*$/.test(c);
-
-          if (isASCII && !isAlpha) {
-            if (curr > prev && !inTag) {
-              result = result + aBuf.substring(prev, curr) + ' ';
+            if (c == '>' && aBuf[curr-1] !== '?') {
+                prev = curr + 1
+                inTag = false;
+            } else if (c == '<' && aBuf[curr+1] !== '?') {
+                if (curr > prev && !inTag) {
+                    result = result + aBuf.substring(prev, curr) + ' ';
+                }
+                inTag = true;
             }
-
-            prev = curr + 1;
-          }
         }
 
         if (!inTag) {

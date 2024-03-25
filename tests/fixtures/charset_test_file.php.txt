@@ -1,0 +1,6 @@
+<?php
+	
+$keywords = preg_split("#[^a-zŠŒŽšœžŸ¥µÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝßàáâãäåæçèéêëìíîïðñòóôõöøùúûüýÿ]#i", $fl_name);
+
+// Lorem ipsum dolor sit amet consectetur adipisicing elit. Voluptatem, odit deserunt. Harum, laudantium. Corporis nulla cum at fugiat voluptates? Qui nulla repudiandae quam placeat hic dignissimos harum ducimus nobis modi.
+// Lorem ipsum dolor sit amet consectetur adipisicing elit. Voluptatem, odit deserunt. Harum, laudantium. Corporis nulla cum at fugiat voluptates? Qui nulla repudiandae quam placeat hic dignissimos harum ducimus nobis modi.Lorem ipsum dolor sit amet consectetur adipisicing elit. Voluptatem, odit deserunt. Harum, laudantium. Corporis nulla cum at fugiat voluptates? Qui nulla repudiandae quam placeat hic dignissimos harum ducimus nobis modi.Lorem ipsum dolor sit amet consectetur adipisicing elit. Voluptatem, odit deserunt. Harum, laudantium. Corporis nulla cum at fugiat voluptates? Qui nulla repudiandae quam placeat hic dignissimos harum ducimus nobis modi.

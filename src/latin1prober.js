@@ -116,8 +116,8 @@ function Latin1Prober() {
         return [this.getCharsetName()];
     }
 
-    this.feed = function(aBuf) {
-        aBuf = this.filterWithEnglishLetters(aBuf);
+    this.feed = function (aBuf) {
+        aBuf = this.removeXmlTags(aBuf);
         for( var i = 0; i < aBuf.length; i++ ) {
             var c = aBuf.charCodeAt(i);
             var charClass = Latin1_CharToClass[c];
@@ -135,7 +135,6 @@ function Latin1Prober() {
 
     this.getConfidence = function() {
         var confidence;
-        var constants;
 
         if( this.getState() == Constants.notMe ) {
             return 0.01;
@@ -146,7 +145,7 @@ function Latin1Prober() {
             total += this._mFreqCounter[i];
         }
         if( total < 0.01 ) {
-            constants = 0.0;
+            confidence = 0.0;
         } else {
             confidence = (this._mFreqCounter[3] / total) - (this._mFreqCounter[1] * 20 / total);
         }
