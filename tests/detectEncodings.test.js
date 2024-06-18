@@ -50,3 +50,13 @@ test('detectEncodings locks down which encodings to detect (SHIFT_JIS)', async (
     });
     expect(shortSingleEncoding.encoding).toBe("SHIFT_JIS")
 });
+
+test('detectEncodings should also report windows-1250 when it detects windows-1252', async () => {
+    const fixturePath = `${__dirname}/fixtures/windows-1250.txt`;
+    fileContents = await utils.readFileAsBuffer(fixturePath);
+    const possibleEncodings = jschardet.detectAll(fileContents, {
+        detectEncodings: ["windows-1250"],
+    });
+    expect(possibleEncodings.length).toBe(1);
+    expect(possibleEncodings[0].encoding).toBe("windows-1250")
+});

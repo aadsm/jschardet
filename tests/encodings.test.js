@@ -246,8 +246,9 @@ describe.skip("Not sure how to test these", function() {
     });
 
     test("windows-1250 (Hungarian)", function() {
-        // 🤷
-        var str = "";
+        // Příliš žluťoučký kůň úpěl ďábelské ódy
+        var str = "\x50\xf8\xed\x6c\x69\x9a\x20\x9e\x6c\x75\x9d\x6f\x75\xe8\x6b\xfd\x20\x6b\xf9\xf2\x20\xfa\x70\xec\x6c\x20\xef\xe1\x62\x65\x6c\x73\x6b\xe9\x20\xf3\x64\x79";
+        // It's reporting IBM866 for some reason..
         expect(jschardet.detect(str).encoding).toBe("windows-1250")
     });
 
