@@ -262,7 +262,7 @@ function UniversalDetector(options) {
                 this.results.push({
                     "encoding": "windows-1250",
                     // Report the confidence just a bit under windows-1252's.
-                    "confidence": windows_1252_confidence - 5/10**(String(windows_1252_confidence).length - 1),
+                    "confidence": windows_1252_confidence - Math.pow(5/10, (String(windows_1252_confidence).length - 1)),
                 });
             }
             this.results.sort(function(a, b) {
