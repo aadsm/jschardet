@@ -7707,14 +7707,35 @@ function UniversalDetector(options) {
             return this.result;
         }
 
-        if( this._mInputState == _state.highbyte ) {
-            for( var i = 0, prober; prober = this._mCharsetProbers[i]; i++ ) {
-                if( !prober || !prober.getCharsetName() || !canDetectEncoding(prober.getCharsetName()) ) continue;
+        if (this._mInputState == _state.highbyte) {
+            let windows_1252_confidence = 0;
+            let windows_1250_detected = false;
+            for (var i = 0, prober; prober = this._mCharsetProbers[i]; i++) {
+                if (!prober) continue;
+                const charsetName = prober.getCharsetName();
+                const confidence = prober.getConfidence();
+                if (prober.getCharsetName() === "windows-1252") {
+                    windows_1252_confidence = confidence;
+                }
+                if (!charsetName || !canDetectEncoding(charsetName)) continue;
                 this.results.push({
                     "encoding": prober.getCharsetName(),
-                    "confidence": prober.getConfidence()
+                    "confidence": confidence
                 });
-                logger.log(prober.getCharsetName() + " confidence " + prober.getConfidence());
+                if (prober.getCharsetName() === "windows-1250") {
+                    windows_1250_detected = true;
+                }
+                logger.log(prober.getCharsetName() + " confidence " + confidence);
+            }
+            // HACK: When windows-1252 is detected it's almost sure that it can
+            // also be windows-1250.
+            // https://en.wikipedia.org/wiki/Windows-1250 (Central European)
+            if (windows_1252_confidence && !windows_1250_detected && canDetectEncoding("windows-1250")) {
+                this.results.push({
+                    "encoding": "windows-1250",
+                    // Report the confidence just a bit under windows-1252's.
+                    "confidence": windows_1252_confidence - Math.pow(5/10, (String(windows_1252_confidence).length - 1)),
+                });
             }
             this.results.sort(function(a, b) {
                 return b.confidence - a.confidence;
