@@ -7579,7 +7579,7 @@ function UniversalDetector(options) {
         if (!options.detectEncodings) {
             return true;
         }
-        lowerDetectedEncodings = options.detectEncodings.map(encoding => encoding.toLowerCase());
+        var lowerDetectedEncodings = options.detectEncodings.map(encoding => encoding.toLowerCase());
         return lowerDetectedEncodings.includes(encoding.toLowerCase());
     }
 
