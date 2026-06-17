@@ -1,34 +1,68 @@
 {
     "name": "jschardet",
-    "version": "3.1.4",
-    "description": "Character encoding auto-detection in JavaScript (port of python's chardet)",
+    "version": "4.0.0-rc.0",
+    "type": "module",
+    "license": "0BSD",
     "author": "António Afonso",
-    "license": "LGPL-2.1+",
     "keywords": [
         "encoding",
         "charset"
+    ],
+    "jsdelivr": "dist/jschardet.min.js",
+    "unpkg": "dist/jschardet.min.js",
+    "main": "./build/index.js",
+    "browser": "./dist/jschardet.esm.min.js",
+    "bin": {
+        "jschardet": "./build/cli.js"
+    },
+    "exports": {
+        "types": "./dist/jschardet.d.ts",
+        "browser": "./dist/jschardet.esm.min.js",
+        "import": "./build/index.js"
+    },
+    "files": [
+        "dist/jschardet*.js",
+        "dist/jschardet.d.ts",
+        "build/**/*.js",
+        "README.md",
+        "LICENSE"
     ],
     "repository": {
         "type": "git",
         "url": "https://github.com/aadsm/jschardet.git"
     },
-    "types": "index.d.ts",
-    "directories": {
-        "lib": "./lib",
-        "test": "./test"
+    "scripts": {
+        "sync-version": "node scripts/sync-version.js",
+        "prebuild": "npm run sync-version",
+        "build": "tsc",
+        "prebuild:bundles": "npm run sync-version",
+        "build:bundles": "node scripts/build-bundles.js",
+        "build:types": "dts-bundle-generator --no-check --out-file dist/jschardet.d.ts build/index.d.ts",
+        "test": "vitest run",
+        "pretest:browser": "playwright install chromium",
+        "test:browser": "vitest run --config vitest.browser.config.ts",
+        "test:bundles": "vitest run --config vitest.bundles.jschardet.config.ts && vitest run --config vitest.bundles.chardet.config.ts",
+        "test:accuracy": "vitest run --config vitest.accuracy.config.ts",
+        "typecheck": "tsc --noEmit",
+        "update-chardet": "node scripts/update-chardet.js",
+        "update-test-fixtures": "node scripts/update-test-fixtures.js",
+        "benchmark:throughput": "node tests/benchmark/throughput.js",
+        "benchmark:coldstart": "node tests/benchmark/coldstart.js",
+        "benchmark:accuracy": "node tests/benchmark/accuracy.js",
+        "benchmark:memory": "node tests/benchmark/memory.js",
+        "benchmark:all": "npm run build && npm run benchmark:accuracy && npm run benchmark:throughput && npm run benchmark:coldstart && npm run benchmark:memory",
+        "prepublishOnly": "npm run build && npm run build:bundles && npm run build:types",
+        "version": "npm run sync-version && git add src/version.js"
     },
     "devDependencies": {
-        "browserify": "~17.0.0",
-        "google-closure-compiler": "20240317.0.0",
-        "jest": "^29.7.0"
-    },
-    "scripts": {
-        "dist-dev": "mkdir -p dist && browserify index.js -s jschardet --detect-globals false -o dist/jschardet.js && ./scripts/show-size-changes.sh dist/jschardet.js",
-        "dist": "npm run dist-dev && java -jar node_modules/google-closure-compiler-java/compiler.jar --warning_level QUIET --compilation_level SIMPLE_OPTIMIZATIONS --language_in=ECMASCRIPT6_STRICT --language_out=ES5 --js dist/jschardet.js > dist/jschardet.min.js && ./scripts/show-size-changes.sh dist/jschardet.min.js",
-        "dist-size-changes": "./scripts/show-size-changes.sh dist/*",
-        "test": "jest"
-    },
-    "engines": {
-        "node": ">=0.1.90"
+        "@types/node": "^22.0.0",
+        "@vitest/browser": "^4.1.9",
+        "@vitest/browser-playwright": "^4.1.9",
+        "dts-bundle-generator": "^9.5.1",
+        "esbuild": "^0.28.0",
+        "iconv-lite": "^0.7.2",
+        "playwright": "^1.59.1",
+        "typescript": "^6.0.0",
+        "vitest": "^4.1.9"
     }
 }

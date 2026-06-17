@@ -18,9 +18,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
-          ref: ${{inputs.tag}}
+          ref: ${{ inputs.tag }}
           fetch-depth: 0
           fetch-tags: true
       - name: Create release

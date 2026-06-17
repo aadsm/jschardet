@@ -1,0 +1,44 @@
+[
+	// 共通設定
+	%[
+	version:1, // バージョン
+	rows:22,                      // (int)パターン縦枚数（連続切り替え）
+	columns:4,                    // (int)パターン横枚数（パターン種類）
+	patsp: "30/60",               // (range)パターン速度
+	//ctx: void,                  // (int:optional)志向性用基点位置
+	//cty: void,                  // (int:optional)志向性用基点位置
+
+	storage:"particle_fl32", // (string)アニメパターン画像
+
+	angle: "80/100",               // (range)開始角度
+	speed: "240/320",            // (range)開始スピード
+	genpos: %[ x:"0/1280", y:"-32/-64" ], // 生成位置
+	vibsp: "0/0.8",             // (range)ゆれ速度
+	vibsz: "0/48",                 // (range)ゆれ幅
+	genratio: 0.5,                 // (int)生成頻度
+
+	life: 0,                      // (range)維持時間, 0で無限（term必須）
+	fade: 0,                      // (int)フェード時間
+	term: function(x, y, time) { return y > 720+32; }, // 死亡判定
+		],
+
+	// -------------------------------------------------------
+	// 個別上書き
+
+	%[ storage:"particle_fl12", speed: "80/120",  vibsz:"0/20", genratio: 4*2 ], // ptidx = 1
+	%[ storage:"particle_fl16", speed: "120/160", vibsz:"0/24", genratio: 2*2 ], // ptidx = 2
+	%[ storage:"particle_fl24", speed: "160/240", vibsz:"0/32", genratio: 1*2 ], // ptidx = 3
+
+	// 右斜め向きver
+	%[ angle:"50/70", genpos: %[ x:"-640/1200", y:"-32/-64" ],           ], // ptidx = 4
+	%[ angle:"50/70", genpos: %[ x:"-640/1200", y:"-32/-64" ], inherit:1 ], // ptidx = 5
+	%[ angle:"50/70", genpos: %[ x:"-640/1200", y:"-32/-64" ], inherit:2 ], // ptidx = 6
+	%[ angle:"50/70", genpos: %[ x:"-640/1200", y:"-32/-64" ], inherit:3 ], // ptidx = 7
+
+	// 左斜め向きver
+	%[ angle:"110/130", genpos: %[ x:"80/1920", y:"-32/-64" ],           ], // ptidx = 8
+	%[ angle:"110/130", genpos: %[ x:"80/1920", y:"-32/-64" ], inherit:1 ], // ptidx = 9
+	%[ angle:"110/130", genpos: %[ x:"80/1920", y:"-32/-64" ], inherit:2 ], // ptidx = 10
+	%[ angle:"110/130", genpos: %[ x:"80/1920", y:"-32/-64" ], inherit:3 ], // ptidx = 11
+
+]

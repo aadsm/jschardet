@@ -1,2 +1,14 @@
-.DS_Store
-node_modules
+node_modules/
+build/
+# The four jschardet.* bundles in dist/ (and their .map source maps)
+# are tracked (they're the distributable outputs); the chardet.esm.*
+# bundles are an internal build artefact for the lower-level API and
+# stay ignored.
+dist/chardet.esm.js
+dist/chardet.esm.js.map
+dist/chardet.esm.min.js
+dist/chardet.esm.min.js.map
+tests/data/
+tests/bench-deps/
+tests/__screenshots__/
+.vitest-attachments/
