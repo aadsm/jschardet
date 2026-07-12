@@ -1,0 +1,11 @@
+
+# Process 10259 resuming
+# [0;1;31merror: [0munknown argument: '-masm-verbose'[0m
+# [0;1;31merror: [0munknown argument: '-dwarf-column-info'[0m
+# [0;1;31merror: [0munknown argument: '-fmessage-length'[0m
+# [0;1;31merror: [0munknown argument: '-fstack-check'[0m
+# [0;1;31merror: [0munknown argument: '-mdarwin-stkchk-strong-link'[0m
+# [0;1;31merror: [0munknown argument: '-fdiagnostics-show-option'[0m 
+
+# # + echo ' 🍺 清理结束v
+# #  🍺 清理结束
