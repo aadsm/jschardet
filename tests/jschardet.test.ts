@@ -10,6 +10,7 @@ import windows1250Ro from './fixtures/windows-1250-ro.srt?uint8array';
 import shiftJisCp932Rare from './fixtures/Shift_JIS-cp932-rare.txt?uint8array';
 import shiftJisParticleSakura from './fixtures/Shift_JIS-particle_sakura.txt?uint8array';
 import gb2312Untitled from './fixtures/gb2312-untitled.txt?uint8array';
+import euckrKo from './fixtures/euc-kr-ko.txt?uint8array';
 import gb18030UserdbPanda from './fixtures/gb18030-userdb_panda.yar.txt?uint8array';
 import iso88591Pt from './fixtures/iso-8859-1-pt.txt?uint8array';
 import utf8StripSh from './fixtures/utf-8-strip.sh.txt?uint8array';
@@ -119,6 +120,16 @@ describe('Bug regressions', () => {
   test.fails('GB2312 repeated kanji detects as a Chinese encoding (issue #34)', () => {
     const all = detectAll(gb2312Untitled);
     expect(all[0].language).toBe('zh');
+  });
+
+  // issue #39 (2017): a small EUC-KR CSV (Korean iris-dataset column
+  // descriptions) was misdetected as ISO-8859-2. Now the Korean superset
+  // CP949 wins, matching upstream Python chardet exactly. Confidence is
+  // sub-threshold (~0.18) so detect() returns the top candidate.
+  test('Korean EUC-KR CSV detects as CP949 (issue #39)', () => {
+    const result = detect(euckrKo);
+    expect(result.encoding).toBe('CP949');
+    expect(result.language).toBe('ko');
   });
 
   // issue #47 (2018, via discord-irc): short windows-1252 strings with
