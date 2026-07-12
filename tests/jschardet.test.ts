@@ -121,6 +121,31 @@ describe('Bug regressions', () => {
     expect(all[0].language).toBe('zh');
   });
 
+  // issue #47 (2018, via discord-irc): short windows-1252 strings with
+  // Portuguese/Finnish diacritics were misdetected as Cyrillic encodings
+  // (windows-1251 / IBM855), turning "ção" into "згo"; short UTF-8 input
+  // ("kyllä") was also misdetected, producing "kyllÃ¤" mojibake. All now
+  // resolve correctly. ("ça me fait rire" from the same thread ranks cp850
+  // first instead, but identically to upstream chardet 7.4.3, so it is an
+  // upstream-equivalent gap and is not pinned here.)
+  test('short accented windows-1252 strings (issue #47)', () => {
+    // windows-1252: informações
+    expect(detect('informa\xe7\xf5es').encoding).toBe('Windows-1252');
+    // windows-1252: eu não gosto de diferenciação
+    expect(detect('eu n\xe3o gosto de diferencia\xe7\xe3o').encoding).toBe('Windows-1252');
+    // windows-1252: çã
+    expect(detect('\xe7\xe3').encoding).toBe('Windows-1252');
+    // windows-1252: mä en ota riskiä että tää selkä pahenee
+    expect(detect('m\xe4 en ota riski\xe4 ett\xe4 t\xe4\xe4 selk\xe4 pahenee').encoding)
+      .toBe('Windows-1252');
+  });
+
+  test('short UTF-8 string with diacritics (issue #47)', () => {
+    const result = detect(new TextEncoder().encode('kyllä'));
+    expect(result.encoding).toBe('utf-8');
+    expect(result.confidence).toBeGreaterThan(0.20);
+  });
+
   // issue #49 (2018, via Atom): the reporter's userdb_panda.yar — GB-encoded
   // yara rules whose Chinese descriptions use characters beyond GB2312 — was
   // labeled GB2312 @0.99 by jschardet 3.x, so `iconv -f GB2312` failed on it.
