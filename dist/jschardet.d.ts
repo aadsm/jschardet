@@ -82,7 +82,7 @@ export interface DetectAllOptions extends DetectOptions {
 }
 declare function detect(byteStr: Uint8Array, options?: DetectOptions): DetectionResult;
 declare function detectAll(byteStr: Uint8Array, options?: DetectAllOptions): DetectionResult[];
-export const VERSION: "4.0.0";
+export const VERSION: "4.0.0-rc.0";
 export interface IDetectedMap {
 	encoding: string | null;
 	confidence: number;
