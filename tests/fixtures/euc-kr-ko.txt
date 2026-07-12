@@ -1,0 +1,6 @@
+name, description
+sepal length (cm), ²É¹ŞÄ§ ±æÀÌ
+sepal width (cm), ²É¹ŞÄ§ ³Êºñ
+petal length (cm), ²ÉÀÙ ±æÀÌ
+petal width (cm), ²ÉÀÙ ³Êºñ
+class, Á¾
