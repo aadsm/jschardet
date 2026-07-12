@@ -1,0 +1,5 @@
+		description = "PcShare 文件捆绑器 v4.0 -> 无可非议"
+		description = "FreePascal 2.0.0 Win32 -> (B閞czi G醔or, Pierre Muller & Peter Vreman)"
+		description = "E游地带-> 月黑风高"
+		description = "UPX-SCRAMBLER 3.06 -> ㎡nT畂L"
+		description = "心奇EXE合并器 -> yy66"
