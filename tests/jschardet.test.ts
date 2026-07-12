@@ -10,6 +10,7 @@ import windows1250Ro from './fixtures/windows-1250-ro.srt?uint8array';
 import shiftJisCp932Rare from './fixtures/Shift_JIS-cp932-rare.txt?uint8array';
 import shiftJisParticleSakura from './fixtures/Shift_JIS-particle_sakura.txt?uint8array';
 import gb2312Untitled from './fixtures/gb2312-untitled.txt?uint8array';
+import gb18030UserdbPanda from './fixtures/gb18030-userdb_panda.yar.txt?uint8array';
 import iso88591Pt from './fixtures/iso-8859-1-pt.txt?uint8array';
 import utf8StripSh from './fixtures/utf-8-strip.sh.txt?uint8array';
 
@@ -118,6 +119,20 @@ describe('Bug regressions', () => {
   test.fails('GB2312 repeated kanji detects as a Chinese encoding (issue #34)', () => {
     const all = detectAll(gb2312Untitled);
     expect(all[0].language).toBe('zh');
+  });
+
+  // issue #49 (2018, via Atom): the reporter's userdb_panda.yar — GB-encoded
+  // yara rules whose Chinese descriptions use characters beyond GB2312 — was
+  // labeled GB2312 @0.99 by jschardet 3.x, so `iconv -f GB2312` failed on it.
+  // The fixture is the file's Chinese description lines (GB18030-encoded,
+  // undecodable as GB2312). The rewrite unifies the GB family and only reports
+  // the GB18030 superset; confidence is low (~0.04, matching upstream chardet)
+  // because the sample is short, so encoding + language is the regression
+  // surface.
+  test('GB text beyond GB2312 reports GB18030, never GB2312 (issue #49)', () => {
+    const result = detect(gb18030UserdbPanda);
+    expect(result.encoding).toBe('GB18030');
+    expect(result.language).toBe('zh');
   });
 
   // issue #64 (bpasero, 2020): the reporter's strip.sh — UTF-8 shell output
