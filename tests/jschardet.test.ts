@@ -11,6 +11,7 @@ import shiftJisCp932Rare from './fixtures/Shift_JIS-cp932-rare.txt?uint8array';
 import shiftJisParticleSakura from './fixtures/Shift_JIS-particle_sakura.txt?uint8array';
 import gb2312Untitled from './fixtures/gb2312-untitled.txt?uint8array';
 import iso88591Pt from './fixtures/iso-8859-1-pt.txt?uint8array';
+import utf8StripSh from './fixtures/utf-8-strip.sh.txt?uint8array';
 
 describe('detectEncodings', () => {
   test("shouldn't accept unknown encodings", () => {
@@ -117,6 +118,15 @@ describe('Bug regressions', () => {
   test.fails('GB2312 repeated kanji detects as a Chinese encoding (issue #34)', () => {
     const all = detectAll(gb2312Untitled);
     expect(all[0].language).toBe('zh');
+  });
+
+  // issue #64 (bpasero, 2020): the reporter's strip.sh — UTF-8 shell output
+  // with emoji and ANSI escape sequences — was misdetected as ISO-8859-2.
+  // Now UTF-8 wins outright and is the only candidate above the threshold.
+  test('UTF-8 with emoji and ANSI escapes detects as UTF-8 (issue #64)', () => {
+    const result = detect(utf8StripSh);
+    expect(result.encoding).toBe('utf-8');
+    expect(result.confidence).toBeGreaterThan(0.20);
   });
 
   // issue #66 — 4 bytes of Big5 ('小七') were misdetected as windows-1252.
