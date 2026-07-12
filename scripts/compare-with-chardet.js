@@ -14,6 +14,7 @@
 // Auto-runs `npm run build` if build/index.js is missing.
 //
 // See also: scripts/diagnose-file.js for port-only ranking.
+import { readFileSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
