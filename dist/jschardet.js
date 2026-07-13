@@ -3728,10 +3728,14 @@ var jschardet = (() => {
     _debug = true;
   }
   function toBytes(input) {
-    if (typeof input !== "string") return input;
-    const bytes = new Uint8Array(input.length);
-    for (let i = 0; i < input.length; i++) bytes[i] = input.charCodeAt(i) & 255;
-    return bytes;
+    if (typeof input === "string") {
+      const bytes = new Uint8Array(input.length);
+      for (let i = 0; i < input.length; i++) bytes[i] = input.charCodeAt(i) & 255;
+      return bytes;
+    }
+    if (input instanceof Uint8Array) return input;
+    if (ArrayBuffer.isView(input)) return new Uint8Array(input.buffer, input.byteOffset, input.byteLength);
+    return new Uint8Array(input);
   }
   function detect2(buffer, options = {}) {
     const bytes = toBytes(buffer);

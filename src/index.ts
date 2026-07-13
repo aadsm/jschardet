@@ -22,14 +22,18 @@ export function enableDebug(): void {
   _debug = true;
 }
 
-function toBytes(input: string | Uint8Array): Uint8Array {
-  if (typeof input !== 'string') return input;
-  const bytes = new Uint8Array(input.length);
-  for (let i = 0; i < input.length; i++) bytes[i] = input.charCodeAt(i) & 0xFF;
-  return bytes;
+function toBytes(input: string | Uint8Array | ArrayBuffer | ArrayBufferView): Uint8Array {
+  if (typeof input === 'string') {
+    const bytes = new Uint8Array(input.length);
+    for (let i = 0; i < input.length; i++) bytes[i] = input.charCodeAt(i) & 0xFF;
+    return bytes;
+  }
+  if (input instanceof Uint8Array) return input;
+  if (ArrayBuffer.isView(input)) return new Uint8Array(input.buffer, input.byteOffset, input.byteLength);
+  return new Uint8Array(input);
 }
 
-export function detect(buffer: string | Uint8Array, options: IOptionsMap = {}): IDetectedMap {
+export function detect(buffer: string | Uint8Array | ArrayBuffer | ArrayBufferView, options: IOptionsMap = {}): IDetectedMap {
   const bytes = toBytes(buffer);
   const chardetOptions = {
     includeEncodings: options.detectEncodings ?? null,
@@ -43,7 +47,7 @@ export function detect(buffer: string | Uint8Array, options: IOptionsMap = {}): 
   return chardet.detect(bytes, chardetOptions);
 }
 
-export function detectAll(buffer: string | Uint8Array, options: IOptionsMap = {}): IDetectedMap[] {
+export function detectAll(buffer: string | Uint8Array | ArrayBuffer | ArrayBufferView, options: IOptionsMap = {}): IDetectedMap[] {
   const bytes = toBytes(buffer);
   const chardetOptions = {
     includeEncodings: options.detectEncodings ?? null,
