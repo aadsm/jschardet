@@ -95,8 +95,8 @@ export interface IOptionsMap {
 	excludeEncodings?: Array<string>;
 }
 export declare function enableDebug(): void;
-declare function detect$1(buffer: string | Uint8Array, options?: IOptionsMap): IDetectedMap;
-declare function detectAll$1(buffer: string | Uint8Array, options?: IOptionsMap): IDetectedMap[];
+declare function detect$1(buffer: string | Uint8Array | ArrayBuffer | ArrayBufferView, options?: IOptionsMap): IDetectedMap;
+declare function detectAll$1(buffer: string | Uint8Array | ArrayBuffer | ArrayBufferView, options?: IOptionsMap): IDetectedMap[];
 declare const _default: {
 	detect: typeof detect$1;
 	detectAll: typeof detectAll$1;

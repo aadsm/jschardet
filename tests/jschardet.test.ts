@@ -228,6 +228,41 @@ describe('Bug regressions', () => {
   });
 });
 
+// Browser callers hold file data as an ArrayBuffer (fetch, File.arrayBuffer,
+// FileReader.readAsArrayBuffer); ArrayBuffer and any ArrayBufferView are
+// accepted directly, without a manual Uint8Array wrap.
+describe('input types', () => {
+  const expected = detect(shiftJisJaJp);
+
+  test('ArrayBuffer', () => {
+    const arrayBuffer = shiftJisJaJp.slice().buffer;
+    expect(detect(arrayBuffer)).toEqual(expected);
+  });
+
+  test('DataView', () => {
+    expect(detect(new DataView(shiftJisJaJp.slice().buffer))).toEqual(expected);
+  });
+
+  test('DataView with non-zero byteOffset into a larger buffer', () => {
+    const padded = new Uint8Array(shiftJisJaJp.length + 7);
+    padded.fill(0xff);
+    padded.set(shiftJisJaJp, 3);
+    const view = new DataView(padded.buffer, 3, shiftJisJaJp.length);
+    expect(detect(view)).toEqual(expected);
+  });
+
+  test('non-Uint8Array typed array reinterprets raw bytes', () => {
+    const evenLength = shiftJisJaJp.length & ~1;
+    const bytes = shiftJisJaJp.slice(0, evenLength);
+    const uint16 = new Uint16Array(bytes.buffer, 0, evenLength / 2);
+    expect(detect(uint16)).toEqual(detect(bytes));
+  });
+
+  test('detectAll accepts an ArrayBuffer', () => {
+    expect(detectAll(shiftJisJaJp.slice().buffer)).toEqual(detectAll(shiftJisJaJp));
+  });
+});
+
 // enableDebug flips a module-level flag that's never reset, so this block
 // must run last in the file. The 'before' test must precede the 'after' test
 // so the default-off case is observed before enableDebug() is called.

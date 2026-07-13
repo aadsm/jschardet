@@ -108,7 +108,7 @@ for (const r of results.slice(0, 4)) {
 
 ### `detect(buffer, options?)`
 
-Accepts a `string` or `Uint8Array` (Node `Buffer` works too). Returns the best match as an object:
+Accepts a `string`, `Uint8Array`, `ArrayBuffer`, or any `ArrayBufferView` (Node `Buffer` and `DataView` work too). Returns the best match as an object:
 
 | Field | Type | Description |
 |-------|------|-------------|
