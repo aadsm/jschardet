@@ -10,6 +10,7 @@ import windows1250Ro from './fixtures/windows-1250-ro.srt?uint8array';
 import shiftJisCp932Rare from './fixtures/Shift_JIS-cp932-rare.txt?uint8array';
 import shiftJisParticleSakura from './fixtures/Shift_JIS-particle_sakura.txt?uint8array';
 import gb2312Untitled from './fixtures/gb2312-untitled.txt?uint8array';
+import gb2312BaiduRss from './fixtures/gb2312-baidu-rss.xml.txt?uint8array';
 import euckrKo from './fixtures/euc-kr-ko.txt?uint8array';
 import gb18030UserdbPanda from './fixtures/gb18030-userdb_panda.yar.txt?uint8array';
 import iso88591Pt from './fixtures/iso-8859-1-pt.txt?uint8array';
@@ -51,6 +52,18 @@ describe('Bug regressions', () => {
     const result = detect(charsetTestFile, { detectEncodings: ['UTF-8', 'windows-1252'] });
     expect(result.encoding).toBe('Windows-1252');
     expect(result.confidence).toBeGreaterThan(0);
+  });
+
+  // issue #13 (2015): a GB2312-encoded Baidu News RSS feed returned
+  // { encoding: null, confidence: 0 }. The fixture is the Wayback Machine's
+  // capture of the reporter's URL. The <?xml encoding="gb2312"?> declaration
+  // is read and the GB family superset GB18030 is reported.
+  test('GB2312 Baidu RSS feed detects as GB18030 (issue #13)', () => {
+    const result = detect(gb2312BaiduRss);
+    expect(result.encoding).toBe('GB18030');
+    expect(result.language).toBe('zh');
+    expect(result.confidence).toBe(0.95);
+    expect(result.mimeType).toBe('text/xml');
   });
 
   // issue #18 — Romanian cp1250 was misdetected as Windows-1252. With the

@@ -1,0 +1,329 @@
+<?xml version="1.0" encoding="gb2312"?>
+<rss version="2.0">
+<channel>
+<title>百度国内焦点新闻</title>
+        <image>
+        <title>news.baidu.com</title>
+        <link>http://news.baidu.com</link>
+        <url>http://img.baidu.com/img/logo-news.gif</url>
+        </image>
+<description></description>
+<link>http://news.baidu.com</link>
+<language>zh-cn</language>
+<docs></docs>
+<generator>www.baidu.com</generator>
+<ttl>5</ttl>
+<item>
+        <title><![CDATA[题：西湖成功申遗 中国文化景观保护增添新责任]]></title>
+        <link><![CDATA[http://news.cqnews.net/html/2011-06/25/content_6935091.htm]]></link>
+        <pubDate><![CDATA[2011-06-24T21:33:14.000Z]]></pubDate>
+        <source><![CDATA[华龙网]]></source>
+        <author><![CDATA[华龙网]]></author>
+        <description><![CDATA[
+																记者 张遥 方益波 段菁菁   ２４日在巴黎举行的世界遗产委员会第３５次大会传来消息，“中国杭州西湖文化景观”申遗成功。   西湖是目前中国列入《世界遗产名录》的世界遗产中唯一一处湖泊类文化遗产，也是现今《世界遗产名录》中少数几个湖泊类文化遗产之一。与这些湖泊类文化遗产相比，西湖文化景观...<br />
+                        								 <a href="http://news.xinmin.cn/rollnews/2011/06/25/11219597.html" target="_blank" style="font-size:13px">西湖申遗，可谓“十年磨一剑”</a><nobr><span style="padding-left:10px;font-size:12px;color:#666666">新民网</font></nobr><br>
+								                        								 <a href="http://news.xinmin.cn/rollnews/2011/06/25/11219594.html" target="_blank" style="font-size:13px">继续免费，让西湖成为世界的公园</a><nobr><span style="padding-left:10px;font-size:12px;color:#666666">新民网</font></nobr><br>
+								                        								 - <a href="http://news.xinmin.cn/rollnews/2011/06/25/11219591.html" target="_blank"><font color="#008000">新民网</font></a> 
+								                        								 - <a href="http://news.xinmin.cn/rollnews/2011/06/25/11219572.html" target="_blank"><font color="#008000">新民网</font></a> 
+								                        								 - <a href="http://news.xinmin.cn/rollnews/2011/06/25/11219606.html" target="_blank"><font color="#008000">新民网</font></a> 
+								                        								 - <a href="http://www.cqcb.com/cbnews/instant/2011-06-25/1427542.html" target="_blank"><font color="#008000">重庆晨报</font></a> 
+								                        					 - <a href="/n?cmd=2&page=http%3A%2F%2Fnews.cqnews.net%2Fhtml%2F2011-06%2F25%2Fcontent_6935091.htm&pn=1&clk=crel&cls=civilnews&where=focuspage&class=civilnews"><font color="#008000">742条相关&gt;&gt;</font></a><br>]]></description>
+</item>
+<item>
+        <title><![CDATA[孙金栋：明代排水设施，使地上地下皆“首堵”]]></title>
+        <link><![CDATA[http://opinion.people.com.cn/h/2011/0624/c159301-2460624161.html]]></link>
+        <pubDate><![CDATA[2011-06-24T21:33:14.000Z]]></pubDate>
+        <source><![CDATA[人民网]]></source>
+        <author><![CDATA[人民网]]></author>
+        <description><![CDATA[
+								<a target="_blank" href="http://opinion.people.com.cn/h/2011/0624/c159301-2460624161.html"><img border="0" src="http://t1.baidu.com/it/u=http%3A%2F%2Fwww.people.com.cn%2Fh%2Fpic%2F20110624%2F24%2F13424040016274043316.jpg&fm=30"></a><br>
+																图为：故宫积水严重  北京机动车地上“首堵”引入深思，一场罕见暴雨又造成地下“首堵”。此次暴雨造成多点严重积水情况，北京市防汛办称，由于地势影响导致大部分积水位于京城西部。现在北京中心城区的排水管网最早还有明代的设施，排水设施落后于城市发展。目前有关部门正在研究提高排水标准。（6月24日...<br />
+                        								 <a href="http://news.ifeng.com/gundong/detail_2011_06/25/7244796_0.shtml" target="_blank" style="font-size:13px">明代的排水设施千万别拆</a><nobr><span style="padding-left:10px;font-size:12px;color:#666666">凤凰网</font></nobr><br>
+								                        								 <a href="http://news.xinmin.cn/rollnews/2011/06/25/11219416.html" target="_blank" style="font-size:13px">多座城市大面积积水暴露建设管理漏洞</a><nobr><span style="padding-left:10px;font-size:12px;color:#666666">新民网</font></nobr><br>
+								                        								 - <a href="http://hlj.rednet.cn/c/2011/06/25/2296000.htm" target="_blank"><font color="#008000">红网</font></a> 
+								                        								 - <a href="http://news.xinmin.cn/domestic/gnkb/2011/06/25/11219245.html" target="_blank"><font color="#008000">新民网</font></a> 
+								                        								 - <a href="http://www.people.com.cn/h/2011/0625/c25408-3141801096.html" target="_blank"><font color="#008000">人民网</font></a> 
+								                        								 - <a href="http://www.chinadaily.com.cn/micro-reading/dzh/2011-06-25/content_3002047.html" target="_blank"><font color="#008000">中国日报</font></a> 
+								                        					 - <a href="/n?cmd=2&page=http%3A%2F%2Fopinion.people.com.cn%2Fh%2F2011%2F0624%2Fc159301-2460624161.html&pn=1&clk=crel&cls=civilnews&where=focuspage&class=civilnews"><font color="#008000">1172条相关&gt;&gt;</font></a><br>]]></description>
+</item>
+<item>
+        <title><![CDATA[推进财产申报制度不能坐等条件成熟]]></title>
+        <link><![CDATA[http://opinion.people.com.cn/h/2011/0624/c159301-2882046809.html]]></link>
+        <pubDate><![CDATA[2011-06-24T21:33:14.000Z]]></pubDate>
+        <source><![CDATA[人民网]]></source>
+        <author><![CDATA[人民网]]></author>
+        <description><![CDATA[
+																官员财产申报制度被称为终极反腐利器，民众对此一直充满期待。部分地区也出台了官员财产报告制度。但是离反腐倡廉的要求仍有较大差距。《关于领导干部报告个人有关事项的规定》把房产、股票、期货、基金等投资项目，子女移居国(境)外等信息纳入报告范围，跳出了只要求新任、拟任官员公布财产等个人事项的传统...<br />
+                        								 <a href="http://opinion.people.com.cn/h/2011/0624/c159301-3534447132.html" target="_blank" style="font-size:13px">官员财产公示是实现公众监督第一步</a><nobr><span style="padding-left:10px;font-size:12px;color:#666666">人民网</font></nobr><br>
+								                        								 <a href="http://www.people.com.cn/h/2011/0624/c25408-2183253157.html" target="_blank" style="font-size:13px">学者详解腐败七大新特征 吁尽快实施财产申报制度</a><nobr><span style="padding-left:10px;font-size:12px;color:#666666">人民网</font></nobr><br>
+								                        								 - <a href="http://politics.people.com.cn/GB/30178/14991430.html" target="_blank"><font color="#008000">人民网</font></a> 
+								                        								 - <a href="http://news.xinmin.cn/rollnews/2011/06/24/11214659.html" target="_blank"><font color="#008000">新民网</font></a> 
+								                        								 - <a href="http://news.ifeng.com/opinion/gundong/detail_2011_06/24/7230709_0.shtml" target="_blank"><font color="#008000">凤凰网</font></a> 
+								                        								 - <a href="http://www.people.com.cn/h/2011/0624/c25408-797121745.html" target="_blank"><font color="#008000">人民网</font></a> 
+								                        					 - <a href="/n?cmd=2&page=http%3A%2F%2Fopinion.people.com.cn%2Fh%2F2011%2F0624%2Fc159301-2882046809.html&pn=1&clk=crel&cls=civilnews&where=focuspage&class=civilnews"><font color="#008000">950条相关&gt;&gt;</font></a><br>]]></description>
+</item>
+<item>
+        <title><![CDATA[北京拟推预算绩效问责制 “三公”经费将公开]]></title>
+        <link><![CDATA[http://www.chinanews.com.cn/gn/2011/06-25/3136423.shtml]]></link>
+        <pubDate><![CDATA[2011-06-24T21:33:14.000Z]]></pubDate>
+        <source><![CDATA[中国新闻网]]></source>
+        <author><![CDATA[中国新闻网]]></author>
+        <description><![CDATA[
+																近年来，政府部门资金浪费严重、资金使用不透明、决策失误率高居不下等问题备受诟病。对此，市人大常委会联合市政府于昨天召开北京市加强人大预算监督工作推进预算绩效管理制度建设研讨会，今后本市将推行预算绩效管理问责制，政府部门乱花钱，相关责任人员可能面临撤职处分。今年本市党政机关的行政经费和“三...<br />
+                        								 <a href="http://www.chinanews.com.cn/gn/2011/06-25/3136423.shtml" target="_blank" style="font-size:13px">北京拟推预算绩效问责制 “三公”经费将公开</a><nobr><span style="padding-left:10px;font-size:12px;color:#666666">中国新闻网</font></nobr><br>
+								                        								 <a href="http://finance.ifeng.com/roll/20110625/4192546.shtml" target="_blank" style="font-size:13px">本市拟推预算绩效管理问责制“三公”经费将向社..</a><nobr><span style="padding-left:10px;font-size:12px;color:#666666">凤凰网</font></nobr><br>
+								                        								 - <a href="http://www.morningpost.com.cn/yaowen/2011-06-25/196730.shtml" target="_blank"><font color="#008000">北京晨报</font></a> 
+								                        					 - <a href="/n?cmd=2&page=http%3A%2F%2Fwww.chinanews.com.cn%2Fgn%2F2011%2F06-25%2F3136423.shtml&pn=1&clk=crel&cls=civilnews&where=focuspage&class=civilnews"><font color="#008000">55条相关&gt;&gt;</font></a><br>]]></description>
+</item>
+<item>
+        <title><![CDATA[[直击京沪高铁]南京南站静待“迎客” 管内列车将调]]></title>
+        <link><![CDATA[http://www.people.com.cn/h/2011/0624/c25408-1-3357344954.html]]></link>
+        <pubDate><![CDATA[2011-06-24T21:33:14.000Z]]></pubDate>
+        <source><![CDATA[人民网]]></source>
+        <author><![CDATA[人民网]]></author>
+        <description><![CDATA[
+								<a target="_blank" href="http://www.people.com.cn/h/2011/0624/c25408-1-3357344954.html"><img border="0" src="http://t1.baidu.com/it/u=http%3A%2F%2Fwww.people.com.cn%2Fh%2Fpic%2F20110624%2F89%2F4276055888483898613.jpg&fm=30"></a><br>
+																这是京沪高铁CRH380A动车组的观光座（6月16日摄）。铁路部门18日发布的信息显示，《京沪高铁VIP旅客服务标准(试行)》已经制定完成。在候车和乘坐列车时，VIP旅客都将享受到免费餐饮服务。京沪高铁“G”字头列车商务座、观光座和一等座旅客享受VIP服务。新华社记者陈飞摄  中广网南京...<br />
+                        								 <a href="http://nj.focus.cn/news/2011-06-25/1356437.html" target="_blank" style="font-size:13px">京沪高铁首发票两小时抢光 </a><nobr><span style="padding-left:10px;font-size:12px;color:#666666">焦点房地产</font></nobr><br>
+								                        								 <a href="http://www.chinadaily.com.cn/dfpd/anhui/2011-06-25/content_3002150.html" target="_blank" style="font-size:13px">京沪首发列车票三小时告罄</a><nobr><span style="padding-left:10px;font-size:12px;color:#666666">中国日报</font></nobr><br>
+								                        								 - <a href="http://www.dfdaily.com/html/3/2011/6/25/622327.shtml" target="_blank"><font color="#008000">东方早报</font></a> 
+								                        								 - <a href="http://www.chinadaily.com.cn/micro-reading/dzh/2011-06-25/content_3002058.html" target="_blank"><font color="#008000">中国日报</font></a> 
+								                        								 - <a href="http://www.chinadaily.com.cn/dfpd/anhui/2011-06-25/content_3001994.html" target="_blank"><font color="#008000">中国日报</font></a> 
+								                        								 - <a href="http://news.sohu.com/20110625/n311610625.shtml" target="_blank"><font color="#008000">搜狐</font></a> 
+								                        					 - <a href="/n?cmd=2&page=http%3A%2F%2Fwww.people.com.cn%2Fh%2F2011%2F0624%2Fc25408-1-3357344954.html&pn=1&clk=crel&cls=civilnews&where=focuspage&class=civilnews"><font color="#008000">3773条相关&gt;&gt;</font></a><br>]]></description>
+</item>
+<item>
+        <title><![CDATA[执著追求60余年 78岁老人终入党(图)]]></title>
+        <link><![CDATA[http://news.xinmin.cn/rollnews/2011/06/25/11219192.html]]></link>
+        <pubDate><![CDATA[2011-06-24T21:33:14.000Z]]></pubDate>
+        <source><![CDATA[新民网]]></source>
+        <author><![CDATA[新民网]]></author>
+        <description><![CDATA[
+								<a target="_blank" href="http://news.xinmin.cn/rollnews/2011/06/25/11219192.html"><img border="0" src="http://t1.baidu.com/it/u=http%3A%2F%2Fimage.xinmin.cn%2F2011%2F06%2F25%2F20110625035255398162.jpg&fm=30"></a><br>
+																图为纪连达老人面对党旗庄严宣誓。见习记者 雷伟东 文/图          昨日，一场特别的入党仪式在中铁社区举行，说它特别是因为只有1名党员庄严宣誓，而这名新党员是一位饱经沧桑的78岁老人。   “我是中国共产党党员啦！从今以后，我说话做事，都要以共产党员的标准来要求自己。”“纪老，您...<br />
+                        								 <a href="http://www.dfdaily.com/html/21/2011/6/25/622335.shtml" target="_blank" style="font-size:13px">中组部：截至去年底有8026.9万名党员 </a><nobr><span style="padding-left:10px;font-size:12px;color:#666666">东方早报</font></nobr><br>
+								                        								 <a href="http://news.xinmin.cn/rollnews/2011/06/25/11219192.html" target="_blank" style="font-size:13px">执著追求60余年 78岁老人终入党(图)</a><nobr><span style="padding-left:10px;font-size:12px;color:#666666">新民网</font></nobr><br>
+								                        								 - <a href="http://hb.qq.com/a/20110625/000071.htm" target="_blank"><font color="#008000">腾讯大楚网</font></a> 
+								                        								 - <a href="http://news.ifeng.com/mainland/special/jiandang90nian/content-2/detail_2011_06/25/7243425_0.shtml" target="_blank"><font color="#008000">凤凰网</font></a> 
+								                        								 - <a href="http://news.xinmin.cn/rollnews/2011/06/25/11219036.html" target="_blank"><font color="#008000">新民网</font></a> 
+								                        								 - <a href="http://news.xinmin.cn/rollnews/2011/06/25/11218868.html" target="_blank"><font color="#008000">新民网</font></a> 
+								                        					 - <a href="/n?cmd=2&page=http%3A%2F%2Fnews.xinmin.cn%2Frollnews%2F2011%2F06%2F25%2F11219192.html&pn=1&clk=crel&cls=civilnews&where=focuspage&class=civilnews"><font color="#008000">709条相关&gt;&gt;</font></a><br>]]></description>
+</item>
+<item>
+        <title><![CDATA[山西副县长因亲属伤人被取消副县长候选人提名 ]]></title>
+        <link><![CDATA[http://www.chinanews.com/gn/2011/06-24/3136323.shtml]]></link>
+        <pubDate><![CDATA[2011-06-24T21:33:14.000Z]]></pubDate>
+        <source><![CDATA[中国新闻网]]></source>
+        <author><![CDATA[中国新闻网]]></author>
+        <description><![CDATA[
+																(记者 张恩) “山西永和县副县长冯双贵4名亲属夜闯民宅，大打出手，将人捅成重伤”的帖子近日在网上流传，国内百余家网站相继发布此消息。24日山西临汾市传来消息称，此事件披露后，临汾市委立即成立调查组，开展认真调查。目前其结论为：永和县副县长冯双贵亲属闯民宅殴人<br />
+                        								 <a href="http://news.xinmin.cn/rollnews/2011/06/25/11219612.html" target="_blank" style="font-size:13px">冯双贵被取消副县长候选人资格</a><nobr><span style="padding-left:10px;font-size:12px;color:#666666">新民网</font></nobr><br>
+								                        								 <a href="http://news.ifeng.com/gundong/detail_2011_06/25/7244808_0.shtml" target="_blank" style="font-size:13px">山西永和副县长冯双贵</a><nobr><span style="padding-left:10px;font-size:12px;color:#666666">凤凰网</font></nobr><br>
+								                        								 - <a href="http://www.chinadaily.com.cn/micro-reading/dzh/2011-06-25/content_3002073.html" target="_blank"><font color="#008000">中国日报</font></a> 
+								                        								 - <a href="http://www.chinadaily.com.cn/micro-reading/dzh/2011-06-25/content_3001984.html" target="_blank"><font color="#008000">中国日报</font></a> 
+								                        								 - <a href="http://roll.sohu.com/20110625/n311608452.shtml" target="_blank"><font color="#008000">搜狐</font></a> 
+								                        								 - <a href="http://www.chinanews.com/gn/2011/06-24/3136323.shtml" target="_blank"><font color="#008000">中国新闻网</font></a> 
+								                        					 - <a href="/n?cmd=2&page=http%3A%2F%2Fwww.chinanews.com%2Fgn%2F2011%2F06-24%2F3136323.shtml&pn=1&clk=crel&cls=civilnews&where=focuspage&class=civilnews"><font color="#008000">608条相关&gt;&gt;</font></a><br>]]></description>
+</item>
+<item>
+        <title><![CDATA[中美首次亚太事务磋商今举行 中方期望妥处分歧]]></title>
+        <link><![CDATA[http://www.chinanews.com.cn/gn/2011/06-25/3136436.shtml]]></link>
+        <pubDate><![CDATA[2011-06-24T21:33:14.000Z]]></pubDate>
+        <source><![CDATA[中国新闻网]]></source>
+        <author><![CDATA[中国新闻网]]></author>
+        <description><![CDATA[
+																中美双方定于今天(25日)在美国夏威夷檀香山举行首次亚太事务磋商，由中国外交部副部长崔天凯和美国助理国务卿坎贝尔共同主持。   中国外交部发言人洪磊6月23日在例行记者会上宣布，为落实胡锦涛主席今年1月访美成果，以及在第三轮中美战略与经济对话中达成的共识，中美双方商定<br />
+                        								 <a href="http://www.chinanews.com.cn/gn/2011/06-25/3136436.shtml" target="_blank" style="font-size:13px">中美首次亚太事务磋商今举行 中方期望妥处分歧</a><nobr><span style="padding-left:10px;font-size:12px;color:#666666">中国新闻网</font></nobr><br>
+								                        								 <a href="http://mil.qianlong.com/37076/2011/06/24/2500@7112031.htm" target="_blank" style="font-size:13px">专家：中美若亚太碰撞 整个地区将翻江倒海</a><nobr><span style="padding-left:10px;font-size:12px;color:#666666">千龙</font></nobr><br>
+								                        								 - <a href="http://gb.cri.cn/27824/2011/06/23/5190s3286525.htm" target="_blank"><font color="#008000">国际在线</font></a> 
+								                        								 - <a href="http://hkstock.cnfol.com/110623/132,1358,10126320,00.shtml" target="_blank"><font color="#008000">中金在线</font></a> 
+								                        								 - <a href="http://news.joy.cn/video/2794332.htm" target="_blank"><font color="#008000">激动网</font></a> 
+								                        								 - <a href="http://world.people.com.cn/GB/14974431.html" target="_blank"><font color="#008000">人民网</font></a> 
+								                        					 - <a href="/n?cmd=2&page=http%3A%2F%2Fwww.chinanews.com.cn%2Fgn%2F2011%2F06-25%2F3136436.shtml&pn=1&clk=crel&cls=civilnews&where=focuspage&class=civilnews"><font color="#008000">453条相关&gt;&gt;</font></a><br>]]></description>
+</item>
+<item>
+        <title><![CDATA[温家宝撰文称，中国价格总水平处于可控状态]]></title>
+        <link><![CDATA[http://www.people.com.cn/h/2011/0624/c25408-767376988.html]]></link>
+        <pubDate><![CDATA[2011-06-24T21:33:14.000Z]]></pubDate>
+        <source><![CDATA[人民网]]></source>
+        <author><![CDATA[人民网]]></author>
+        <description><![CDATA[
+																中国总理温家宝今天在英国《金融时报》上撰文称，目前中国的价格总水平处于可控状态，并将稳步回落。  今年前五个月，中国居民消费价格(CPI)一直在5%上下波动，其中5月CPI同比涨幅达5.5%，创近34个月新高。  温家宝在文章中说，中国已将保持物价总水平基本稳<br />
+                        								 <a href="http://news.xhby.net/system/2011/06/24/011085129.shtml" target="_blank" style="font-size:13px">温家宝为英媒体撰文称中国遏制通胀努力已奏效</a><nobr><span style="padding-left:10px;font-size:12px;color:#666666">新华报业网</font></nobr><br>
+								                        								 <a href="http://www.people.com.cn/h/2011/0624/c25408-767376988.html" target="_blank" style="font-size:13px">温家宝撰文称，中国价格总水平处于可控状态</a><nobr><span style="padding-left:10px;font-size:12px;color:#666666">人民网</font></nobr><br>
+								                        								 - <a href="http://www.chinadaily.com.cn/hqcj/zgjj/2011-06-24/content_2999814.html" target="_blank"><font color="#008000">中国日报</font></a> 
+								                        								 - <a href="http://www.chinadaily.com.cn/micro-reading/dzh/2011-06-24/content_2998027.html" target="_blank"><font color="#008000">中国日报</font></a> 
+								                        								 - <a href="http://finance.sina.com.cn/g/20110624/121810043071.shtml" target="_blank"><font color="#008000">新浪</font></a> 
+								                        								 - <a href="http://finance.sina.com.cn/roll/20110624/120610042724.shtml" target="_blank"><font color="#008000">新浪</font></a> 
+								                        					 - <a href="/n?cmd=2&page=http%3A%2F%2Fwww.people.com.cn%2Fh%2F2011%2F0624%2Fc25408-767376988.html&pn=1&clk=crel&cls=civilnews&where=focuspage&class=civilnews"><font color="#008000">176条相关&gt;&gt;</font></a><br>]]></description>
+</item>
+<item>
+        <title><![CDATA[三峡大坝今年首次开闸泄洪]]></title>
+        <link><![CDATA[http://politics.people.com.cn/GB/14562/14993663.html]]></link>
+        <pubDate><![CDATA[2011-06-24T21:33:14.000Z]]></pubDate>
+        <source><![CDATA[人民网]]></source>
+        <author><![CDATA[人民网]]></author>
+        <description><![CDATA[
+																新华网宜昌６月２４日电（记者刘紫凌 冯国栋）按长江防总调度，２４日１３时许，三峡大坝开启２个泄洪深孔，实施今年入汛以来首次开闸泄洪任务。   据三峡集团介绍，此次开闸泄洪主要目的是调整水库水位。受上游嘉陵江流域和三峡区间强降水影响，长江上游来水近日明显上涨。２３日，三峡入库流量一度突破３...<br />
+                        								 <a href="http://news.xinmin.cn/rollnews/2011/06/25/11219602.html" target="_blank" style="font-size:13px">三峡大坝今年首次开闸泄洪</a><nobr><span style="padding-left:10px;font-size:12px;color:#666666">新民网</font></nobr><br>
+								                        								 <a href="http://www.people.com.cn/h/2011/0625/c25408-2147092804.html" target="_blank" style="font-size:13px">入汛以来最大洪水通过三峡</a><nobr><span style="padding-left:10px;font-size:12px;color:#666666">人民网</font></nobr><br>
+								                        								 - <a href="http://www.bjd.com.cn/jryw/201106/25/t20110625_785504.html" target="_blank"><font color="#008000">京报网</font></a> 
+								                        								 - <a href="http://news.cnxianzai.com/2011/06/338003.html" target="_blank"><font color="#008000">现在网</font></a> 
+								                        								 - <a href="http://www.people.com.cn/h/2011/0625/c25408-1028440854.html" target="_blank"><font color="#008000">人民网</font></a> 
+								                        								 - <a href="http://news.xinhuanet.com/politics/2011-06/24/c_121582192.htm" target="_blank"><font color="#008000">新华网</font></a> 
+								                        					 - <a href="/n?cmd=2&page=http%3A%2F%2Fpolitics.people.com.cn%2FGB%2F14562%2F14993663.html&pn=1&clk=crel&cls=civilnews&where=focuspage&class=civilnews"><font color="#008000">254条相关&gt;&gt;</font></a><br>]]></description>
+</item>
+<item>
+        <title><![CDATA[中国过半省份建立社会救助标准与物价上涨联动机制]]></title>
+        <link><![CDATA[http://www.people.com.cn/h/2011/0624/c25408-3467591361.html]]></link>
+        <pubDate><![CDATA[2011-06-24T21:33:14.000Z]]></pubDate>
+        <source><![CDATA[人民网]]></source>
+        <author><![CDATA[人民网]]></author>
+        <description><![CDATA[
+																(记者 俞岚)中国官方24日表示，在31个省区市中已有18个建立了社会救助和保障标准与物价上涨挂钩的联动机制。在物价总水平持续上涨之际，这将在一定程度上缓解困难民众的生活压力。  去年下半年以来，中国价格总水平一直在高位运行，猪肉价格更是一路飙涨，令民众的“菜篮<br />
+                        								 <a href="http://bjyouth.ynet.com/article.jsp?oid=79484696" target="_blank" style="font-size:13px">北京等18省市 社保与物价联动</a><nobr><span style="padding-left:10px;font-size:12px;color:#666666">北京青年报</font></nobr><br>
+								                        								 <a href="http://www.people.com.cn/h/2011/0625/c25408-3855636242.html" target="_blank" style="font-size:13px">18省区市已建社保与物价联动机制</a><nobr><span style="padding-left:10px;font-size:12px;color:#666666">人民网</font></nobr><br>
+								                        								 - <a href="http://www.people.com.cn/h/2011/0624/c25408-3467591361.html" target="_blank"><font color="#008000">人民网</font></a> 
+								                        								 - <a href="http://news.cnr.cn/gnxw/201106/t20110624_508138707.shtml" target="_blank"><font color="#008000">中国广播网</font></a> 
+								                        								 - <a href="http://www.chinanews.com/cj/2011/06-24/3135146.shtml" target="_blank"><font color="#008000">中国新闻网</font></a> 
+								                        								 - <a href="http://stock.sohu.com/20110624/n311566662.shtml" target="_blank"><font color="#008000">搜狐</font></a> 
+								                        					 - <a href="/n?cmd=2&page=http%3A%2F%2Fwww.people.com.cn%2Fh%2F2011%2F0624%2Fc25408-3467591361.html&pn=1&clk=crel&cls=civilnews&where=focuspage&class=civilnews"><font color="#008000">337条相关&gt;&gt;</font></a><br>]]></description>
+</item>
+<item>
+        <title><![CDATA[西安一演艺广场发生火灾 现场一度火光冲天]]></title>
+        <link><![CDATA[http://news.xinmin.cn/rollnews/2011/06/25/11219249.html]]></link>
+        <pubDate><![CDATA[2011-06-24T21:33:14.000Z]]></pubDate>
+        <source><![CDATA[新民网]]></source>
+        <author><![CDATA[新民网]]></author>
+        <description><![CDATA[
+								<a target="_blank" href="http://news.xinmin.cn/rollnews/2011/06/25/11219249.html"><img border="0" src="http://t1.baidu.com/it/u=http%3A%2F%2Fimage.xinmin.cn%2F2011%2F06%2F25%2F20110625042147027066.jpg&fm=30"></a><br>
+																火灾现场浓烟滚滚。记者 刘珂 摄   ■ 大火从20时许燃起 火势波及四周楼群   ■ 所幸起火时演艺广场内部没有观众入场   ■ 截至记者发稿时消防人员仍在全力扑救   本报讯 昨晚8时许，位于西一路的金翅鸟演艺广场突发大火。当火情被初步控制住后，昨晚10时许，其西侧外立面再起明火，火...<br />
+                        								 <a href="http://news.xinmin.cn/rollnews/2011/06/25/11219249.html" target="_blank" style="font-size:13px">西安一演艺广场发生火灾 现场一度火光冲天</a><nobr><span style="padding-left:10px;font-size:12px;color:#666666">新民网</font></nobr><br>
+								                        								 <a href="http://news.xinhuanet.com/society/2011-06/25/c_121582280.htm" target="_blank" style="font-size:13px">西安一演艺广场发生火灾</a><nobr><span style="padding-left:10px;font-size:12px;color:#666666">新华网</font></nobr><br>
+								                        								 - <a href="http://news.hsw.cn/system/2011/06/25/051009035.shtml" target="_blank"><font color="#008000">华商网</font></a> 
+								                        								 - <a href="http://news.hsw.cn/system/2011/06/25/051009015.shtml" target="_blank"><font color="#008000">华商网</font></a> 
+								                        								 - <a href="http://news.xinhuanet.com/society/2011-06/25/c_121582256.htm" target="_blank"><font color="#008000">新华网</font></a> 
+								                        					 - <a href="/n?cmd=2&page=http%3A%2F%2Fnews.xinmin.cn%2Frollnews%2F2011%2F06%2F25%2F11219249.html&pn=1&clk=crel&cls=civilnews&where=focuspage&class=civilnews"><font color="#008000">52条相关&gt;&gt;</font></a><br>]]></description>
+</item>
+<item>
+        <title><![CDATA[中国劳工要求三菱提供谢罪赔偿每人10万元人民币]]></title>
+        <link><![CDATA[http://www.chinanews.com.cn/fz/2011/06-25/3136426.shtml]]></link>
+        <pubDate><![CDATA[2011-06-24T21:33:14.000Z]]></pubDate>
+        <source><![CDATA[中国新闻网]]></source>
+        <author><![CDATA[中国新闻网]]></author>
+        <description><![CDATA[
+																昨天，中国劳工对日诉讼律师康健介绍，二战中国劳工联合会三菱劳工分会劳工幸存者已到日本，就日本政府及三菱公司二战时强掳、奴役劳工之事，与三菱综合材料株式会社进行法庭外的交涉，要求对方向当年被其强掳、奴役的3512名中国劳工谢罪谢罪，并以设立基金的方式向每位劳工支付10万元人民币，作为一次性...<br />
+                        								 <a href="http://www.chinanews.com.cn/fz/2011/06-25/3136426.shtml" target="_blank" style="font-size:13px">中国劳工要求三菱提供谢罪赔偿每人10万元人民币</a><nobr><span style="padding-left:10px;font-size:12px;color:#666666">中国新闻网</font></nobr><br>
+								                        					 - <a href="/n?cmd=2&page=http%3A%2F%2Fwww.chinanews.com.cn%2Ffz%2F2011%2F06-25%2F3136426.shtml&pn=1&clk=crel&cls=civilnews&where=focuspage&class=civilnews"><font color="#008000">25条相关&gt;&gt;</font></a><br>]]></description>
+</item>
+<item>
+        <title><![CDATA[检察官透露受贿案八成涉亲属 多为群体型犯罪]]></title>
+        <link><![CDATA[http://politics.people.com.cn/GB/1026/14994231.html]]></link>
+        <pubDate><![CDATA[2011-06-24T21:33:14.000Z]]></pubDate>
+        <source><![CDATA[人民网]]></source>
+        <author><![CDATA[人民网]]></author>
+        <description><![CDATA[
+																（记者于杰）昨天，北京市检一分院公诉二处副处长李辰做客正义网时表示，根据正义网所公布的贪官档案里的数据，亲属共同受贿的比例已经达到了81%。。   李辰说，现在行贿受贿的手段越来越隐蔽，据统计，有60%的贿赂以“红包”、感谢费、过节费等名目出现。   李辰介绍，因政府职能转变，政府工作人<br />
+                        								 <a href="http://politics.people.com.cn/GB/1026/14994231.html" target="_blank" style="font-size:13px">检察官透露受贿案八成涉亲属 多为群体型犯罪</a><nobr><span style="padding-left:10px;font-size:12px;color:#666666">人民网</font></nobr><br>
+								                        								 <a href="http://news.cqnews.net/html/2011-06/25/content_6935712.htm" target="_blank" style="font-size:13px">检察官透露受贿案八成涉亲属 多为群体型犯罪</a><nobr><span style="padding-left:10px;font-size:12px;color:#666666">华龙网</font></nobr><br>
+								                        								 - <a href="http://live.jcrb.com/html/2011/547.htm" target="_blank"><font color="#008000">正义网</font></a> 
+								                        								 - <a href="http://live.jcrb.com/forenotice.aspx?id=547" target="_blank"><font color="#008000">正义网</font></a> 
+								                        					 - <a href="/n?cmd=2&page=http%3A%2F%2Fpolitics.people.com.cn%2FGB%2F1026%2F14994231.html&pn=1&clk=crel&cls=civilnews&where=focuspage&class=civilnews"><font color="#008000">26条相关&gt;&gt;</font></a><br>]]></description>
+</item>
+<item>
+        <title><![CDATA[中国聚焦：连续强降雨考验中国大城市]]></title>
+        <link><![CDATA[http://news.xinhuanet.com/politics/2011-06/24/c_121581923.htm]]></link>
+        <pubDate><![CDATA[2011-06-24T21:33:14.000Z]]></pubDate>
+        <source><![CDATA[新华网]]></source>
+        <author><![CDATA[新华网]]></author>
+        <description><![CDATA[
+																北京６月２４日电（记者卢国强 李志勇）“我能想到最浪漫的事，就是在北京和你一起看海。”中国网民用改编的流行歌曲，形容６月２３日北京暴雨后的场景。   “北京市大部分地区以大雨为主，其中中心城区部分地区、海淀大部、丰台大部、石景山大部出现暴雨级别的降水。”北京市气象台总工程师孙继松２３日说<br />
+                        								 <a href="http://roll.sohu.com/20110625/n311614933.shtml" target="_blank" style="font-size:13px">今天浙江大部分地区大到暴雨</a><nobr><span style="padding-left:10px;font-size:12px;color:#666666">搜狐</font></nobr><br>
+								                        								 <a href="http://www.chinadaily.com.cn/micro-reading/dzh/2011-06-25/content_3002048.html" target="_blank" style="font-size:13px">市内河湖全部换成干净雨水</a><nobr><span style="padding-left:10px;font-size:12px;color:#666666">中国日报</font></nobr><br>
+								                        								 - <a href="http://news.hf365.com/system/2011/06/25/010933966.shtml" target="_blank"><font color="#008000">合肥在线</font></a> 
+								                        								 - <a href="http://news.hexun.com/2011-06-25/130878495.html" target="_blank"><font color="#008000">和讯网</font></a> 
+								                        								 - <a href="http://www.chinadaily.com.cn/micro-reading/dzh/2011-06-25/content_3001689.html" target="_blank"><font color="#008000">中国日报</font></a> 
+								                        								 - <a href="http://news.xinhuanet.com/video/2011-06/24/c_121581920.htm" target="_blank"><font color="#008000">新华网</font></a> 
+								                        					 - <a href="/n?cmd=2&page=http%3A%2F%2Fnews.xinhuanet.com%2Fpolitics%2F2011-06%2F24%2Fc_121581923.htm&pn=1&clk=crel&cls=civilnews&where=focuspage&class=civilnews"><font color="#008000">2377条相关&gt;&gt;</font></a><br>]]></description>
+</item>
+<item>
+        <title><![CDATA[沪"11.15"特大火灾案的26名犯罪嫌疑人被提起公诉]]></title>
+        <link><![CDATA[http://society.people.com.cn/GB/14994126.html]]></link>
+        <pubDate><![CDATA[2011-06-24T21:33:14.000Z]]></pubDate>
+        <source><![CDATA[人民网]]></source>
+        <author><![CDATA[人民网]]></author>
+        <description><![CDATA[
+																上海6月24日电 (记者 包蹇)上海市静安区胶州路728号公寓大楼“11.15”特大火灾事故发生后，国务院调查组经认真细致的调查，决定将对此次事故负有主要责任的静安区建设和交通委员会主任高伟忠、副主任姚亚明、上海佳艺建筑装饰工程公司法定代表人、经理黄佩信及静安区建设总公司法定代表人、总经...<br />
+                        								 <a href="http://policy.caing.com/2011-06-24/100272945.html" target="_blank" style="font-size:13px">上海大火案26名嫌疑人被提起公诉</a><nobr><span style="padding-left:10px;font-size:12px;color:#666666">财新网</font></nobr><br>
+								                        								 <a href="http://society.people.com.cn/GB/14994126.html" target="_blank" style="font-size:13px">沪"11.15"特大火灾案的26名犯罪嫌疑人被提起公诉</a><nobr><span style="padding-left:10px;font-size:12px;color:#666666">人民网</font></nobr><br>
+								                        								 - <a href="http://finance.sina.com.cn/roll/20110623/001410033307.shtml" target="_blank"><font color="#008000">新浪</font></a> 
+								                        								 - <a href="http://www.nbd.com.cn/newshtml/20110622/20110622194230689.html" target="_blank"><font color="#008000">每日经济新闻</font></a> 
+								                        								 - <a href="http://news.xinhuanet.com/politics/2011-06/22/c_121570945.htm" target="_blank"><font color="#008000">新华网</font></a> 
+								                        								 - <a href="http://www.chinanews.com/fz/2011/06-22/3129830.shtml" target="_blank"><font color="#008000">中国新闻网</font></a> 
+								                        					 - <a href="/n?cmd=2&page=http%3A%2F%2Fsociety.people.com.cn%2FGB%2F14994126.html&pn=1&clk=crel&cls=civilnews&where=focuspage&class=civilnews"><font color="#008000">189条相关&gt;&gt;</font></a><br>]]></description>
+</item>
+<item>
+        <title><![CDATA[南京机场高速收费贵？南昌人民笑了！]]></title>
+        <link><![CDATA[http://news.cqnews.net/html/2011-06/25/content_6935355.htm]]></link>
+        <pubDate><![CDATA[2011-06-24T21:33:14.000Z]]></pubDate>
+        <source><![CDATA[华龙网]]></source>
+        <author><![CDATA[华龙网]]></author>
+        <description><![CDATA[
+																新华社发文指出多地机场高速“天价”收费“雁过拔毛”太霸气             新华社6月19日播发“南京机场‘天价高速’每公里均价超标逾50％”的消息后引起了各地网民强烈反响，一些网民纷纷“晒”出了自己身边的机场高速“天价”收费情况。   【网友爆料】   单程29公里，双向收费每次...<br />
+                        								 <a href="http://news.cqnews.net/html/2011-06/25/content_6935355.htm" target="_blank" style="font-size:13px">南京机场高速收费贵？南昌人民笑了！</a><nobr><span style="padding-left:10px;font-size:12px;color:#666666">华龙网</font></nobr><br>
+								                        								 <a href="http://www.people.com.cn/h/2011/0625/c25408-1982056579.html" target="_blank" style="font-size:13px">每公里1.25元，你跑得起吗？</a><nobr><span style="padding-left:10px;font-size:12px;color:#666666">人民网</font></nobr><br>
+								                        								 - <a href="http://www.ce.cn/celt/wyry/201106/24/t20110624_22501932.shtml" target="_blank"><font color="#008000">中国经济网</font></a> 
+								                        								 - <a href="http://opinion.people.com.cn/h/2011/0624/c159301-1995975144.html" target="_blank"><font color="#008000">人民网</font></a> 
+								                        								 - <a href="http://js.xhby.net/system/2011/06/24/011079933.shtml" target="_blank"><font color="#008000">新华报业网</font></a> 
+								                        								 - <a href="http://news.xinhuanet.com/politics/2011-06/24/c_121578264.htm" target="_blank"><font color="#008000">新华网</font></a> 
+								                        					 - <a href="/n?cmd=2&page=http%3A%2F%2Fnews.cqnews.net%2Fhtml%2F2011-06%2F25%2Fcontent_6935355.htm&pn=1&clk=crel&cls=civilnews&where=focuspage&class=civilnews"><font color="#008000">467条相关&gt;&gt;</font></a><br>]]></description>
+</item>
+<item>
+        <title><![CDATA[孟建柱：大运会安保须加强与公众沟通赢得支持]]></title>
+        <link><![CDATA[http://www.chinadaily.com.cn/micro-reading/dzh/2011-06-25/content_3001765.html]]></link>
+        <pubDate><![CDATA[2011-06-24T21:33:14.000Z]]></pubDate>
+        <source><![CDATA[中国日报]]></source>
+        <author><![CDATA[中国日报]]></author>
+        <description><![CDATA[
+								<a target="_blank" href="http://www.chinadaily.com.cn/micro-reading/dzh/2011-06-25/content_3001765.html"><img border="0" src="http://t1.baidu.com/it/u=http%3A%2F%2Fsociety.people.com.cn%2Fmediafile%2F201106%2F25%2FF201106250105351040425221.jpg&fm=30"></a><br>
+																6月23日，国务委员、公安部部长孟建柱在深圳检查指导第26届世界大学生夏季运动会安保工作。图为孟建柱来到深圳湾体育中心实地查看赛事场馆各项工作准备情况。   人民网北京6月25日电 （记者苏楠）国务委员、公安部部长孟建柱6月23日在深圳检查指导第26届世界大学生夏季运动会安保工作时强调，...<br />
+                        								 <a href="http://www.chinadaily.com.cn/micro-reading/dzh/2011-06-25/content_3001765.html" target="_blank" style="font-size:13px">孟建柱：大运会安保须加强与公众沟通赢得支持</a><nobr><span style="padding-left:10px;font-size:12px;color:#666666">中国日报</font></nobr><br>
+								                        								 <a href="http://www.s1979.com/shenzhen/201106/2414863524.shtml" target="_blank" style="font-size:13px">孟建柱在深检查指导大运会安保工作</a><nobr><span style="padding-left:10px;font-size:12px;color:#666666">中国时刻网</font></nobr><br>
+								                        								 - <a href="http://news.xinhuanet.com/politics/2011-06/24/c_121581860.htm" target="_blank"><font color="#008000">新华网</font></a> 
+								                        					 - <a href="/n?cmd=2&page=http%3A%2F%2Fwww.chinadaily.com.cn%2Fmicro-reading%2Fdzh%2F2011-06-25%2Fcontent_3001765.html&pn=1&clk=crel&cls=civilnews&where=focuspage&class=civilnews"><font color="#008000">66条相关&gt;&gt;</font></a><br>]]></description>
+</item>
+<item>
+        <title><![CDATA[精神病患者收治乱象背后是一场医学和法学的博弈]]></title>
+        <link><![CDATA[http://news.dahe.cn/2011/06-24/100754334.html]]></link>
+        <pubDate><![CDATA[2011-06-24T21:33:14.000Z]]></pubDate>
+        <source><![CDATA[大河网]]></source>
+        <author><![CDATA[大河网]]></author>
+        <description><![CDATA[
+								<a target="_blank" href="http://news.dahe.cn/2011/06-24/100754334.html"><img border="0" src="http://t1.baidu.com/it/u=http%3A%2F%2Fimg.dahe.cn%2F2011%2F06-24%2F100754335.jpg&fm=30"></a><br>
+																□首席记者李红记者郭跃华   由于屡屡发生“被精神病”事件，近年来，精神病人收治程序饱受争议。由于缺乏有效的异议制度以及司法救济途径，一些法律人士在营救“被精神病”者时困难重重。于是，媒体也责无旁贷地加入到营救力量中，让这个问题显得似乎更为突出。   近日，《精神卫生法(草案)》公开征求...<br />
+                        								 <a href="http://news.qq.com/a/20110625/000111_1.htm" target="_blank" style="font-size:13px">精神卫生立法引激辩 围绕“被精神病”现6争议</a><nobr><span style="padding-left:10px;font-size:12px;color:#666666">腾讯网</font></nobr><br>
+								                        								 <a href="http://www.legaldaily.com.cn/index_article/content/2011-06/24/content_2762017.htm?node=5955" target="_blank" style="font-size:13px">公益组织建议精神卫生法应明确收治标准以杜绝“..</a><nobr><span style="padding-left:10px;font-size:12px;color:#666666">法制网</font></nobr><br>
+								                        								 - <a href="http://policy.caing.com/2011-06-24/100272732.html" target="_blank"><font color="#008000">财新网</font></a> 
+								                        								 - <a href="http://news.dahe.cn/2011/06-24/100754334.html" target="_blank"><font color="#008000">大河网</font></a> 
+								                        								 - <a href="http://news.dahe.cn/2011/06-24/100754331.html" target="_blank"><font color="#008000">大河网</font></a> 
+								                        								 - <a href="http://www.legaldaily.com.cn/index_article/content/2011-06/23/content_2759623.htm?node=5955" target="_blank"><font color="#008000">法制网</font></a> 
+								                        					 - <a href="/n?cmd=2&page=http%3A%2F%2Fnews.dahe.cn%2F2011%2F06-24%2F100754334.html&pn=1&clk=crel&cls=civilnews&where=focuspage&class=civilnews"><font color="#008000">66条相关&gt;&gt;</font></a><br>]]></description>
+</item>
+<item>
+        <title><![CDATA[交通部称全面取消公路收费不现实 9月有黑名单]]></title>
+        <link><![CDATA[http://news.enorth.com.cn/system/2011/06/24/006808719.shtml]]></link>
+        <pubDate><![CDATA[2011-06-24T21:33:14.000Z]]></pubDate>
+        <source><![CDATA[北方网]]></source>
+        <author><![CDATA[北方网]]></author>
+        <description><![CDATA[
+																22日，交通运输部召开收费公路专项清理工作新闻通气会，宣布今年9月上旬将对全国公路违规收费自查摸底情况进行通报，并要求在明年5月底之前完成清理整改。这意味着公路违规收费，9月将有黑名单。   各地将严格控制新增收费公路   交通运输部公路局局长李华表示，经国务院同意，在专项清理期间，各地...<br />
+                        								 <a href="http://www.chinadaily.com.cn/micro-reading/dzh/2011-06-25/content_3002187.html" target="_blank" style="font-size:13px">清理公路违规收费需加强监督问责</a><nobr><span style="padding-left:10px;font-size:12px;color:#666666">中国日报</font></nobr><br>
+								                        								 <a href="http://finance.sina.com.cn/roll/20110625/010410045470.shtml" target="_blank" style="font-size:13px">北京机场高速公路暴利调查 </a><nobr><span style="padding-left:10px;font-size:12px;color:#666666">新浪</font></nobr><br>
+								                        								 - <a href="http://finance.ifeng.com/roll/20110625/4192493.shtml" target="_blank"><font color="#008000">凤凰网</font></a> 
+								                        								 - <a href="http://opinion.hexun.com/2011-06-24/130876098.html" target="_blank"><font color="#008000">和讯网</font></a> 
+								                        								 - <a href="http://news.hexun.com/2011-06-24/130875093.html" target="_blank"><font color="#008000">和讯网</font></a> 
+								                        								 - <a href="http://news.hexun.com/2011-06-24/130875656.html" target="_blank"><font color="#008000">和讯网</font></a> 
+								                        					 - <a href="/n?cmd=2&page=http%3A%2F%2Fnews.enorth.com.cn%2Fsystem%2F2011%2F06%2F24%2F006808719.shtml&pn=1&clk=crel&cls=civilnews&where=focuspage&class=civilnews"><font color="#008000">3266条相关&gt;&gt;</font></a><br>]]></description>
+</item>
+</channel>
+</rss>
