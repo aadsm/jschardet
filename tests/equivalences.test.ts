@@ -3,6 +3,7 @@ import {
   isCorrect,
   isLanguageEquivalent,
   _COMPAT_NAMES,
+  PREFERRED_SUPERSET,
 } from '../src/equivalences.js';
 import { isEquivalentDetection } from './utils.js';
 import { DetectionResult } from '../src/pipeline/index.js';
@@ -186,5 +187,28 @@ describe('_COMPAT_NAMES', () => {
     expect(_COMPAT_NAMES['iso8859-1']).toBe('ISO-8859-1');
     expect('ascii' in _COMPAT_NAMES).toBe(false);
     expect('utf-8' in _COMPAT_NAMES).toBe(false);
+  });
+
+  // Regression guard for the seven entries restored upstream in chardet#374.
+  // cp1250/1256/1257, cp874 and iso8859-2/6/13 were absent, so the default
+  // compatNames=true path leaked their internal codec spelling instead of the
+  // 5.x/6.x display name.
+  test('covers the Windows and ISO families', () => {
+    expect(_COMPAT_NAMES['cp1250']).toBe('Windows-1250');
+    expect(_COMPAT_NAMES['cp1256']).toBe('Windows-1256');
+    expect(_COMPAT_NAMES['cp1257']).toBe('Windows-1257');
+    expect(_COMPAT_NAMES['cp874']).toBe('CP874');
+    expect(_COMPAT_NAMES['iso8859-2']).toBe('ISO-8859-2');
+    expect(_COMPAT_NAMES['iso8859-6']).toBe('ISO-8859-6');
+    expect(_COMPAT_NAMES['iso8859-13']).toBe('ISO-8859-13');
+  });
+
+  // Every preferSuperset target must have a _COMPAT_NAMES entry, or the
+  // superset remap leaves a raw codec name on the default path.
+  test('every preferSuperset target has a compat name', () => {
+    const leaked = Object.values(PREFERRED_SUPERSET)
+      .filter(target => !(target in _COMPAT_NAMES))
+      .sort();
+    expect(leaked).toEqual([]);
   });
 });

@@ -3,7 +3,8 @@
 
 Compares records by `id`. Classifies each common id as:
   - exact match
-  - encoding divergence (raw `encoding` differs case-insensitively)
+  - encoding divergence (`encoding` differs case-insensitively, ignoring
+    known naming-only aliases)
   - confidence-only divergence (encoding+language match, |delta| > 0.001)
   - language-only divergence (encoding matches, language differs)
 
@@ -15,6 +16,29 @@ import argparse
 import json
 import sys
 from collections import Counter, defaultdict
+
+
+# Naming-only differences between the port and upstream chardet, keyed by the
+# lowercased upstream codec name. Upstream's _COMPAT_NAMES missed seven display
+# names; fixed in chardet#374 (7.5.0), but the pinned submodule is 7.4.3, so
+# the port returns the display name where upstream returns the codec name.
+# (cp874 needs no entry — "CP874" and "cp874" already match case-insensitively.)
+# Drop this once the pin moves past 7.5.0.
+NAME_ALIASES = {
+    'cp1250': 'windows-1250',
+    'cp1256': 'windows-1256',
+    'cp1257': 'windows-1257',
+    'iso8859-2': 'iso-8859-2',
+    'iso8859-6': 'iso-8859-6',
+    'iso8859-13': 'iso-8859-13',
+}
+
+
+def same_encoding(a, b):
+    """Compare encodings case-insensitively, tolerating naming-only aliases."""
+    a = (a or '').lower()
+    b = (b or '').lower()
+    return a == b or NAME_ALIASES.get(a) == b or NAME_ALIASES.get(b) == a
 
 
 def load(path):
@@ -49,7 +73,7 @@ def main():
 
     for fid in common:
         p, t = py[fid], ts[fid]
-        enc_eq = (p['encoding'] or '').lower() == (t['encoding'] or '').lower()
+        enc_eq = same_encoding(p['encoding'], t['encoding'])
         lang_eq = (p['language'] or '').lower() == (t['language'] or '').lower()
         cd = abs((p['confidence'] or 0.0) - (t['confidence'] or 0.0)) > 0.001
 

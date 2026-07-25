@@ -26,12 +26,24 @@ const buildEntry = join(root, 'build/chardet.js');
 const chardetSrc = chardet7SrcDir(root);
 
 // Encoding-name aliases between our port and upstream chardet that don't
-// indicate a real divergence — only a display-name choice. Currently just
-// cp1250: upstream's _COMPAT_NAMES maps cp1251–cp1255 to Windows-125X but
-// missed cp1250, so upstream returns "cp1250" while our port returns
-// "Windows-1250". Add new entries here if more naming-only mismatches turn up.
+// indicate a real divergence — only a display-name choice.
+//
+// All seven below are the same gap: upstream's _COMPAT_NAMES cased cp1251–
+// cp1255 and iso8859-1/5/7/8/9 back to their 5.x/6.x display names but missed
+// their siblings, so upstream returns the raw codec name where our port
+// returns the display name. Fixed upstream in chardet#374 (7.5.0); the pinned
+// submodule is 7.4.3, so the mismatch persists until the pin moves — drop
+// these entries once it does.
+//
+// Add new entries here if more naming-only mismatches turn up.
 const NAME_ALIASES = {
-  cp1250: 'Windows-1250',
+  'cp874': 'CP874',
+  'cp1250': 'Windows-1250',
+  'cp1256': 'Windows-1256',
+  'cp1257': 'Windows-1257',
+  'iso8859-2': 'ISO-8859-2',
+  'iso8859-6': 'ISO-8859-6',
+  'iso8859-13': 'ISO-8859-13',
 };
 
 const args = process.argv.slice(2);
