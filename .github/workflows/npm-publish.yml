@@ -7,12 +7,18 @@ on:
         type: choice
         required: true
         options:
-          # These labels must match the keys in the repo-level variable `versions`
-          # (Settings → Variables → Actions). Set it to a JSON object like:
-          # {"values":{"patch (x.y.z+1, bug fixes)":"patch","minor (x.y+1.0, new functionality)":"minor","major (x+1.0.0, api breaking changes)":"major"}}
+          # The leading word of each label is the bump keyword, extracted in the
+          # "Setup versions" step below and resolved into `npm version` arguments
+          # by scripts/get-version-bump.js. Keep the keyword first when editing
+          # a label, and keep it a name that script accepts.
           - 'patch (x.y.z+1, bug fixes)'
           - 'minor (x.y+1.0, new functionality)'
           - 'major (x+1.0.0, api breaking changes)'
+          - 'prepatch (x.y.z+1-rc.0, patch release candidate)'
+          - 'preminor (x.y+1.0-rc.0, minor release candidate)'
+          - 'premajor (x+1.0.0-rc.0, major release candidate)'
+          - 'prerelease (x.y.z-rc.N+1, next release candidate)'
+          - 'release (x.y.z, promote the current release candidate to final)'
       dry_run:
         description: 'Dry run (perform all steps except git push & npm publish)'
         type: boolean
@@ -36,25 +42,59 @@ jobs:
           registry-url: https://registry.npmjs.org/
       - run: npm ci
       - name: Setup versions in ${{ '${{env}}' }}
+        env:
+          VERSION_LABEL: ${{ inputs.version }}
         run: |
           node scripts/get-publish-versions.js >> "$GITHUB_ENV"
-          echo "SEMVER_UPDATE=${{ fromJSON(vars.versions).values[inputs.version] }}" >> "$GITHUB_ENV"
+          echo "SEMVER_UPDATE=${VERSION_LABEL%% *}" >> "$GITHUB_ENV"
           cat "$GITHUB_ENV"
       - name: Version package
         run: |
-          npm version ${{ env.SEMVER_UPDATE }}
-          echo "VERSION=$(git show -s --format=%s)" >> "$GITHUB_ENV"
+          BUMP="$(node scripts/get-version-bump.js "$SEMVER_UPDATE")"
+          npm version $BUMP
+          VERSION="$(git show -s --format=%s)"
+          # npm's version commit subject is the bare version number. Anything
+          # else means the bump didn't happen, and we'd go on to tag and publish
+          # the wrong commit.
+          case "$VERSION" in
+            [0-9]*.[0-9]*.[0-9]*) ;;
+            *) echo "::error::expected a version commit, got '$VERSION'"; exit 1 ;;
+          esac
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+          # Prereleases go out under the `rc` dist-tag so that plain
+          # `npm install jschardet` keeps resolving to the latest stable release.
+          case "$VERSION" in
+            *-*) echo "NPM_DIST_TAG=rc" >> "$GITHUB_ENV" ;;
+            *)   echo "NPM_DIST_TAG=latest" >> "$GITHUB_ENV" ;;
+          esac
       - name: Amend with changelog
         run: |
-          node scripts/generate-changelog.js ${{ env.CURRENT_TAG_VERSION }} ${{ env.VERSION }} ${{ env.SEMVER_UPDATE }} > "${{ runner.temp }}/changelog.txt"
+          # Promoting a release candidate reports against the last stable
+          # release, so the notes cover the whole rc series rather than only
+          # what changed since the previous rc.
+          FROM_TAG="$CURRENT_TAG_VERSION"
+          if [ "$SEMVER_UPDATE" = 'release' ]; then FROM_TAG="$CURRENT_STABLE_TAG_VERSION"; fi
+          node scripts/generate-changelog.js "$FROM_TAG" "$VERSION" "$SEMVER_UPDATE" > "${{ runner.temp }}/changelog.txt"
           git commit --amend -F "${{ runner.temp }}/changelog.txt"
-          git tag -f -m '${{ env.VERSION }}' 'v${{ env.VERSION }}'
+          git tag -f -m "$VERSION" "v$VERSION"
           git show -s --format=%B
       - name: Push new version
         if: inputs.dry_run == false
         run: git push --atomic origin ${{ github.ref_name }} $(git tag --points-at HEAD)
+      # --dry-run still negotiates with the remote, so a tag that already exists
+      # upstream is caught here rather than on the real run.
+      - name: Push new version (dry run)
+        if: inputs.dry_run == true
+        run: git push --atomic --dry-run origin ${{ github.ref_name }} $(git tag --points-at HEAD)
       - name: Publish to npm
         if: inputs.dry_run == false
-        run: npm publish
+        run: npm publish --tag "$NPM_DIST_TAG"
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.npm_token }}
+      # --dry-run runs prepublishOnly and reports the tarball and dist-tag it
+      # would have uploaded, but uploads nothing.
+      - name: Publish to npm (dry run)
+        if: inputs.dry_run == true
+        run: npm publish --tag "$NPM_DIST_TAG" --dry-run
         env:
           NODE_AUTH_TOKEN: ${{ secrets.npm_token }}

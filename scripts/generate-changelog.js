@@ -67,6 +67,10 @@ const chardetLine = (oldChardet && oldChardet !== currentChardet)
   ? `Based on chardet ${oldChardet} → ${currentChardet}`
   : `Based on chardet ${currentChardet}`;
 
+// 'release' promotes a release candidate rather than bumping a version part,
+// so "(release update)" would read oddly.
+const updateLabel = semverUpdate === 'release' ? 'final release' : `${semverUpdate} update`;
+
 process.stdout.write(
-  `Version ${version} (${semverUpdate} update)\n\n${chardetLine}\n\nChanges since ${fromTag}:\n${changesList}\n\nBundle size changes since ${fromTag}:\n${sizeLines}\n`
+  `Version ${version} (${updateLabel})\n\n${chardetLine}\n\nChanges since ${fromTag}:\n${changesList}\n\nBundle size changes since ${fromTag}:\n${sizeLines}\n`
 );
