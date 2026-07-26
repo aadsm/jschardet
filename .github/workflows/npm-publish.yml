@@ -36,6 +36,13 @@ jobs:
         with:
           fetch-depth: 0
           fetch-tags: true
+      # actions/checkout sets up push credentials but no committer identity, and
+      # the runner has no name for git to fall back on, so the commits made by
+      # `npm version` and the changelog amend would fail with "empty ident name".
+      - name: Configure git identity
+        run: |
+          git config user.name '${{ github.actor }}'
+          git config user.email '${{ github.actor_id }}+${{ github.actor }}@users.noreply.github.com'
       - uses: actions/setup-node@v6
         with:
           node-version: 20
