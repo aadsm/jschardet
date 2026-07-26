@@ -82,6 +82,9 @@ jobs:
           FROM_TAG="$CURRENT_TAG_VERSION"
           if [ "$SEMVER_UPDATE" = 'release' ]; then FROM_TAG="$CURRENT_STABLE_TAG_VERSION"; fi
           node scripts/generate-changelog.js "$FROM_TAG" "$VERSION" "$SEMVER_UPDATE" > "${{ runner.temp }}/changelog.txt"
+          # Records that this commit was produced by the publish workflow rather
+          # than typed by hand. GitHub renders it as a co-author on the commit.
+          printf '\nCo-authored-by: github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>\n' >> "${{ runner.temp }}/changelog.txt"
           git commit --amend -F "${{ runner.temp }}/changelog.txt"
           git tag -f -m "$VERSION" "v$VERSION"
           git show -s --format=%B
