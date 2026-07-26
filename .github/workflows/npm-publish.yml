@@ -36,6 +36,7 @@ jobs:
         with:
           fetch-depth: 0
           fetch-tags: true
+          submodules: true
       # actions/checkout sets up push credentials but no committer identity, and
       # the runner has no name for git to fall back on, so the commits made by
       # `npm version` and the changelog amend would fail with "empty ident name".

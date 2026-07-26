@@ -1,9 +1,19 @@
 import { execSync } from 'node:child_process';
+import { existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
 const chardetDir = join(root, 'chardet');
+
+// An unchecked-out submodule leaves an empty directory behind, and git commands
+// run inside it walk up to the parent repo and answer about jschardet instead —
+// silently, so callers report a jschardet commit as if it were a chardet one.
+function assertChardetCheckedOut() {
+  if (!existsSync(join(chardetDir, '.git'))) {
+    throw new Error("chardet submodule isn't checked out — run `git submodule update --init chardet`");
+  }
+}
 
 // Fetches all remote tags and returns two maps for hash->tag resolution plus
 // a version-sorted list. peeled maps actual commit hashes (from annotated-tag
@@ -34,6 +44,7 @@ function resolveHash(hash, { peeled, direct }) {
 }
 
 export function chardetVersion() {
+  assertChardetCheckedOut();
   const hash = execSync('git rev-parse HEAD', { cwd: chardetDir }).toString().trim();
   const short = hash.slice(0, 12);
   const tag = resolveHash(hash, fetchRemoteTagMaps());
@@ -43,6 +54,7 @@ export function chardetVersion() {
 // Returns the chardet version pinned at the given git ref (tag or commit)
 // in the parent repo, or null if chardet wasn't present at that ref.
 export function chardetVersionAt(ref) {
+  assertChardetCheckedOut();
   let hash;
   try {
     const lsTree = execSync(`git ls-tree ${ref} chardet`, { stdio: ['pipe', 'pipe', 'pipe'] }).toString().trim();
@@ -59,6 +71,7 @@ export function chardetVersionAt(ref) {
 // Returns the N most recent chardet tags from the remote, plus the current tag.
 // Result: { tags: string[], current: string | null }
 export function listChardetTags(n) {
+  assertChardetCheckedOut();
   const headHash = execSync('git rev-parse HEAD', { cwd: chardetDir }).toString().trim();
   const maps = fetchRemoteTagMaps();
   const current = resolveHash(headHash, maps);
