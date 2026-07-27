@@ -25,3 +25,9 @@ jobs:
         run: |
           git diff --stat --no-color --exit-code \
           || (echo "dist files at $COMMIT_URL do not match source. Run 'npm run build && npm run build:bundles && npm run build:types' and commit." && exit 1)
+      # Assembles the tarball exactly as `npm publish` would, without writing or
+      # uploading it, and logs its contents and size. A `files` glob that stopped
+      # matching, or a `bin` path that isn't shipped, fails here rather than at
+      # release time. Reuses what this job already built: no prepublishOnly.
+      - name: Check package contents
+        run: npm pack --dry-run
