@@ -117,7 +117,11 @@ jobs:
       # on npm. It needs no credentials: a dry-run publish still checks the
       # registry for a version conflict.
       - name: Verify publish will work
-        run: npm publish --tag "$NPM_DIST_TAG" --dry-run
+        run: |
+          echo 'ℹ️  Expected below: npm warns "No bin file found at build/cli.js"'
+          echo '    because build/ is gitignored and prepublishOnly only builds it'
+          echo '    once the publish starts. The packed tarball does contain it.'
+          npm publish --tag "$NPM_DIST_TAG" --dry-run
       - name: Push new version
         if: inputs.dry_run == false
         run: git push --atomic origin ${{ github.ref_name }} $(git tag --points-at HEAD)
