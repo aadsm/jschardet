@@ -12,6 +12,16 @@ on:
         type: boolean
         default: true
         required: true
+  # Called by npm-publish.yml once it has pushed the tag. Reusable workflows
+  # can't share an input block between triggers, so these mirror the ones above.
+  workflow_call:
+    inputs:
+      tag:
+        type: string
+        required: true
+      draft:
+        type: boolean
+        required: true
 
 jobs:
   github-release:

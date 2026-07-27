@@ -24,6 +24,11 @@ on:
         type: boolean
         default: true
         required: true
+      draft:
+        description: 'Create the GitHub release as a draft'
+        type: boolean
+        default: true
+        required: true
 jobs:
   build:
     uses: ./.github/workflows/build.yml
@@ -31,6 +36,8 @@ jobs:
   publish-npm:
     needs: build
     runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.bump.outputs.tag }}
     steps:
       - uses: actions/checkout@v6
         with:
@@ -57,6 +64,7 @@ jobs:
           echo "SEMVER_UPDATE=${VERSION_LABEL%% *}" >> "$GITHUB_ENV"
           cat "$GITHUB_ENV"
       - name: Version package
+        id: bump
         run: |
           BUMP="$(node scripts/get-version-bump.js "$SEMVER_UPDATE")"
           npm version $BUMP
@@ -69,6 +77,9 @@ jobs:
             *) echo "::error::expected a version commit, got '$VERSION'"; exit 1 ;;
           esac
           echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+          # $GITHUB_ENV doesn't cross job boundaries; the github-release job
+          # needs the tag, so publish it as a job output too.
+          echo "tag=v$VERSION" >> "$GITHUB_OUTPUT"
           # Prereleases go out under the `rc` dist-tag so that plain
           # `npm install jschardet` keeps resolving to the latest stable release.
           case "$VERSION" in
@@ -113,3 +124,13 @@ jobs:
         run: npm publish --tag "$NPM_DIST_TAG"
         env:
           NODE_AUTH_TOKEN: ${{ secrets.npm_token }}
+
+  # Only on a real run: a dry run never pushes the tag, so there'd be nothing
+  # for github-release.yml to check out.
+  github-release:
+    needs: publish-npm
+    if: inputs.dry_run == false
+    uses: ./.github/workflows/github-release.yml
+    with:
+      tag: ${{ needs.publish-npm.outputs.tag }}
+      draft: ${{ inputs.draft }}
