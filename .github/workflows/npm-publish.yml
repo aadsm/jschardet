@@ -121,7 +121,22 @@ jobs:
           echo 'ℹ️  Expected below: npm warns "No bin file found at build/cli.js"'
           echo '    because build/ is gitignored and prepublishOnly only builds it'
           echo '    once the publish starts. The packed tarball does contain it.'
-          npm publish --tag "$NPM_DIST_TAG" --dry-run
+          # Also copied to the run summary so checking which files went out, and
+          # under which tags, doesn't mean opening the log. npm writes all of
+          # this to stderr, hence 2>&1; pipefail because the default shell
+          # doesn't fail a step on a failing pipeline, which would quietly turn
+          # this gate into a no-op.
+          set -o pipefail
+          CMD="npm publish --tag $NPM_DIST_TAG --dry-run"
+          $CMD 2>&1 | tee "$RUNNER_TEMP/publish.txt"
+          {
+            echo "### \`$CMD\`"
+            echo '```'
+            # npm's own lines only; the log keeps the tsc and esbuild output
+            # prepublishOnly produces, which is most of it.
+            grep '^npm ' "$RUNNER_TEMP/publish.txt" || true
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
       - name: Push new version
         if: inputs.dry_run == false
         run: git push --atomic origin ${{ github.ref_name }} $(git tag --points-at HEAD)
