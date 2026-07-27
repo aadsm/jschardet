@@ -14,7 +14,8 @@ if (!fromTag || !version || !semverUpdate) {
 
 const require = createRequire(import.meta.url);
 const pkg = require('../package.json');
-const repoUrl = pkg.repository.url.replace(/\.git$/, '');
+// repository.url is in npm's git+https://….git form; commit links need neither part.
+const repoUrl = pkg.repository.url.replace(/^git\+/, '').replace(/\.git$/, '');
 
 const log = execSync(`git log --pretty='format:%h %s' ${fromTag}..HEAD~1`).toString().trim();
 const allLines = log.split('\n').filter(Boolean);

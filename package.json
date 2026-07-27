@@ -13,7 +13,7 @@
     "main": "./build/index.js",
     "browser": "./dist/jschardet.esm.min.js",
     "bin": {
-        "jschardet": "./build/cli.js"
+        "jschardet": "build/cli.js"
     },
     "exports": {
         "types": "./dist/jschardet.d.ts",
@@ -29,7 +29,7 @@
     ],
     "repository": {
         "type": "git",
-        "url": "https://github.com/aadsm/jschardet.git"
+        "url": "git+https://github.com/aadsm/jschardet.git"
     },
     "scripts": {
         "sync-version": "node scripts/sync-version.js",
