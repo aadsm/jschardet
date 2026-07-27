@@ -3,6 +3,8 @@ on:
   workflow_dispatch:
   workflow_call:
   pull_request:
+permissions:
+  contents: read
 jobs:
   build:
     runs-on: ubuntu-latest

@@ -29,6 +29,11 @@ on:
         type: boolean
         default: true
         required: true
+# Naming any scope sets all the others to none. Write access is granted per
+# job below, so only the jobs that push get it.
+permissions:
+  contents: read
+
 jobs:
   build:
     uses: ./.github/workflows/build.yml
@@ -36,6 +41,8 @@ jobs:
   publish-npm:
     needs: build
     runs-on: ubuntu-latest
+    permissions:
+      contents: write   # pushes the version commit and tag
     outputs:
       tag: ${{ steps.bump.outputs.tag }}
     steps:
@@ -130,6 +137,8 @@ jobs:
   github-release:
     needs: publish-npm
     if: inputs.dry_run == false
+    permissions:
+      contents: write   # github-release.yml requires it; a caller can't grant less
     uses: ./.github/workflows/github-release.yml
     with:
       tag: ${{ needs.publish-npm.outputs.tag }}

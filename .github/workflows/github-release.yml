@@ -23,6 +23,11 @@ on:
         type: boolean
         required: true
 
+# `gh release create` writes to the repository. Naming it sets every other
+# scope to none, whatever the repo-wide default happens to be.
+permissions:
+  contents: write
+
 jobs:
   github-release:
     runs-on: ubuntu-latest
