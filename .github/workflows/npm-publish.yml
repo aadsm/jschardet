@@ -41,8 +41,12 @@ jobs:
   publish-npm:
     needs: build
     runs-on: ubuntu-latest
+    # The environment's required reviewer gates the whole job: it waits for
+    # approval before any step runs, on dry runs too.
+    environment: npm-publish
     permissions:
       contents: write   # pushes the version commit and tag
+      id-token: write   # required by npm trusted publishing
     outputs:
       tag: ${{ steps.bump.outputs.tag }}
     steps:
@@ -60,7 +64,7 @@ jobs:
           git config user.email '${{ github.actor_id }}+${{ github.actor }}@users.noreply.github.com'
       - uses: actions/setup-node@v6
         with:
-          node-version: 20
+          node-version: 24
           registry-url: https://registry.npmjs.org/
       - run: npm ci
       - name: Setup versions in ${{ '${{env}}' }}
@@ -108,16 +112,12 @@ jobs:
           git tag -f -m "$VERSION" "v$VERSION"
           git show -s --format=%B
       # Runs on dry runs too, and deliberately before the push: a packaging
-      # problem, an already-published version or a bad npm token then fails the
-      # run while nothing has left the runner, rather than stranding a pushed
-      # tag with no package on npm. `npm whoami` is here because a dry-run
-      # publish exits 0 with no credentials at all — it only warns.
+      # problem or an already-published version then fails the run while nothing
+      # has left the runner, rather than stranding a pushed tag with no package
+      # on npm. It needs no credentials: a dry-run publish still checks the
+      # registry for a version conflict.
       - name: Verify publish will work
-        run: |
-          npm whoami
-          npm publish --tag "$NPM_DIST_TAG" --dry-run
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.npm_token }}
+        run: npm publish --tag "$NPM_DIST_TAG" --dry-run
       - name: Push new version
         if: inputs.dry_run == false
         run: git push --atomic origin ${{ github.ref_name }} $(git tag --points-at HEAD)
@@ -129,8 +129,6 @@ jobs:
       - name: Publish to npm
         if: inputs.dry_run == false
         run: npm publish --tag "$NPM_DIST_TAG"
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.npm_token }}
 
   # Only on a real run: a dry run never pushes the tag, so there'd be nothing
   # for github-release.yml to check out.
