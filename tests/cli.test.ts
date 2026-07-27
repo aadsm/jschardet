@@ -1,9 +1,9 @@
 // Port of chardet/tests/test_cli.py.
 
 import { spawnSync } from 'node:child_process';
-import { mkdtempSync, writeFileSync, rmSync } from 'node:fs';
+import { mkdtempSync, writeFileSync, rmSync, symlinkSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
 import { afterEach, beforeEach, describe, expect, test } from 'vitest';
 import { main, type MainOptions } from '../src/cli.js';
 import type { DetectionResult } from '../src/chardet.js';
@@ -74,6 +74,18 @@ describe('jschardet CLI — subprocess smoke tests', () => {
     const output = r.stdout.trim();
     expect(output.startsWith('jschardet ')).toBe(true);
     expect(output).toBe(`jschardet ${VERSION}`);
+  });
+
+  // How an install actually reaches the CLI: node_modules/.bin/jschardet is a
+  // symlink to build/cli.js. The other tests here all spawn the real path, so
+  // they can't catch an entry-point check that breaks under symlink resolution.
+  test('runs when invoked through a symlink, as node_modules/.bin does', () => {
+    const link = join(tmpDir, 'jschardet-link');
+    symlinkSync(resolve('build/cli.js'), link);
+    const f = writeBytes('test.txt', 'Hello world');
+    const r = spawnSync('node', [link, f], { encoding: 'utf8' });
+    expect(r.status).toBe(0);
+    expect(r.stdout.toLowerCase()).toContain('ascii');
   });
 });
 

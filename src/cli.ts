@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /// <reference types="node" />
 
-import { readFileSync } from 'node:fs';
+import { readFileSync, realpathSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { parseArgs } from 'node:util';
 import { detect, DEFAULT_MAX_BYTES, type DetectOptions, type DetectionResult } from './chardet.js';
@@ -216,6 +216,12 @@ export async function main(argv: string[], opts: MainOptions = {}): Promise<numb
   return 0;
 }
 
-if (process.argv[1] === fileURLToPath(import.meta.url)) {
+// Run only when this module is the entry point, so importing main() doesn't
+// execute the CLI. argv[1] is the path as invoked while import.meta.url is
+// always symlink-resolved, so both sides have to be canonicalised: installs
+// reach this file through the node_modules/.bin symlink, and comparing the two
+// verbatim silently skipped main() there. argv[1] is undefined under `node -e`
+// and when a script is piped through stdin.
+if (process.argv[1] && realpathSync(process.argv[1]) === fileURLToPath(import.meta.url)) {
   main(process.argv.slice(2)).then(code => { if (code !== 0) process.exit(code); });
 }
