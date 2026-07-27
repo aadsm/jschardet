@@ -27,12 +27,19 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           RELEASE_TAG: ${{ inputs.tag }}
-          DRAFT: ${{ inputs.draft && '--draft' }}
+          DRAFT: ${{ inputs.draft }}
         run: |
+          FLAGS=""
+          if [ "$DRAFT" = 'true' ]; then FLAGS="$FLAGS --draft"; fi
+          # A tag carrying a prerelease suffix (v4.0.0-rc.1) is marked as one,
+          # which also keeps GitHub from labelling it the latest release.
+          case "$RELEASE_TAG" in
+            *-*) FLAGS="$FLAGS --prerelease" ;;
+          esac
           git show -s --format=%b | \
           gh release create "$RELEASE_TAG" \
               --repo="$GITHUB_REPOSITORY" \
               --title="Version ${RELEASE_TAG#v}" \
               --verify-tag \
-              "$DRAFT" \
+              $FLAGS \
               -F -
