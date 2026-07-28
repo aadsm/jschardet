@@ -1,13 +1,8 @@
 #!/usr/bin/env node
 // Regenerates src/version.js from the version field in package.json so the
 // bundled output exposes a `VERSION` constant matching whatever version is
-// declared in package.json. Wired into:
-//   - npm run build / npm run build:bundles — runs first so any build
-//     reflects the current package.json version.
-//   - `npm version <patch|minor|major>` — npm runs the "version" script
-//     after bumping package.json but before its auto-commit, so the
-//     regenerated src/version.js is git-added and rolled into the same
-//     commit + tag that npm creates.
+// declared in package.json. Runs first from `npm run build` and
+// `npm run build:bundles`, so any build reflects the current version.
 import { readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';

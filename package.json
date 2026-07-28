@@ -57,7 +57,7 @@
         "benchmark:memory": "node tests/benchmark/memory.js",
         "benchmark:all": "npm run build && npm run benchmark:accuracy && npm run benchmark:throughput && npm run benchmark:coldstart && npm run benchmark:memory",
         "prepublishOnly": "npm run build && npm run build:bundles && npm run build:types",
-        "version": "npm run sync-version && git add src/version.js"
+        "version": "npm run build:bundles && git add src/version.js dist"
     },
     "devDependencies": {
         "@types/node": "^22.0.0",
