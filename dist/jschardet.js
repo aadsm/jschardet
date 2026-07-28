@@ -3775,4 +3775,5 @@ var jschardet = (() => {
   return __toCommonJS(index_exports);
 })();
 jschardet = jschardet.default ? Object.assign(jschardet.default, jschardet) : jschardet;
+if (typeof define === "function" && define.amd) define([], function () { return jschardet; });
 //# sourceMappingURL=jschardet.js.map

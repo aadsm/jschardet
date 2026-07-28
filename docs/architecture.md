@@ -11,7 +11,7 @@ The Python source lives in [`chardet/`](../chardet/), a git submodule that is th
 - [`scripts/`](../scripts/) — build-time code generators and diagnostic helpers
 - [`tests/`](../tests/) — Vitest test suite
 - [`dist/`](../dist/) — esbuild browser bundles; browser consumers import from here
-- `build/` — `tsc` output; gitignored; Node.js entry point is `build/index.js`
+- `build/` — Node-targeted output; gitignored. Entry points `build/index.js` (ESM) and `build/index.cjs` (CommonJS), each with its declaration twin alongside
 
 ## chardet 7.x
 
@@ -94,16 +94,98 @@ Python's [`@dataclass`](https://docs.python.org/3/library/dataclasses.html#datac
 
 ## Distribution Bundles
 
-Two build steps:
+Three build steps:
 
 - `npm run build` — TypeScript compilation → `build/` (ESM, Node-native)
-- `npm run build:bundles` — esbuild → [`dist/`](../dist/) (browser-compatible bundles)
+- `npm run build:bundles` — esbuild → [`dist/`](../dist/) (browser bundles) and `build/index.cjs`
+- `npm run build:types` — dts-bundle-generator → `build/index.d.ts` and `build/index.d.cts`
 
-Current bundle outputs (each has a `*.js`, `*.min.js`, and `.map` source maps):
+`dist/` is browser-targeted, `build/` is Node-targeted. Current bundle outputs (each has a
+`*.js`, `*.min.js`, and `.map` source maps):
 
 - [`dist/jschardet.esm.js`](../dist/jschardet.esm.js) — ESM, public jschardet API
-- [`dist/jschardet.js`](../dist/jschardet.js) — IIFE, attaches `jschardet` to `window`
+- [`dist/jschardet.js`](../dist/jschardet.js) — IIFE, attaches `jschardet` to `window`; also calls `define()` when an AMD loader is present (see "Module formats" — incidental support, not a documented guarantee)
 - `dist/chardet.esm.js` — ESM, lower-level internal chardet API
+
+`build:bundles` also emits one Node artefact, `build/index.cjs` (unminified, single file): the
+CommonJS entry that `require('jschardet')` resolves to. It lives in `build/` with the rest of
+the Node output, not in `dist/`.
+
+esbuild builds it rather than tsc because tsc derives the output extension from the input
+extension — `.ts` yields `.js`, and only `.cts` would yield `.cjs`. Getting CommonJS from tsc
+would mean renaming the sources or adding a second compile pass into a directory carrying its
+own `"type": "commonjs"`, producing a parallel tree of files. esbuild emits a single bundle,
+and targeting Node keeps `node:zlib`.
+
+### Module formats
+
+The package is ESM-first — `build/` is what `import 'jschardet'` resolves to. jschardet 3
+documented two entry points, `require("jschardet")` and a `<script src>` leaving a global
+behind; both still work, along with the ESM and AMD paths:
+
+| Consumer | Resolves to | Inflate |
+|---|---|---|
+| `import 'jschardet'` | `build/index.js` (ESM, Node-native) | `node:zlib` |
+| `require('jschardet')` | `build/index.cjs` (`require` condition, and `main`) | `node:zlib` |
+| `<script src="jschardet.min.js">` | `dist/jschardet.min.js`, top-level `var` becomes a `window` property | JS decoder |
+| AMD loader (`define`) | `dist/jschardet.min.js`, via the `define()` call in its footer | JS decoder |
+| Browser bundlers | `dist/jschardet.esm.min.js` (`browser` condition) | JS decoder |
+
+Node needs its own `build/index.cjs` because `"type": "module"` makes Node parse `dist/*.js`
+as ESM regardless of what the code inside does — so the browser bundle can never serve
+`require()`. Building it separately is not just a workaround: targeting Node keeps
+`node:zlib`, which is ~5× faster than the bundled JS inflate on first `detect()`.
+
+### Type declarations
+
+Every entry point carries its declaration twin beside it:
+
+```
+build/index.js   +  build/index.d.ts     ESM
+build/index.cjs  +  build/index.d.cts    CommonJS
+```
+
+That adjacency is deliberate, and it is why `package.json` has no `types` field and no `types`
+condition in `exports`. TypeScript's default lookup resolves a specifier to a JS file and then
+reads the declarations sitting next to it, so there is no mapping to keep in sync — add an
+entry point, put its declarations alongside, done.
+
+Both are the same flattened file, produced by `dts-bundle-generator` from tsc's declarations
+and differing only in extension.
+
+Flattening is required on the CommonJS side: a `.d.cts` importing `./chardet.js` would be a
+CommonJS module importing an ES one, which fails with `TS1479`, so tsc's unbundled output would
+need a `.d.cts` twin for every declaration in `build/`. A self-contained file has no relative
+imports to resolve.
+
+The ESM side is flattened for consistency and to keep the published surface to two declaration
+files rather than the 35 tsc emits.
+
+One file cannot serve both. A declaration file's module format comes from its extension plus the
+package's `"type"` field, never from its contents, and TypeScript refuses to `require()` a
+specifier whose declarations it classifies as ESM. Pointing both consumers at a lone `.d.ts`
+fails with `TS1471`; pointing both at a lone `.d.cts` compiles, but types
+`import x from 'jschardet'` with CommonJS interop so that `x.chardet` wrongly appears to exist.
+Both were tried.
+
+Worth knowing that this is temporary scaffolding, not a permanent constraint. `build/index.cjs`,
+`build/index.d.cts` and `main` exist only because TypeScript still models `require()` of an ES
+module as an error — a Node restriction lifted in 22.12, where `require(esm)` now works. Once
+TypeScript follows, all three can be deleted and the package becomes ESM-only with no consumer
+impact.
+
+`npm run build:types` flattens tsc's declarations into `build/index.d.cts`, then
+[`scripts/mirror-cjs-types.js`](../scripts/mirror-cjs-types.js) copies that over
+`build/index.d.ts`. The copy is a separate step because the bundler reads `build/index.d.ts`
+and cannot write back to its own input.
+
+The AMD `define()` call in the browser bundle's footer is the one piece not driven by a
+documented v3 guarantee — v3 got AMD for free from browserify `--standalone`, and consumers
+came to rely on it. A full UMD wrapper would be pointless here: its CommonJS branch is
+unreachable for the reason above, so only the `define()` hand-off is worth keeping.
+
+[`tests/packaging.test.ts`](../tests/packaging.test.ts) exercises all of this against the
+committed bundles.
 
 ## Testing
 

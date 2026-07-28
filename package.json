@@ -10,20 +10,25 @@
     ],
     "jsdelivr": "dist/jschardet.min.js",
     "unpkg": "dist/jschardet.min.js",
-    "main": "./build/index.js",
+    "main": "./build/index.cjs",
     "browser": "./dist/jschardet.esm.min.js",
     "bin": {
         "jschardet": "build/cli.js"
     },
     "exports": {
-        "types": "./dist/jschardet.d.ts",
-        "browser": "./dist/jschardet.esm.min.js",
-        "import": "./build/index.js"
+        ".": {
+            "browser": "./dist/jschardet.esm.min.js",
+            "import": "./build/index.js",
+            "require": "./build/index.cjs",
+            "default": "./build/index.js"
+        }
     },
     "files": [
         "dist/jschardet*.js",
-        "dist/jschardet.d.ts",
         "build/**/*.js",
+        "build/index.cjs",
+        "build/index.d.ts",
+        "build/index.d.cts",
         "README.md",
         "LICENSE"
     ],
@@ -37,7 +42,7 @@
         "build": "tsc",
         "prebuild:bundles": "npm run sync-version",
         "build:bundles": "node scripts/build-bundles.js",
-        "build:types": "dts-bundle-generator --no-check --out-file dist/jschardet.d.ts build/index.d.ts",
+        "build:types": "dts-bundle-generator --no-check --out-file build/index.d.cts build/index.d.ts && node scripts/mirror-cjs-types.js",
         "test": "vitest run",
         "pretest:browser": "playwright install chromium",
         "test:browser": "vitest run --config vitest.browser.config.ts",

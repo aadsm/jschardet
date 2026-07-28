@@ -45,6 +45,10 @@ export default defineConfig({
       'tests/spec_decode_roundtrip.test.ts',
       // Uses node:fs, node:child_process, node:os — Node-only by design.
       'tests/cli.test.ts',
+      // Inspects the packed/installed layout with node:child_process and
+      // node:vm; it asserts about Node resolution, so there is nothing for
+      // the browser to run.
+      'tests/packaging.test.ts',
       // Exercises the IIFE browser bundle via a <script> tag; only meaningful
       // under vitest.bundles.jschardet.config.ts (which builds the bundle first).
       'tests/jschardet.global.test.ts',

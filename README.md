@@ -36,9 +36,16 @@ See [docs/performance.md](docs/performance.md) for the full benchmark methodolog
 npm install jschardet
 ```
 
+Both module systems are supported:
+
+```js
+import { detect } from 'jschardet';         // ESM
+const { detect } = require('jschardet');    // CommonJS
+```
+
 ### Browser
 
-Copy and include [jschardet.min.js](https://github.com/aadsm/jschardet/blob/main/dist/jschardet.min.js) in your page (IIFE, attaches a global `jschardet`). For ESM, use [jschardet.esm.min.js](https://github.com/aadsm/jschardet/blob/main/dist/jschardet.esm.min.js) instead. Unminified builds and source maps are in [`dist/`](https://github.com/aadsm/jschardet/tree/main/dist).
+Copy and include [jschardet.min.js](https://github.com/aadsm/jschardet/blob/main/dist/jschardet.min.js) in your page (attaches a global `jschardet`). For ESM, use [jschardet.esm.min.js](https://github.com/aadsm/jschardet/blob/main/dist/jschardet.esm.min.js) instead. Unminified builds and source maps are in [`dist/`](https://github.com/aadsm/jschardet/tree/main/dist).
 
 The library is also available via [jsDelivr](https://www.jsdelivr.com/package/npm/jschardet):
 

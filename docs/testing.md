@@ -15,6 +15,12 @@ The two bundle configs run separately:
 - [`vitest.bundles.jschardet.config.ts`](../vitest.bundles.jschardet.config.ts) — tests [`tests/jschardet.test.ts`](../tests/jschardet.test.ts) and [`tests/jschardet.global.test.ts`](../tests/jschardet.global.test.ts) against [`dist/jschardet.esm.js`](../dist/jschardet.esm.js) (and the IIFE [`dist/jschardet.js`](../dist/jschardet.js) for the global smoke test)
 - [`vitest.bundles.chardet.config.ts`](../vitest.bundles.chardet.config.ts) — tests [`tests/detector.test.ts`](../tests/detector.test.ts) against `dist/chardet.esm.js`
 
+[`tests/packaging.test.ts`](../tests/packaging.test.ts) also reads from `dist/`, but runs under
+plain `npm test`: it loads the committed browser bundles and `build/index.cjs` through Node's `vm` and
+`require` to check that the global, AMD, `require('jschardet')`, and TypeScript declaration entry
+points all still resolve. A source change that is not followed by `npm run build:bundles`
+fails there.
+
 ## Test File Naming
 
 Python uses the `test_` prefix for pytest discovery; Vitest uses the `.test.ts` suffix. Drop the `test_` prefix when porting: `test_enums.py` → [`tests/enums.test.ts`](../tests/enums.test.ts).
