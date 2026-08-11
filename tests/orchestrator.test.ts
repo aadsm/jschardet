@@ -3,15 +3,7 @@
 import { vi } from 'vitest';
 import { EncodingEra } from '../src/enums.js';
 import { DetectionResult } from '../src/pipeline/index.js';
-import {
-  _demoteNicheLatin,
-  _fillMetadata,
-  _internal,
-  _promoteKoi8t,
-  _toUtf8,
-  _tryPromoteMarkupSuperset,
-  runPipeline,
-} from '../src/pipeline/orchestrator.js';
+import { _internal, runPipeline } from '../src/pipeline/orchestrator.js';
 
 function bytes(s: string): Uint8Array {
   return Uint8Array.from(s, c => c.charCodeAt(0));
@@ -195,37 +187,6 @@ describe('markup superset promotion', () => {
     });
     expect(result[0].encoding).toBe('shift_jis_2004');
   });
-
-  test('passes through results with encoding=null', () => {
-    const result: DetectionResult = { encoding: null, confidence: 0.95, language: null, mimeType: null };
-    const allowed = new Set(['cp932', 'shift_jis_2004']);
-    expect(_tryPromoteMarkupSuperset(new Uint8Array(0), result, allowed)).toBe(result);
-  });
-
-  // The Python end-to-end test relies on bytes (0x85 0x40) that Python's
-  // shift_jis_2004 codec accepts but Python's cp932 codec rejects, asserting
-  // the pipeline does not promote shift_jis_2004 → cp932. The TS port maps
-  // both shift_jis_2004 and cp932 to the same WHATWG `shift_jis` decoder
-  // (encoding-whatwg-map.ts), so no byte sequence is "valid in shift_jis_2004
-  // but invalid in cp932": the helper's superset-decode check has the same
-  // outcome for both. See the "Python codec consolidation under shared WHATWG
-  // labels" note in Issue 3 of docs/chardet-ts-port-reference.md. We unit-test
-  // the bail-on-decode-failure branch directly instead, with bytes invalid for
-  // the shared decoder.
-  test('helper bails when superset decode fails', () => {
-    // 0x85 alone (no trail byte) is invalid for the shift_jis decoder, so
-    // decoderForLabel('shift_jis').decode rejects it. The helper should return
-    // the markup result unchanged.
-    const markupResult: DetectionResult = {
-      encoding: 'shift_jis_2004',
-      confidence: 0.95,
-      language: null,
-      mimeType: 'text/xml',
-    };
-    const allowed = new Set(['shift_jis_2004', 'cp932']);
-    const data = new Uint8Array([0x85]);
-    expect(_tryPromoteMarkupSuperset(data, markupResult, allowed)).toBe(markupResult);
-  });
 });
 
 describe('runPipeline misc', () => {
@@ -276,107 +237,6 @@ describe('runPipeline misc', () => {
     for (const r of result) {
       expect(r.confidence).toBeLessThanOrEqual(1.0);
     }
-  });
-});
-
-describe('_demoteNicheLatin', () => {
-  test('iso-8859-10 at top demoted when no distinguishing bytes', () => {
-    const results: DetectionResult[] = [
-      { encoding: 'iso8859-10', confidence: 0.90, language: null, mimeType: null },
-      { encoding: 'cp1252', confidence: 0.85, language: null, mimeType: null },
-    ];
-    // Data with only bytes shared between iso-8859-10 and iso-8859-1: é ö ü
-    const data = new Uint8Array([0xE9, 0xF6, 0xFC]);
-    const demoted = _demoteNicheLatin(data, results);
-    expect(demoted[0].encoding).toBe('cp1252');
-  });
-
-  test('iso-8859-10 NOT demoted when distinguishing bytes present', () => {
-    const results: DetectionResult[] = [
-      { encoding: 'iso8859-10', confidence: 0.90, language: null, mimeType: null },
-      { encoding: 'cp1252', confidence: 0.85, language: null, mimeType: null },
-    ];
-    // 0xA1 differs between iso-8859-10 and iso-8859-1
-    const data = new Uint8Array([0xA1, 0xE9, 0xF6]);
-    const demoted = _demoteNicheLatin(data, results);
-    expect(demoted[0].encoding).toBe('iso8859-10');
-  });
-
-  test('iso-8859-14 at top demoted when no distinguishing bytes', () => {
-    const results: DetectionResult[] = [
-      { encoding: 'iso8859-14', confidence: 0.90, language: null, mimeType: null },
-      { encoding: 'cp1252', confidence: 0.85, language: null, mimeType: null },
-    ];
-    const data = new Uint8Array([0xC0, 0xC1, 0xC2]);
-    const demoted = _demoteNicheLatin(data, results);
-    expect(demoted[0].encoding).toBe('cp1252');
-  });
-
-  test('windows-1254 at top demoted when no distinguishing bytes', () => {
-    const results: DetectionResult[] = [
-      { encoding: 'cp1254', confidence: 0.90, language: null, mimeType: null },
-      { encoding: 'cp1252', confidence: 0.85, language: null, mimeType: null },
-    ];
-    const data = new Uint8Array([0xC0, 0xC1, 0xE9]);
-    const demoted = _demoteNicheLatin(data, results);
-    expect(demoted[0].encoding).toBe('cp1252');
-  });
-});
-
-describe('_promoteKoi8t', () => {
-  test('promote when Tajik-specific bytes present', () => {
-    const results: DetectionResult[] = [
-      { encoding: 'koi8-r', confidence: 0.90, language: 'ru', mimeType: null },
-      { encoding: 'koi8-t', confidence: 0.88, language: 'tg', mimeType: null },
-    ];
-    // 0x80 is a Tajik-specific byte in KOI8-T
-    const data = new Uint8Array([0x41, 0x80, 0x42]);
-    const promoted = _promoteKoi8t(data, results);
-    expect(promoted[0].encoding).toBe('koi8-t');
-  });
-
-  test('no promote without Tajik-specific bytes', () => {
-    const results: DetectionResult[] = [
-      { encoding: 'koi8-r', confidence: 0.90, language: 'ru', mimeType: null },
-      { encoding: 'koi8-t', confidence: 0.88, language: 'tg', mimeType: null },
-    ];
-    // Only Cyrillic-range bytes shared between KOI8-R and KOI8-T
-    const data = new Uint8Array([0xC0, 0xC1, 0xC2]);
-    const promoted = _promoteKoi8t(data, results);
-    expect(promoted[0].encoding).toBe('koi8-r');
-  });
-
-  test('returns early when KOI8-T absent', () => {
-    const results: DetectionResult[] = [
-      { encoding: 'koi8-r', confidence: 0.90, language: 'ru', mimeType: null },
-      { encoding: 'cp1251', confidence: 0.85, language: 'ru', mimeType: null },
-    ];
-    const data = new Uint8Array([0x80, 0xC0, 0xC1]);
-    const returned = _promoteKoi8t(data, results);
-    expect(returned).toBe(results);
-    expect(returned[0].encoding).toBe('koi8-r');
-  });
-});
-
-describe('_fillMetadata', () => {
-  test('fills language for single-language encoding', () => {
-    const results: DetectionResult[] = [
-      { encoding: 'koi8-r', confidence: 0.90, language: null, mimeType: null },
-    ];
-    const filled = _fillMetadata(new TextEncoder().encode('test data'), results);
-    expect(filled[0].language).not.toBeNull();
-  });
-});
-
-describe('_toUtf8', () => {
-  test('unknown encoding returns null', () => {
-    expect(_toUtf8(new TextEncoder().encode('Hello world'), 'not-a-real-encoding')).toBeNull();
-  });
-
-  test('utf-8 returns data unchanged (same reference)', () => {
-    const data = new Uint8Array([0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x20, 0xc3, 0xa9]);
-    const result = _toUtf8(data, 'utf-8');
-    expect(result).toBe(data);
   });
 });
 

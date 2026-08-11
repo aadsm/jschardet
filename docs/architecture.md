@@ -64,7 +64,7 @@ Both are regenerated automatically by [`scripts/update-chardet.js`](../scripts/u
 
 chardet calls [`bytes.decode(encoding, errors='strict')`](https://docs.python.org/3/library/stdtypes.html#bytes.decode) in [`pipeline/validity.py`](https://github.com/chardet/chardet/blob/main/src/chardet/pipeline/validity.py) to eliminate candidate encodings that cannot decode the input without raising `UnicodeDecodeError`.
 
-TypeScript uses [`TextDecoder`](https://developer.mozilla.org/en-US/docs/Web/API/TextDecoder) with `{ fatal: true }` (in [`src/text-decoder.ts`](../src/text-decoder.ts)) for WHATWG-supported encodings, which throws on genuinely invalid sequences.
+TypeScript uses [`TextDecoder`](https://developer.mozilla.org/en-US/docs/Web/API/TextDecoder) with `{ fatal: true }` (in [`src/text-decoder.ts`](../src/text-decoder.ts)) for WHATWG-supported encodings, which throws on genuinely invalid sequences. See "Truncation-tolerant validity decoding" in [`docs/port-notes.md`](port-notes.md) for the truncated-tail tolerance and the cached-decoder state discipline.
 
 However, some SBCS encodings (windows-125x and others) leave certain byte positions undefined — Python treats those bytes as errors, but WHATWG `TextDecoder` silently accepts them because the WHATWG spec fills those gaps. [`src/sbcs-undefined-bytes.ts`](../src/sbcs-undefined-bytes.ts) records the undefined byte values for each affected encoding; the validity stage rejects any candidate whose undefined bytes appear in the input, matching Python's stricter behaviour.
 
@@ -72,8 +72,10 @@ However, some SBCS encodings (windows-125x and others) leave certain byte positi
 
 chardet uses [`unicodedata`](https://docs.python.org/3/library/unicodedata.html) in two places:
 
-- [`equivalences.py`](https://github.com/chardet/chardet/blob/main/src/chardet/equivalences.py) uses [`normalize("NFKD")`](https://docs.python.org/3/library/unicodedata.html#unicodedata.normalize) and [`combining()`](https://docs.python.org/3/library/unicodedata.html#unicodedata.combining) to strip diacritic marks so that accented and unaccented forms of the same letter compare as equal when checking detection accuracy. TypeScript equivalent: [`str.normalize("NFKD")`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/normalize)`.replace(/\p{M}/gu, "")`.
+- [`evaluation.py`](https://github.com/chardet/chardet/blob/main/src/chardet/evaluation.py) uses [`normalize("NFKD")`](https://docs.python.org/3/library/unicodedata.html#unicodedata.normalize) and [`combining()`](https://docs.python.org/3/library/unicodedata.html#unicodedata.combining) to strip diacritic marks so that accented and unaccented forms of the same letter compare as equal when checking detection accuracy. TypeScript equivalent: [`str.normalize("NFKD")`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/normalize)`.replace(/\p{M}/gu, "")`.
 - [`pipeline/utf1632.py`](https://github.com/chardet/chardet/blob/main/src/chardet/pipeline/utf1632.py) uses [`category()`](https://docs.python.org/3/library/unicodedata.html#unicodedata.category) to classify characters as letters, marks, spaces, or controls for UTF-16/32 text-quality scoring. TypeScript equivalent: [Unicode property escapes](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Regular_expressions/Unicode_character_class_escape) (`\p{L}`, `\p{M}`, `\p{Zs}`, `\p{C}`) in [`src/pipeline/utf1632.ts`](../src/pipeline/utf1632.ts).
+
+One caveat applies to every category-based check evaluated at runtime: CPython bundles its own Unicode character database, while property escapes use the JS engine's (ICU's), and the two can be a Unicode version or two apart. A code point assigned in the newer version is `Cn` (unassigned, non-printable, no category) under the older one, so the implementations can classify recently-added characters differently until the versions align. This cannot be closed without shipping our own category tables; it does not affect the generated model/confusion data, whose categories are baked in at generation time by Python's `unicodedata`.
 
 ### f. struct.unpack
 

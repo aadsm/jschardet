@@ -3,7 +3,7 @@
 
 import { EncodingInfo } from '../registry.js';
 import { SBCS_UNDEFINED_BYTES } from '../sbcs-undefined-bytes.js';
-import { decoderForLabel, whatwgLabelFor } from '../text-decoder.js';
+import { decodesWithoutError, whatwgLabelFor } from '../text-decoder.js';
 
 export function filterByValidity(
   data: Uint8Array,
@@ -34,11 +34,8 @@ export function filterByValidity(
       valid.push(enc);
       continue;
     }
-    try {
-      decoderForLabel(label).decode(data);
+    if (decodesWithoutError(label, data)) {
       valid.push(enc);
-    } catch {
-      // Invalid under this encoding — drop it.
     }
   }
   return valid;

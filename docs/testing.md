@@ -57,7 +57,7 @@ The suffix is handled by [`scripts/lib/uint8array-plugin.js`](../scripts/lib/uin
 Two encodings are equivalent if they decode the input bytes to the same text.
 There are two implementations:
 
-- [`src/equivalences.ts`](../src/equivalences.ts) — no-op stub used in browser builds (iconv-lite can't run in a browser)
+- [`src/evaluation.ts`](../src/evaluation.ts) — no-op stub used in browser builds (iconv-lite can't run in a browser)
 - [`tests/utils.ts`](../tests/utils.ts) — real implementation via iconv-lite, used by all Node tests
 
 Test files import it from `./utils.js`, not `../src/equivalences.js`.

@@ -36,7 +36,7 @@ ensureChardet7(root);
 
 const { detect: detectV4 } = await import(new URL('file://' + join(root, 'build', 'index.js')).href);
 const { isCorrect, isLanguageEquivalent } = await import(
-  new URL('file://' + join(root, 'build', 'equivalences.js')).href
+  new URL('file://' + join(root, 'build', 'evaluation.js')).href
 );
 const { lookupEncoding } = await import(new URL('file://' + join(root, 'build', 'registry.js')).href);
 const { ISO_TO_LANGUAGE } = await import(new URL('file://' + join(root, 'build', 'utils.js')).href);

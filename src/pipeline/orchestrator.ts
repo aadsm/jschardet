@@ -3,12 +3,6 @@
 
 import { DEFAULT_MAX_BYTES } from '../utils.js';
 import {
-  BigramProfile,
-  hasModelVariants,
-  inferLanguage,
-  scoreBestLanguage,
-} from '../models/index.js';
-import {
   _NONE_RESULT,
   DETERMINISTIC_CONFIDENCE,
   DetectionResult,
@@ -17,10 +11,11 @@ import {
 import { detectAscii } from './ascii.js';
 import { isBinary } from './binary.js';
 import { detectBom } from './bom.js';
-import { resolveConfusionGroups } from './confusion.js';
 import { detectEscapeEncoding } from './escape.js';
+import { fillLanguages } from './language.js';
 import { detectMagic } from './magic.js';
-import { detectMarkupCharset } from './markup.js';
+import { detectMarkupCharset, promoteMarkupSuperset } from './markup.js';
+import { postprocessResults } from './postprocess.js';
 import { scoreCandidates } from './statistical.js';
 import {
   computeLeadByteDiversity,
@@ -30,12 +25,10 @@ import {
 import { detectUtf8 } from './utf8.js';
 import { detectUtf1632Patterns } from './utf1632.js';
 import { filterByValidity } from './validity.js';
-import { EncodingInfo, REGISTRY, getCandidates } from '../registry.js';
-import { decoderForLabel, whatwgLabelFor } from '../text-decoder.js';
-import { toUtf8 as _toUtf8 } from './to-utf8.js';
+import { EncodingInfo, getCandidates } from '../registry.js';
 
 // Frozen because callers spread {..._BINARY_RESULT} before applyCompatNames
-// mutates the encoding field (see src/equivalences.ts _remapEncoding).
+// mutates the encoding field (see src/output_names.ts _remapEncoding).
 const _BINARY_RESULT: Readonly<DetectionResult> = Object.freeze({
   encoding: null,
   confidence: DETERMINISTIC_CONFIDENCE,
@@ -54,135 +47,6 @@ const _STRUCTURAL_CONFIDENCE_THRESHOLD = 0.85;
 // at this threshold.
 const _STAT_SCORE_MAX_BYTES = 16384;
 
-// Common Western Latin encodings that share the iso-8859-1 character repertoire
-// for the byte values where iso-8859-10 is indistinguishable. Used as swap
-// targets when demoting iso-8859-10 — we prefer these over iso-8859-10 but do
-// not want to accidentally promote an unrelated encoding (e.g. windows-1254).
-const _COMMON_LATIN_ENCODINGS: ReadonlySet<string> = new Set([
-  'iso8859-1',
-  'iso8859-15',
-  'cp1252',
-]);
-
-// Bytes where iso-8859-10 decodes to a different character than iso-8859-1.
-// Computed programmatically via:
-//   {b for b in range(0x80, 0x100)
-//    if bytes([b]).decode('iso-8859-10') != bytes([b]).decode('iso-8859-1')}
-const _ISO_8859_10_DISTINGUISHING: ReadonlySet<number> = new Set([
-  0xA1, 0xA2, 0xA3, 0xA4, 0xA5, 0xA6, 0xA8, 0xA9, 0xAA, 0xAB, 0xAC, 0xAE, 0xAF,
-  0xB1, 0xB2, 0xB3, 0xB4, 0xB5, 0xB6, 0xB8, 0xB9, 0xBA, 0xBB, 0xBC, 0xBD, 0xBE, 0xBF,
-  0xC0, 0xC7, 0xC8, 0xCA, 0xCC, 0xD1, 0xD2, 0xD7, 0xD9,
-  0xE0, 0xE7, 0xE8, 0xEA, 0xEC, 0xF1, 0xF2, 0xF7, 0xF9, 0xFF,
-]);
-
-// Bytes where iso-8859-14 decodes to a different character than iso-8859-1.
-// Computed programmatically via:
-//   {b for b in range(0x80, 0x100)
-//    if bytes([b]).decode('iso-8859-14') != bytes([b]).decode('iso-8859-1')}
-const _ISO_8859_14_DISTINGUISHING: ReadonlySet<number> = new Set([
-  0xA1, 0xA2, 0xA4, 0xA5, 0xA6, 0xA8, 0xAA, 0xAB, 0xAC, 0xAF,
-  0xB0, 0xB1, 0xB2, 0xB3, 0xB4, 0xB5, 0xB7, 0xB8, 0xB9, 0xBA, 0xBB, 0xBC, 0xBD, 0xBE, 0xBF,
-  0xD0, 0xD7, 0xDE, 0xF0, 0xF7, 0xFE,
-]);
-
-// Bytes where windows-1254 has Turkish-specific characters that differ from
-// windows-1252. Windows-1254 differs from windows-1252 at 8 byte positions.
-// Two (0x8E, 0x9E) are undefined in Windows-1254 but defined in Windows-1252;
-// these are excluded here because undefined bytes are not useful for
-// identifying Turkish text. The remaining six positions map to Turkish-specific
-// letters and are the primary distinguishing signal.
-const _WINDOWS_1254_DISTINGUISHING: ReadonlySet<number> = new Set([
-  0xD0, 0xDD, 0xDE, 0xF0, 0xFD, 0xFE,
-]);
-
-// Bytes where HP-Roman8 maps to lowercase accented letters but ISO-8859-1 maps
-// to uppercase letters. Real HP-Roman8 text (from HP-UX terminals) contains
-// these bytes; data misdetected as HP-Roman8 typically does not.
-//   {b for b in range(0x80, 0x100)
-//    if (unicodedata.category(bytes([b]).decode('hp-roman8')) == 'Ll'
-//        and unicodedata.category(bytes([b]).decode('iso-8859-1')) == 'Lu')}
-const _HP_ROMAN8_DISTINGUISHING: ReadonlySet<number> = new Set([
-  0xC0, 0xC1, 0xC2, 0xC3, 0xC4, 0xC5, 0xC6, 0xC7, 0xC8, 0xC9, 0xCA, 0xCB, 0xCC, 0xCD, 0xCE, 0xCF,
-  0xD1, 0xD4, 0xD5, 0xD6, 0xD9, 0xDD, 0xDE,
-]);
-
-// Encodings that are often false positives when their distinguishing bytes are
-// absent. Keyed by encoding name -> set of byte values where that encoding
-// differs from iso-8859-1 (or windows-1252 in the case of windows-1254).
-const _DEMOTION_CANDIDATES: ReadonlyMap<string, ReadonlySet<number>> = new Map<
-  string,
-  ReadonlySet<number>
->([
-  ['iso8859-10', _ISO_8859_10_DISTINGUISHING],
-  ['iso8859-14', _ISO_8859_14_DISTINGUISHING],
-  ['cp1254', _WINDOWS_1254_DISTINGUISHING],
-  ['hp-roman8', _HP_ROMAN8_DISTINGUISHING],
-]);
-
-// Bytes where KOI8-T maps to Tajik-specific Cyrillic letters but KOI8-R maps to
-// box-drawing characters. Presence of any of these bytes is strong evidence for
-// KOI8-T over KOI8-R.
-const _KOI8_T_DISTINGUISHING: ReadonlySet<number> = new Set([
-  0x80, 0x81, 0x83, 0x8A, 0x8C, 0x8D, 0x8E, 0x90, 0xA1, 0xA2, 0xA5, 0xB5,
-]);
-
-// Markup charset declarations that commonly refer to a Windows superset
-// encoding rather than the strict standard encoding. Japanese web content
-// almost universally declares "Shift_JIS" but actually uses CP932 extensions;
-// similarly, Korean web content declares "EUC-KR" but uses CP949/UHC. When the
-// declared encoding resolves to the base (left), we check whether the superset
-// (right) is a better structural match.
-const _MARKUP_SUPERSET_PROMOTIONS: Readonly<Record<string, string>> = Object.freeze({
-  shift_jis_2004: 'cp932',
-  euc_kr: 'cp949',
-});
-
-function _tryPromoteMarkupSuperset(
-  data: Uint8Array,
-  markupResult: DetectionResult,
-  allowed: ReadonlySet<string>,
-): DetectionResult {
-  if (markupResult.encoding === null) {
-    return markupResult;
-  }
-  const supersetName = _MARKUP_SUPERSET_PROMOTIONS[markupResult.encoding];
-  if (supersetName === undefined || !allowed.has(supersetName)) {
-    return markupResult;
-  }
-  const supersetInfo = REGISTRY[supersetName as keyof typeof REGISTRY];
-  if (supersetInfo === undefined) {
-    return markupResult;
-  }
-  // Validate: superset must be able to decode the data. Cached decoderForLabel
-  // is fatal:true (Python errors="strict").
-  const label = whatwgLabelFor(supersetName);
-  if (label === null) {
-    return markupResult;
-  }
-  try {
-    decoderForLabel(label).decode(data);
-  } catch {
-    return markupResult;
-  }
-  // Compare structural scores
-  const ctx = new PipelineContext();
-  const baseInfo = REGISTRY[markupResult.encoding as keyof typeof REGISTRY];
-  if (baseInfo === undefined) {
-    return markupResult;
-  }
-  const baseScore = computeStructuralScore(data, baseInfo, ctx);
-  const supersetScore = computeStructuralScore(data, supersetInfo, ctx);
-  if (supersetScore > baseScore) {
-    return {
-      encoding: supersetName,
-      confidence: markupResult.confidence,
-      language: markupResult.language,
-      mimeType: markupResult.mimeType,
-    };
-  }
-  return markupResult;
-}
-
 function _makeFallbackOrNone(
   encoding: string,
   allowed: ReadonlySet<string>,
@@ -198,20 +62,6 @@ function _makeFallbackOrNone(
     return [{ ..._NONE_RESULT }];
   }
   return [{ encoding, confidence: 0.10, language: null, mimeType: null }];
-}
-
-function _shouldDemote(encoding: string, data: Uint8Array): boolean {
-  const distinguishing = _DEMOTION_CANDIDATES.get(encoding);
-  if (distinguishing === undefined) {
-    return false;
-  }
-  for (let i = 0; i < data.length; i++) {
-    const b = data[i];
-    if (b > 0x7F && distinguishing.has(b)) {
-      return false;
-    }
-  }
-  return true;
 }
 
 // Minimum structural score (valid multi-byte sequences / lead bytes) required
@@ -321,137 +171,18 @@ function _scoreStructuralCandidates(
   return boosted;
 }
 
-function _demoteNicheLatin(
-  data: Uint8Array,
-  results: DetectionResult[],
-): DetectionResult[] {
-  if (
-    results.length > 1
-    && results[0].encoding !== null
-    && _shouldDemote(results[0].encoding, data)
-  ) {
-    const demotedEncoding = results[0].encoding;
-    const topConf = results[0].confidence;
-    for (let i = 1; i < results.length; i++) {
-      const r = results[i];
-      if (r.encoding !== null && _COMMON_LATIN_ENCODINGS.has(r.encoding)) {
-        const promoted: DetectionResult = {
-          encoding: r.encoding,
-          confidence: topConf,
-          language: r.language,
-          mimeType: r.mimeType,
-        };
-        const others = results.filter(
-          x => x.encoding !== demotedEncoding && x !== r,
-        );
-        const demotedEntries = results.filter(x => x.encoding === demotedEncoding);
-        return [promoted, ...others, ...demotedEntries];
-      }
-    }
+// Default mimeType to text/plain (text) or application/octet-stream (binary).
+function _withDefaultMime(result: DetectionResult): DetectionResult {
+  if (result.mimeType !== null) {
+    return result;
   }
-  return results;
-}
-
-function _promoteKoi8t(
-  data: Uint8Array,
-  results: DetectionResult[],
-): DetectionResult[] {
-  if (results.length === 0 || results[0].encoding !== 'koi8-r') {
-    return results;
-  }
-  // Array.prototype.findIndex returns -1 (not null) when absent, unlike
-  // Python's next(..., None).
-  const koi8tIdx = results.findIndex(r => r.encoding === 'koi8-t');
-  if (koi8tIdx === -1) {
-    return results;
-  }
-  // Check for Tajik-specific bytes
-  let hasDistinguishing = false;
-  for (let i = 0; i < data.length; i++) {
-    const b = data[i];
-    if (b > 0x7F && _KOI8_T_DISTINGUISHING.has(b)) {
-      hasDistinguishing = true;
-      break;
-    }
-  }
-  if (hasDistinguishing) {
-    const koi8tResult = results[koi8tIdx];
-    const topConf = results[0].confidence;
-    const promoted: DetectionResult = {
-      encoding: koi8tResult.encoding,
-      confidence: topConf,
-      language: koi8tResult.language,
-      mimeType: koi8tResult.mimeType,
-    };
-    const others = results.filter((_, i) => i !== koi8tIdx);
-    return [promoted, ...others];
-  }
-  return results;
-}
-
-// Maximum bytes of data used for language scoring in _fillMetadata. Language
-// bigrams converge quickly — 2 KB is sufficient for discrimination across all
-// language models while keeping Tier 3 (language-model scoring) fast.
-const _LANG_SCORE_MAX_BYTES = 2048;
-
-
-function _fillMetadata(
-  data: Uint8Array,
-  results: DetectionResult[],
-): DetectionResult[] {
-  const filled: DetectionResult[] = [];
-  let profile: BigramProfile | null = null;
-  let utf8Profile: BigramProfile | null = null;
-  for (const result of results) {
-    let lang = result.language;
-    if (lang === null && result.encoding !== null) {
-      // Tier 1: single-language encoding
-      lang = inferLanguage(result.encoding);
-      // Tier 2: statistical scoring for multi-language encodings
-      if (lang === null && data.length > 0 && hasModelVariants(result.encoding)) {
-        if (profile === null) profile = new BigramProfile(data);
-        const [, l] = scoreBestLanguage(data, result.encoding, profile);
-        lang = l;
-      }
-      // Tier 3: decode to UTF-8, score against UTF-8 language models
-      if (lang === null && data.length > 0 && hasModelVariants('utf-8')) {
-        const utf8Data = _toUtf8(data, result.encoding);
-        if (utf8Data !== null && utf8Data.length > 0) {
-          if (utf8Profile === null || result.encoding !== 'utf-8') {
-            utf8Profile = new BigramProfile(utf8Data);
-          }
-          const [, l] = scoreBestLanguage(utf8Data, 'utf-8', utf8Profile);
-          lang = l;
-        }
-      }
-    }
-
-    let mime = result.mimeType;
-    if (mime === null) {
-      mime = result.encoding !== null ? 'text/plain' : 'application/octet-stream';
-    }
-
-    if (lang !== result.language || mime !== result.mimeType) {
-      filled.push({
-        encoding: result.encoding,
-        confidence: result.confidence,
-        language: lang,
-        mimeType: mime,
-      });
-    } else {
-      filled.push(result);
-    }
-  }
-  return filled;
-}
-
-function _postprocessResults(
-  data: Uint8Array,
-  results: DetectionResult[],
-): DetectionResult[] {
-  results = resolveConfusionGroups(data, results);
-  results = _internal._demoteNicheLatin(data, results);
-  return _internal._promoteKoi8t(data, results);
+  const mime = result.encoding !== null ? 'text/plain' : 'application/octet-stream';
+  return {
+    encoding: result.encoding,
+    confidence: result.confidence,
+    language: result.language,
+    mimeType: mime,
+  };
 }
 
 export interface RunPipelineOptions {
@@ -549,10 +280,29 @@ function _runPipelineCore(
 
   // Stage 1b: Markup charset extraction (before ASCII/UTF-8 so explicit
   // declarations like <?xml encoding="iso-8859-1"?> are honoured even when the
-  // bytes happen to be pure ASCII or valid UTF-8).
+  // bytes happen to be pure ASCII).
   let markupResult = detectMarkupCharset(data);
   if (markupResult !== null && markupResult.encoding !== null && allowed.has(markupResult.encoding)) {
-    markupResult = _internal._tryPromoteMarkupSuperset(data, markupResult, allowed);
+    // A declaration is honoured over pure ASCII (the declared encoding decodes
+    // those bytes identically), but not over genuine UTF-8 structure: data
+    // containing valid multi-byte UTF-8 sequences is UTF-8 regardless of what
+    // the (frequently stale) declaration claims, and decoding it as the
+    // declared encoding would produce mojibake. Keep the markup mime type;
+    // only the encoding wins.
+    if (
+      utf8Precheck !== null
+      && utf8Precheck.encoding !== null
+      && utf8Precheck.encoding !== markupResult.encoding
+      && allowed.has(utf8Precheck.encoding)
+    ) {
+      return [{
+        encoding: utf8Precheck.encoding,
+        confidence: utf8Precheck.confidence,
+        language: utf8Precheck.language,
+        mimeType: markupResult.mimeType,
+      }];
+    }
+    markupResult = _internal.promoteMarkupSuperset(data, markupResult, allowed);
     return [markupResult];
   }
 
@@ -609,7 +359,7 @@ function _runPipelineCore(
         ctx,
       );
       if (results.length > 0) {
-        return _postprocessResults(data, results);
+        return _internal.postprocessResults(data, results);
       }
     }
   }
@@ -623,7 +373,7 @@ function _runPipelineCore(
     return _makeFallbackOrNone(noMatchEncoding, allowed, 'no_match_encoding');
   }
 
-  return _postprocessResults(data, results);
+  return _internal.postprocessResults(data, results);
 }
 
 export function runPipeline(
@@ -646,9 +396,8 @@ export function runPipeline(
     noMatchEncoding,
     emptyInputEncoding,
   );
-  // Language scoring uses only the first 2 KB — bigrams converge quickly and
-  // this keeps Tier 3 (language-model scoring) fast even on large inputs.
-  results = _internal._fillMetadata(data.subarray(0, _LANG_SCORE_MAX_BYTES), results);
+  results = _internal.fillLanguages(data, results);
+  results = results.map(_withDefaultMime);
   if (results.length === 0) {
     throw new Error('pipeline must always return at least one result');
   }
@@ -665,41 +414,24 @@ export function runPipeline(
 // Test-spy seam. Mirrors Python's monkeypatch.setattr(orchestrator, ...) by
 // routing helper calls through this object so vi.spyOn(_internal, name)
 // intercepts them. Tests that don't need spying can import the helpers
-// directly via re-exports below.
+// directly via re-exports below (or from their home modules: markup.ts,
+// postprocess.ts, language.ts).
 export const _internal = {
   filterByValidity,
-  _tryPromoteMarkupSuperset,
+  promoteMarkupSuperset,
   _makeFallbackOrNone,
-  _shouldDemote,
   _gateCjkCandidates,
   _scoreStructuralCandidates,
-  _demoteNicheLatin,
-  _promoteKoi8t,
-  _toUtf8,
-  _fillMetadata,
-  _postprocessResults,
+  postprocessResults,
+  fillLanguages,
   _runPipelineCore,
 };
 
 export {
   _BINARY_RESULT,
-  _COMMON_LATIN_ENCODINGS,
-  _DEMOTION_CANDIDATES,
-  _HP_ROMAN8_DISTINGUISHING,
-  _ISO_8859_10_DISTINGUISHING,
-  _ISO_8859_14_DISTINGUISHING,
-  _KOI8_T_DISTINGUISHING,
-  _MARKUP_SUPERSET_PROMOTIONS,
-  _WINDOWS_1254_DISTINGUISHING,
-  _demoteNicheLatin,
-  _fillMetadata,
   _gateCjkCandidates,
   _makeFallbackOrNone,
-  _postprocessResults,
-  _promoteKoi8t,
   _runPipelineCore,
   _scoreStructuralCandidates,
-  _shouldDemote,
-  _toUtf8,
-  _tryPromoteMarkupSuperset,
+  _withDefaultMime,
 };

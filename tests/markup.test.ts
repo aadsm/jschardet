@@ -1,4 +1,5 @@
-import { detectMarkupCharset } from '../src/pipeline/markup.js';
+import { detectMarkupCharset, promoteMarkupSuperset } from '../src/pipeline/markup.js';
+import { DetectionResult } from '../src/pipeline/index.js';
 
 const DETERMINISTIC_CONFIDENCE = 0.95;
 
@@ -74,7 +75,15 @@ describe('detectMarkupCharset', () => {
 
   test('lying charset declaration rejected', () => {
     // Declares shift_jis but body is UTF-8 — _validateBytes must reject it.
-    const data = concat(enc('<meta charset="shift_jis">'), enc('日本語テスト'));
+    //
+    // The body must be undecodable before its final character: validity
+    // tolerates an incomplete trailing one, so a body whose only defect is a
+    // dangling lead byte would pass. Same bytes as upstream's
+    // test_lying_charset_declaration_rejected; they fail at byte 13 of 81.
+    const data = concat(
+      enc('<meta charset="shift_jis">'),
+      enc('これは文字コード判定のテストに用いる日本語の文章です。'),
+    );
     expect(detectMarkupCharset(data)).toBeNull();
   });
 
@@ -121,5 +130,65 @@ describe('detectMarkupCharset', () => {
     // already rejects bytes ≥ 0x80, so the test passes without patching.
     const data = concat(enc('# -*- coding: '), new Uint8Array([0xff, 0xfe]), enc(' -*-\n'));
     expect(detectMarkupCharset(data)).toBeNull();
+  });
+});
+
+// Unit tests for promoteMarkupSuperset (end-to-end promotion coverage lives in
+// tests/orchestrator.test.ts).
+describe('promoteMarkupSuperset', () => {
+  test('passes through results with encoding=null', () => {
+    const result: DetectionResult = { encoding: null, confidence: 0.95, language: null, mimeType: null };
+    const allowed = new Set(['cp932', 'shift_jis_2004']);
+    expect(promoteMarkupSuperset(new Uint8Array(0), result, allowed)).toBe(result);
+  });
+
+  // The Python end-to-end test relies on bytes (0x85 0x40) that Python's
+  // shift_jis_2004 codec accepts but Python's cp932 codec rejects, asserting
+  // the pipeline does not promote shift_jis_2004 → cp932. The TS port maps
+  // both shift_jis_2004 and cp932 to the same WHATWG `shift_jis` decoder
+  // (encoding-whatwg-map.ts), so no byte sequence is "valid in shift_jis_2004
+  // but invalid in cp932": the helper's superset-decode check has the same
+  // outcome for both. See "bytes.decode() validity filtering" in
+  // docs/architecture.md. We unit-test the bail-on-decode-failure branch
+  // directly instead, with bytes invalid for the shared decoder.
+  test('helper bails when superset decode fails', () => {
+    // 0x85 alone (no trail byte) is invalid for the shift_jis decoder, so
+    // decoderForLabel('shift_jis').decode rejects it. The helper should return
+    // the markup result unchanged.
+    const markupResult: DetectionResult = {
+      encoding: 'shift_jis_2004',
+      confidence: 0.95,
+      language: null,
+      mimeType: 'text/xml',
+    };
+    const allowed = new Set(['shift_jis_2004', 'cp932']);
+    const data = new Uint8Array([0x85]);
+    expect(promoteMarkupSuperset(data, markupResult, allowed)).toBe(markupResult);
+  });
+
+  // Divergence from Python's decode-safety promotion
+  // (test_promote_when_reported_codec_cannot_decode): Python promotes
+  // declared-Shift_JIS data carrying a CP932 NEC extension (0x87 0x40, the
+  // circled digit one) to cp932, because the codec the reported name
+  // resolves to — plain shift_jis — cannot decode it. WHATWG's shift_jis
+  // decoder accepts CP932 extensions, so that condition can never hold here
+  // and the branch is not ported; structural scores tie and no promotion
+  // happens. See _MARKUP_SUPERSET_PROMOTIONS in src/pipeline/markup.ts
+  // and "Markup superset decode-safety promotion" in docs/port-notes.md.
+  test('NEC-extension bytes do not promote (WHATWG divergence)', () => {
+    // "こんにちは".encode("shift_jis") + b"\x87\x40", captured via:
+    //   python3 -c 'import sys; sys.stdout.buffer.write("こんにちは".encode("shift_jis"))'
+    const data = new Uint8Array([
+      0x82, 0xb1, 0x82, 0xf1, 0x82, 0xc9, 0x82, 0xbf, 0x82, 0xcd, 0x87, 0x40,
+    ]);
+    const markupResult: DetectionResult = {
+      encoding: 'shift_jis_2004',
+      confidence: 0.95,
+      language: null,
+      mimeType: 'text/xml',
+    };
+    const allowed = new Set(['shift_jis_2004', 'cp932']);
+    const promoted = promoteMarkupSuperset(data, markupResult, allowed);
+    expect(promoted.encoding).toBe('shift_jis_2004'); // Python yields 'cp932'
   });
 });

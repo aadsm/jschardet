@@ -347,6 +347,12 @@ describe('_looksLikeText', () => {
   test('empty string returns false', () => {
     expect(_looksLikeText('')).toBe(false);
   });
+
+  test('astral characters count once, like Python len()', () => {
+    // U+20000 is a printable letter but two UTF-16 code units. Dividing by
+    // .length would score this 0.5 and reject it; Python scores it 1.0.
+    expect(_looksLikeText('𠀀'.repeat(300))).toBe(true);
+  });
 });
 
 describe('_textQuality', () => {
@@ -370,6 +376,11 @@ describe('_textQuality', () => {
 
   test('low score for digits and punctuation only', () => {
     expect(_textQuality('12345!@#$%67890^&*()')).toBeLessThan(0.5);
+  });
+
+  test('astral letters score per code point, like Python len()', () => {
+    // 30 copies of U+20000: letters/n must be 30/30 = 1.0, not 30/60.
+    expect(_textQuality('𠀀'.repeat(30))).toBe(1.0);
   });
 });
 
@@ -421,5 +432,41 @@ describe('detectUtf1632Patterns — tie-breaking', () => {
     const result = detectUtf1632Patterns(data);
     expect(result).not.toBeNull();
     expect(result!.encoding).toBe('utf-16-le');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Byte-order choice for pure-CJK text with no ASCII
+// ---------------------------------------------------------------------------
+
+// Pure Chinese with no ASCII or whitespace at all. The only null bytes in
+// its UTF-16 form come from the *low* byte of characters like U+4E00 (一),
+// which sit in the opposite parity position and would make the swapped byte
+// order the sole null-pattern candidate if the null signal chose on its own.
+const _PURE_CJK_TEXT = '我一直没有埋怨过一切时间观念都是相同的';
+
+describe('detectUtf1632Patterns — pure-CJK byte order', () => {
+  test('utf16 be pure cjk no ascii keeps byte order', () => {
+    const data = encodeUtf16BE(_PURE_CJK_TEXT);
+    // Precondition for the trap: no nulls in the true (even) parity, some
+    // nulls in the false (odd) parity from U+4E00 low bytes.
+    let evenNull = false;
+    let oddNull = false;
+    for (let i = 0; i < data.length; i += 2) { if (data[i] === 0) evenNull = true; }
+    for (let i = 1; i < data.length; i += 2) { if (data[i] === 0) oddNull = true; }
+    expect(evenNull).toBe(false);
+    expect(oddNull).toBe(true);
+    const result = detectUtf1632Patterns(data);
+    expect(result).not.toBeNull();
+    expect(result!.encoding).toBe('utf-16-be');
+    expect(result!.confidence).toBe(DETERMINISTIC_CONFIDENCE);
+  });
+
+  test('utf16 le pure cjk no ascii keeps byte order', () => {
+    const data = encodeUtf16LE(_PURE_CJK_TEXT);
+    const result = detectUtf1632Patterns(data);
+    expect(result).not.toBeNull();
+    expect(result!.encoding).toBe('utf-16-le');
+    expect(result!.confidence).toBe(DETERMINISTIC_CONFIDENCE);
   });
 });

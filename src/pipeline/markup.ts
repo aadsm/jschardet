@@ -1,6 +1,7 @@
-import { DETERMINISTIC_CONFIDENCE, DetectionResult } from './index.js';
-import { lookupEncoding, EncodingName } from '../registry.js';
-import { decoderForLabel, whatwgLabelFor } from '../text-decoder.js';
+import { DETERMINISTIC_CONFIDENCE, DetectionResult, PipelineContext } from './index.js';
+import { lookupEncoding, EncodingName, REGISTRY } from '../registry.js';
+import { decodesWithoutError, whatwgLabelFor } from '../text-decoder.js';
+import { computeStructuralScore } from './structural.js';
 
 const _SCAN_LIMIT = 4096;
 
@@ -16,19 +17,15 @@ function _isAscii(s: string): boolean {
   return true;
 }
 
-// Replaces Python's bytes.decode(encoding, errors='strict'). Python supports
-// ~90 codecs; TextDecoder only supports WHATWG labels. Encodings without a
-// label fall through to a pass — accepted parity drift, see Issue 3 in
-// docs/chardet-ts-port-reference.md.
+// Port of Python's _validate_bytes: decodes_without_error over the first
+// _SCAN_LIMIT bytes. Python supports ~90 codecs; TextDecoder only supports
+// WHATWG labels. Encodings without a label fall through to a pass — accepted
+// parity drift, see "bytes.decode() validity filtering" in
+// docs/architecture.md.
 function _validateBytes(data: Uint8Array, encoding: EncodingName): boolean {
   const label = whatwgLabelFor(encoding);
   if (!label) return true;
-  try {
-    decoderForLabel(label).decode(data.subarray(0, _SCAN_LIMIT));
-    return true;
-  } catch {
-    return false;
-  }
+  return decodesWithoutError(label, data.subarray(0, _SCAN_LIMIT));
 }
 
 function _detectPep263(data: Uint8Array): DetectionResult | null {
@@ -93,3 +90,73 @@ export function detectMarkupCharset(data: Uint8Array): DetectionResult | null {
 
   return _detectPep263(data);
 }
+
+// Markup charset declarations that commonly refer to a Windows superset
+// encoding rather than the strict standard encoding. Japanese web content
+// almost universally declares "Shift_JIS" but actually uses CP932 extensions;
+// similarly, Korean web content declares "EUC-KR" but uses CP949/UHC. When the
+// declared encoding resolves to the base (left), we check whether the superset
+// (right) is a better structural match.
+//
+// Python's promote_markup_superset also has a decode-safety promotion: when
+// the codec the *reported* name resolves to (shift_jis, euc_kr) cannot decode
+// the data but the superset can, it promotes unconditionally, so Python
+// callers can always .decode() with the reported name. That branch is not
+// ported: WHATWG collapses each pair onto one decoder (its shift_jis is
+// cp932, its euc-kr is cp949 — see "bytes.decode() validity filtering" in
+// docs/architecture.md), so the reported codec decodes whenever the superset
+// does and the condition can never hold; the failure mode it guards against —
+// an undecodable reported name — cannot happen for TextDecoder callers.
+// Expect compare-detect DIFFs where Python promotes on decode-safety alone
+// (e.g. cp932-ja/y-moto.com.xml: SHIFT_JIS here, CP932 in Python). See
+// "Markup superset decode-safety promotion" in docs/port-notes.md.
+const _MARKUP_SUPERSET_PROMOTIONS: Readonly<Record<string, string>> = Object.freeze({
+  shift_jis_2004: 'cp932',
+  euc_kr: 'cp949',
+});
+
+export function promoteMarkupSuperset(
+  data: Uint8Array,
+  markupResult: DetectionResult,
+  allowed: ReadonlySet<string>,
+): DetectionResult {
+  if (markupResult.encoding === null) {
+    return markupResult;
+  }
+  const supersetName = _MARKUP_SUPERSET_PROMOTIONS[markupResult.encoding];
+  if (supersetName === undefined || !allowed.has(supersetName)) {
+    return markupResult;
+  }
+  const supersetInfo = REGISTRY[supersetName as keyof typeof REGISTRY];
+  if (supersetInfo === undefined) {
+    return markupResult;
+  }
+  // Validate: superset must be able to decode the data. decodesWithoutError is
+  // fatal:true (Python errors="strict"), tolerating only a truncated tail.
+  const label = whatwgLabelFor(supersetName);
+  if (label === null) {
+    return markupResult;
+  }
+  if (!decodesWithoutError(label, data)) {
+    return markupResult;
+  }
+  // Compare structural scores
+  const ctx = new PipelineContext();
+  const baseInfo = REGISTRY[markupResult.encoding as keyof typeof REGISTRY];
+  if (baseInfo === undefined) {
+    return markupResult;
+  }
+  const baseScore = computeStructuralScore(data, baseInfo, ctx);
+  const supersetScore = computeStructuralScore(data, supersetInfo, ctx);
+  if (supersetScore > baseScore) {
+    return {
+      encoding: supersetName,
+      confidence: markupResult.confidence,
+      language: markupResult.language,
+      mimeType: markupResult.mimeType,
+    };
+  }
+  return markupResult;
+}
+
+export { _MARKUP_SUPERSET_PROMOTIONS };
