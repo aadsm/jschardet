@@ -2,6 +2,44 @@
 
 Decisions made during porting that differ from the Python source, with rationale.
 
+## Truncation-tolerant validity decoding
+
+**Python:** `decodes_without_error` in `_utils.py` answers the validity question for `filter_by_validity`, `_validate_bytes` and `promote_markup_superset`. It decodes with an incremental decoder and `final=False`, so an incomplete multi-byte sequence at the end of the buffer is deferred instead of raising.
+
+**TypeScript:** `decodesWithoutError` in `src/text-decoder.ts` reaches the same behaviour with `{ stream: true }`. All three call sites use it.
+
+Why the tolerance matters: detection input is routinely a prefix of a larger whole. vscode reads the first 4096 or 65536 bytes of a file and hands over the slice; `_validateBytes` slices its own 4096-byte head regardless of what the caller passed. For a 2-byte encoding either cut lands mid-character about half the time, and a one-shot fatal decode cannot tell a truncated tail from corrupt data — a single dangling lead byte would eliminate **every** CJK encoding from the candidate list (GBK, Big5, Shift_JIS, EUC-JP, EUC-KR; UTF-8 is immune because its lead bytes encode the sequence length), leaving the answer to depend on input-length parity.
+
+`{ stream: true }` is truncation-tolerant without being permissive: `TextDecoder` already knows each encoding's sequence structure, so this covers all of them with no per-encoding code, and genuine corruption is mid-buffer and still raises.
+
+|  | `decode(buf)` | `decode(buf, {stream:true})` |
+|---|---|---|
+| complete GBK | accept | accept |
+| truncated mid-character | **throw** | accept |
+| illegal trail byte (`D6 20`) | throw | throw |
+| unmapped bytes (`FF FF`) | throw | throw |
+
+Two consequences worth knowing:
+
+- **Streaming makes `TextDecoder` stateful, and `decoderForLabel` caches instances.** A deferred partial tail would otherwise be prepended to the next candidate's buffer, shifting every character pair — a silent corruption, since the decode still succeeds and just returns the wrong text. `decodesWithoutError` flushes in a `finally` block; the flush throws on a pending tail, which is expected and resets the decoder either way. Python has no equivalent hazard — it constructs a fresh incremental decoder per call. A fresh `TextDecoder` per call would avoid the flush here too, but costs ~24% on small inputs, which is the size a prefix-detector sees most.
+- **Validity filtering is marginally weaker at detecting a lying charset declaration.** A body that is valid in the declared encoding except for a dangling final byte is not rejected. This only bites on inputs short enough to contain no other evidence; see the fixture note in `tests/markup.test.ts`.
+
+Covered by `tests/truncated_input.test.ts` (port of Python's `test_truncated_input.py`, plus a TS-only regression test for the decoder-cache hazard above).
+
+## Markup superset decode-safety promotion (not ported)
+
+**Python:** `promote_markup_superset` promotes a markup result to its Windows superset *unconditionally* when the codec the reported name resolves to cannot decode the data but the superset can — a declared-Shift_JIS page using CP932 NEC/IBM extensions is reported as CP932, because Python callers who `.decode()` with the reported name `SHIFT_JIS` get plain `shift_jis`, which raises on those bytes. The structural-score comparison alone never catches this case (both scores tie at 1.0 for structurally clean data).
+
+**TypeScript:** the branch is not ported. WHATWG collapses each promotion pair onto a single decoder — its `shift_jis` *is* cp932 and its `euc-kr` *is* cp949 — so the reported codec decodes whenever the superset does and the trigger condition can never hold. The failure mode the branch guards against also cannot happen for `TextDecoder` callers: decoding CP932-extended bytes with the label `shift_jis` succeeds. Only the structural-score promotion path is ported.
+
+Consequences: `compare-with-chardet.js` / `tests/compare-detect` flag a DIFF wherever Python promotes on decode-safety alone (the corpus case is `cp932-ja/y-moto.com.xml`: SHIFT_JIS here, CP932 in Python), and that file stays in the known-failure lists in `tests/accuracy.test.ts`. Covered by the divergence test in `tests/markup.test.ts` ("NEC-extension bytes do not promote"); Python's `test_promote_when_reported_codec_cannot_decode` is intentionally not ported (see `docs/missing-python-tests.md`).
+
+## Statistical-scoring rowmax pruning (not ported)
+
+**Python:** statistical scoring can prune candidates with a per-model upper bound on the achievable score (`rowmax.bin`, `_score_pruned` in `pipeline/statistical.py`) — a pure performance fast path, guaranteed to return the same results as scoring every candidate. `full_ranking=True` bypasses it and scores everything.
+
+**TypeScript:** the pruning machinery is not ported; the port always scores every candidate, matching the `full_ranking=True` path. Results are identical by construction, so there is no behavioural consequence — this is also why `scripts/generate-model-bins.js` converts three of upstream's four `.bin` files (`rowmax.bin` has no consumer here). Revisit if statistical-scoring cost ever becomes a problem; the pruning tests to bring along are listed in [missing-python-tests.md](missing-python-tests.md).
+
 ## `bytes.find()` → `findBytes` helper
 
 **Python:** `bytes.find(needle, start)` searches for a byte subsequence and returns its index, or -1.

@@ -958,3 +958,37 @@ describe('include_encodings preserves accuracy', () => {
     expect(result.encoding).toBe(expected);
   });
 });
+
+describe('markup declaration vs genuine UTF-8', () => {
+  test('utf8 bytes override single byte declaration', () => {
+    // Valid multi-byte UTF-8 wins over a lying single-byte declaration.
+    const data = concat(
+      new TextEncoder().encode('<html><head><meta charset="iso-8859-1"></head><body>'),
+      new TextEncoder().encode('päivää tänään'), // UTF-8, as in Python "…".encode()
+      new TextEncoder().encode('</body></html>'),
+    );
+    const result = detect(data);
+    expect(result.encoding).toBe('utf-8');
+    expect(result.mimeType).toBe('text/html');
+  });
+
+  test('single byte declaration kept for real latin1', () => {
+    // A declaration is honoured when the bytes are not valid UTF-8.
+    const data = concat(
+      new TextEncoder().encode('<html><head><meta charset="iso-8859-1"></head><body>'),
+      bytes('p\xe4iv\xe4\xe4'), // "päivää".encode("latin-1")
+      new TextEncoder().encode('</body></html>'),
+    );
+    const result = detect(data);
+    expect(result.encoding).toBe('ISO-8859-1');
+  });
+
+  test('single byte declaration kept for pure ascii', () => {
+    // A declaration is honoured when the bytes are pure ASCII.
+    const data = new TextEncoder().encode(
+      '<html><head><meta charset="iso-8859-1"></head><body>plain</body></html>',
+    );
+    const result = detect(data);
+    expect(result.encoding).toBe('ISO-8859-1');
+  });
+});

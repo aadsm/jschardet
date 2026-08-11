@@ -81,13 +81,13 @@ function _charsEquivalent(a: string, b: string): boolean {
 }
 
 /**
- * Port of Python's chardet.equivalences.is_equivalent_detection().
+ * Port of Python's chardet.evaluation.is_equivalent_detection().
  *
  * Checks whether decoding data with detected produces functionally identical
  * text to decoding with expected. Uses iconv-lite, which covers all encodings
  * Python's codec library handles (DOS code pages, HP-Roman8, etc.).
  *
- * Only available in Node.js — see the stub in src/equivalences.ts for why
+ * Only available in Node.js — see the stub in src/evaluation.ts for why
  * this cannot live there.
  */
 export function isEquivalentDetection(

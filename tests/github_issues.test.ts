@@ -5,7 +5,7 @@
 
 import { detect } from '../src/chardet.js';
 import { EncodingEra } from '../src/enums.js';
-import { isCorrect } from '../src/equivalences.js';
+import { isCorrect } from '../src/evaluation.js';
 import { isEquivalentDetection } from './utils.js';
 
 function bytes(s: string): Uint8Array {
@@ -184,6 +184,23 @@ describe('TestEscapeSequences', () => {
 
   test('esc in ascii long — issue #63', () => {
     assertDetection(concat(bytes('0'.repeat(100)), bytes('\x1b')), 'ascii');
+  });
+
+  test('plus digits not utf7 — issue #371', () => {
+    // UTF-7 Guard C rejects base64 runs containing no uppercase ASCII
+    // letters. bytes.islower() is not that test — it is False for an
+    // all-digit run like "100" (no cased characters), which let "+100" slip
+    // through and decode as a valid UTF-16BE code unit. Digit-only runs
+    // after '+' are plain ASCII.
+    const text = bytes(
+      'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do '
+      + 'eiusmod tempor incididunt ut labore et dolore magna aliqua.\n\n+100\n',
+    );
+    assertDetection(text, 'ascii');
+    // Other digit-only runs after '+' must also stay ASCII.
+    for (const run of ['+200', '+99', '+2000000']) {
+      assertDetection(bytes(`the value is ${run} units\n`), 'ascii');
+    }
   });
 });
 

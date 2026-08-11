@@ -12,7 +12,7 @@ import {
   PREFERRED_SUPERSET,
   applyCompatNames,
   applyPreferredSuperset,
-} from './equivalences.js';
+} from './output_names.js';
 import { _NONE_RESULT, DetectionResult } from './pipeline/index.js';
 import { runPipeline } from './pipeline/orchestrator.js';
 import { _validateEncoding, normalizeEncodings } from './registry.js';
@@ -142,7 +142,7 @@ export class UniversalDetector {
       return { ..._NONE_RESULT };
     }
     // Defensive copy: applyPreferredSuperset / applyCompatNames mutate the
-    // result in place (see src/equivalences.ts _remapEncoding). Python's
+    // result in place (see src/output_names.ts _remapEncoding). Python's
     // DetectionResult is a frozen dataclass and to_dict() always allocates a
     // new dict, sidestepping this.
     const d: DetectionResult = { ...this._detection };

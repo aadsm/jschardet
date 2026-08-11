@@ -1,4 +1,4 @@
-// Decode raw bytes into UTF-8 for bigram language scoring (used by _fillMetadata Tier 3).
+// Decode raw bytes into UTF-8 for bigram language scoring (used by fillLanguages Tier 3).
 //
 // Python's equivalent is trivial:
 //   data.decode(encoding, errors='ignore').encode('utf-8', errors='surrogatepass')

@@ -16,7 +16,7 @@ import { EncodingEra } from './enums.js';
 import {
   applyCompatNames,
   applyPreferredSuperset,
-} from './equivalences.js';
+} from './output_names.js';
 import { DetectionResult } from './pipeline/index.js';
 import { runPipeline } from './pipeline/orchestrator.js';
 import { _validateEncoding, normalizeEncodings } from './registry.js';
