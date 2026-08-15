@@ -14,4 +14,5 @@ tests/__screenshots__/
 .vitest-attachments/
 __pycache__/
 *.py[cod]
-.claude/
+.claude/*
+!.claude/skills/
