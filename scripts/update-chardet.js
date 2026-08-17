@@ -5,6 +5,7 @@ import { dirname, join } from 'node:path';
 import { generate as generateWhatwgMap } from './generate-encodings-whatwg-map.js';
 import { generate as generateModelBins } from './generate-model-bins.js';
 import { generate as generateSbcsUndefinedBytes } from './generate-sbcs-undefined-bytes.js';
+import { generate as generateConfusionCaseTables } from './generate-confusion-case-tables.js';
 import { listChardetTags } from './chardet-version.js';
 
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
@@ -27,6 +28,7 @@ async function updateSubmodule(tag) {
   console.log(`Done. chardet pinned to ${tag}.`);
   generateWhatwgMap();
   generateSbcsUndefinedBytes();
+  generateConfusionCaseTables();
   await generateModelBins();
 }
 

@@ -19,7 +19,9 @@ import { EncodingEra } from '../src/enums.js';
 import { detectMarkupCharset } from '../src/pipeline/markup.js';
 import { filterByValidity } from '../src/pipeline/validity.js';
 import { getCandidates } from '../src/registry.js';
-import { decoderForLabel, decodesWithoutError } from '../src/text-decoder.js';
+import { danglingTailWithAsciiPrefix, decoderForLabel, decodesCompletely, decodesWithoutError, whatwgLabelFor } from '../src/text-decoder.js';
+import { _decodesUnderPublicNames } from '../src/pipeline/postprocess.js';
+import { UniversalDetector } from '../src/detector.js';
 
 function hex(s: string): Uint8Array {
   const out = new Uint8Array(s.length / 2);
@@ -188,4 +190,110 @@ test('a deferred partial tail does not leak into the shared decoder cache', () =
 
   const expected = new TextDecoder('gbk', { fatal: true }).decode(_ZH_GBK);
   expect(decoderForLabel('gbk').decode(_ZH_GBK)).toBe(expected);
+});
+
+// ---- Decode-safety additions (chardet issue #380) ----
+
+// The strict sibling: same bytes, final=true flips the verdict.
+test('decodesCompletely rejects the tail-tolerance gap', () => {
+  const dangling = hex('6d616de1'); // "mamá".encode("iso-8859-1"), lone 0xE1 lead
+  expect(decodesWithoutError(whatwgLabelFor('utf-8')!, dangling)).toBe(true);
+  expect(decodesCompletely(whatwgLabelFor('utf-8')!, dangling)).toBe(false);
+  expect(decodesCompletely(whatwgLabelFor('cp1250')!, dangling)).toBe(true);
+});
+
+// The flip's evidence test: non-empty ASCII prefix plus a deferred tail.
+// b"mam\xe1" decodes to ASCII "mam" with 0xE1 deferred: true. A clipped
+// emoji is one dangling sequence with *nothing* decoded, which is zero
+// evidence rather than ASCII evidence: false. A mid-cut CJK fragment
+// decodes real multi-byte characters first: false.
+test('danglingTailWithAsciiPrefix classifies evidence', () => {
+  const utf8 = whatwgLabelFor('utf-8')!;
+  expect(danglingTailWithAsciiPrefix(utf8, hex('6d616de1'))).toBe(true);
+  expect(danglingTailWithAsciiPrefix(utf8, hex('f09f98'))).toBe(false);
+  const cjk = _JA_SHIFT_JIS.subarray(0, _JA_SHIFT_JIS.length - 1);
+  expect(danglingTailWithAsciiPrefix(whatwgLabelFor('shift_jis_2004')!, cjk)).toBe(false);
+  // Complete input has no deferred tail, so it is not a dangling shape.
+  expect(danglingTailWithAsciiPrefix(utf8, new TextEncoder().encode('mama'))).toBe(false);
+});
+
+// A rival must decode under the name the caller will actually use. Python
+// proves the euc_jis_2004/EUC-JP split with its own codecs; WHATWG
+// collapses euc_jis_2004 onto the euc-jp decoder, so here the internal and
+// public names are the *same* decoder and both reject the JIS X 0213 pair
+// — the promotion is refused either way, which is the invariant that
+// matters (see "bytes.decode() validity filtering" in docs/architecture.md).
+test('flip verifies the public name too', () => {
+  const data = hex('68656c6c6f20a2af'); // b"hello \xa2\xaf"
+  expect(decodesCompletely(whatwgLabelFor('euc_jis_2004')!, data)).toBe(false);
+  expect(_decodesUnderPublicNames(data, 'euc_jis_2004')).toBe(false);
+});
+
+// When chardet itself sliced, a dangling tail is chardet's own cut. The
+// same four bytes that flip to a decodable Latin answer as complete input
+// stay utf-8 when they are a maxBytes slice of longer data — the caller's
+// input goes on past the cut, so the strict-decode question does not apply
+// to the slice.
+//
+// The utf-8 assertion pins the current statistical coin flip over the
+// Latin candidates deliberately: it is the only observable difference from
+// the complete-input path (which flips to Windows-1250). If a model
+// retrain moves the coin flip, update the string here, not the invariant.
+test('internal slicing keeps the prefix tolerance', () => {
+  // "mamá mamá mamá".encode("iso-8859-1")
+  const data = hex('6d616de1206d616de1206d616de1');
+  const result = detect(data, { maxBytes: 4 });
+  expect(result.encoding).toBe('utf-8');
+});
+
+// Retrain-proof variant: sliced utf-8 keeps utf-8 via structure alone.
+test('internal slicing tolerance is structural too', () => {
+  const data = new TextEncoder().encode('héllo wörld '.repeat(50));
+  let cut = 100;
+  while (data[cut - 1] < 0x80) cut += 1; // land the slice mid-character
+  const result = detect(data, { maxBytes: cut });
+  expect(result.encoding).toBe('utf-8');
+});
+
+// UniversalDetector's cap is chardet-made truncation. feed() stops at
+// exactly maxBytes, so the pipeline cannot see the cut in data.length; the
+// detector must say so itself. Overflowed streams keep the tolerance and
+// agree with detect() on the same call, and an exactly-filled buffer with
+// nothing dropped counts as complete, also agreeing with detect().
+test('streaming buffer cap keeps the prefix tolerance', () => {
+  const data = hex('6d616de1206d616de1206d616de1');
+
+  const overflowed = new UniversalDetector({ maxBytes: 4 });
+  overflowed.feed(data);
+  expect(overflowed.close().encoding).toBe(detect(data, { maxBytes: 4 }).encoding);
+
+  const exact = new UniversalDetector({ maxBytes: 4 });
+  exact.feed(hex('6d616de1'));
+  expect(exact.close().encoding).toBe(detect(hex('6d616de1'), { maxBytes: 4 }).encoding);
+});
+
+// reset() must clear the truncation memory along with the buffer.
+test('streaming truncation flag resets', () => {
+  const det = new UniversalDetector({ maxBytes: 4 });
+  det.feed(hex('6d616de1206d616de1')); // "mamá mamá"
+  det.close();
+  det.reset();
+  det.feed(hex('6d616de1'));
+  const result = det.close();
+  expect(result.encoding).toBe(detect(hex('6d616de1'), { maxBytes: 4 }).encoding);
+});
+
+// A mid-character CJK cut must not flip to a low-confidence Latin codec.
+// The guard is evidence, not confidence: a CJK winner has decoded real
+// multi-byte characters before the cut, so its tolerant decode is not pure
+// ASCII and the decode-safety flip never touches it.
+test('truncated cjk chunk keeps its answer', () => {
+  let chunk = repeatBytes(_JA_SHIFT_JIS, 8);
+  const sjLabel = whatwgLabelFor('shift_jis_2004')!;
+  while (decodesCompletely(sjLabel, chunk)) {
+    chunk = chunk.subarray(0, chunk.length - 1);
+  }
+  const result = detect(chunk, { encodingEra: EncodingEra.ALL });
+  const enc = (result.encoding ?? '').toLowerCase();
+  expect(enc.startsWith('shift_jis') || enc.startsWith('cp932')).toBe(true);
 });

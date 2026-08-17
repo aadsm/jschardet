@@ -26,6 +26,88 @@ const _BASE64_TABLE: Uint8Array = (() => {
   return t;
 })();
 
+// Strict UTF-7 validity check, mirroring CPython's utf_7 incremental
+// decoder (chardet's decodes_without_error(data, "utf-7")). The existing
+// _utf7ToUtf8 below is deliberately lenient — it skips invalid bytes to
+// produce best-effort text for language scoring — which is exactly what a
+// validity gate must not do, so this is a separate faithful reimplementation
+// of CPython's error behavior, pinned against the real codec by the
+// oracle cases in tests/escape.test.ts:
+//
+// - Direct mode: any byte < 0x80 passes; >= 0x80 is an error.
+// - "+" enters a shifted sequence. A "+" followed directly by anything
+//   that is neither base64 nor "-" is ill-formed ("+|", "+ ", "+\n").
+//   "+-" is a literal plus.
+// - Inside a shift, base64 chars accumulate 6 bits each; every complete
+//   16 bits form a UTF-16 code unit. Lone surrogates are accepted (CPython
+//   emits them as-is).
+// - A shift terminates at "-" (absorbed) or any other non-base64 byte
+//   (reprocessed in direct mode). At termination, >= 6 leftover bits are a
+//   partial character and < 6 nonzero leftover bits are bad padding — both
+//   errors.
+// - At end of input with final=true, an open shift is an unterminated
+//   sequence error when >= 6 bits are pending or a high surrogate awaits
+//   its mate; with final=false the open shift is deferred (truncation
+//   tolerance), matching the incremental decoder.
+export function utf7DecodesWithoutError(data: Uint8Array, final = false): boolean {
+  let inShift = false;
+  let shiftStart = false; // current position is directly after the '+'
+  let bits = 0;
+  let buffer = 0;
+  let surrogatePending = false;
+  for (let i = 0; i < data.length; i++) {
+    const b = data[i];
+    if (inShift) {
+      const val = _BASE64_TABLE[b];
+      if (val !== 0xff) {
+        shiftStart = false;
+        buffer = (buffer << 6) | val;
+        bits += 6;
+        if (bits >= 16) {
+          bits -= 16;
+          const unit = (buffer >> bits) & 0xffff;
+          buffer &= (1 << bits) - 1;
+          if (surrogatePending) {
+            surrogatePending = unit >= 0xd800 && unit <= 0xdbff;
+          } else if (unit >= 0xd800 && unit <= 0xdbff) {
+            surrogatePending = true;
+          }
+        }
+        continue;
+      }
+      // Non-base64 byte: terminate (or reject) the shift.
+      if (shiftStart) {
+        if (b !== 0x2d) return false; // ill-formed: "+" + non-base64
+        inShift = false; // "+-" is a literal plus
+        continue;
+      }
+      if (bits >= 6) return false; // partial character in shift sequence
+      if (bits > 0 && buffer !== 0) return false; // nonzero padding bits
+      surrogatePending = false; // a lone surrogate is emitted, not an error
+      inShift = false;
+      bits = 0;
+      buffer = 0;
+      if (b === 0x2d) continue; // terminator absorbed
+      if (b >= 0x80) return false;
+      // any other ASCII byte is reprocessed literally (cannot be '+',
+      // which is base64 inside a shift)
+    } else if (b === 0x2b) {
+      inShift = true;
+      shiftStart = true;
+      bits = 0;
+      buffer = 0;
+    } else if (b >= 0x80) {
+      return false;
+    }
+  }
+  if (final && inShift) {
+    if (surrogatePending) return false; // unterminated shift sequence
+    if (bits >= 6) return false; // unterminated shift sequence
+    if (bits > 0 && buffer !== 0) return false; // partial character
+  }
+  return true;
+}
+
 // Decode UTF-32 bytes to UTF-8. Called for 'utf-32', 'utf-32-be', 'utf-32-le'.
 // 'utf-32' carries a BOM; the other two are bare (no BOM) and their names encode endianness.
 function _utf32ToUtf8(data: Uint8Array, encoding: string): Uint8Array | null {

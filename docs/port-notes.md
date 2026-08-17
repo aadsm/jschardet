@@ -66,7 +66,9 @@ Consequences: `compare-with-chardet.js` / `tests/compare-detect` flag a DIFF whe
 
 ## Referencing the Python source in TS comments
 
-When pointing at Python code in a comment, use **symbol names** (function, class, regex constant), not `file.py:line`. Line numbers shift whenever the chardet submodule pin moves; symbol names survive minor refactors and stay grep-able from `chardet/src/chardet/`. Example:
+When pointing at Python code in a comment, use **symbol names** (function, class, regex constant), not `file.py:line`. Line numbers shift whenever the chardet submodule pin moves; symbol names survive minor refactors and stay grep-able from `chardet/src/chardet/`.
+
+Attribute precisely: say **"chardet's X"** for upstream chardet symbols (`chardet's decodes_without_error`, `chardet's _letter_case_table`) and reserve **"Python"/"CPython"** for the language and its stdlib (`codecs`, `unicodedata`, `bytes.translate`, the `utf_7` codec). The port leans on both, and "Python's X" for a chardet symbol reads as a stdlib claim. Example:
 
     // Python _detect_pep263 short-circuits if no '#' is in the first 200 bytes.
 

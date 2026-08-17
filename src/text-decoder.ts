@@ -75,3 +75,55 @@ export function decodesWithoutError(label: string, data: Uint8Array): boolean {
     try { decoder.decode(); } catch { /* pending partial tail — expected */ }
   }
 }
+
+// Port of chardet's decodes_completely — the strict sibling of
+// decodesWithoutError: a one-shot fatal decode, so an incomplete multi-byte
+// sequence at the end is an error rather than a deferred tail. This is the
+// question that matters when the data is the caller's entire input —
+// data.decode(encoding) in Python, or a fatal TextDecoder over the whole
+// buffer, makes exactly this judgment.
+export function decodesCompletely(label: string, data: Uint8Array): boolean {
+  const decoder = decoderForLabel(label);
+  try {
+    decoder.decode(data);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+const ASCII_ONLY_RE = /^[\x00-\x7F]*$/;
+
+// Port of chardet's dangling_tail_with_ascii_prefix. One decode pass answers
+// both halves of the decode-safety question: the tolerant ({ stream: true })
+// decode yields the text before any deferred tail, and flushing the decoder
+// afterwards throws exactly when a deferred tail existed. True means the
+// candidate decoded real ASCII characters and then hit an incomplete
+// multi-byte sequence at the end — its only non-ASCII evidence is the
+// undecodable tail itself.
+//
+// Deliberately false when the tolerant decode yields nothing at all (the
+// entire input is one dangling sequence): that candidate has zero decoded
+// evidence, not ASCII evidence, and a clipped multi-byte fragment is better
+// served by the ranking's own judgment.
+export function danglingTailWithAsciiPrefix(label: string, data: Uint8Array): boolean {
+  const decoder = decoderForLabel(label);
+  let text: string;
+  try {
+    text = decoder.decode(data, { stream: true });
+  } catch {
+    // Corrupt before the tail, not tail-truncated. Reset the cached decoder.
+    try { decoder.decode(); } catch { /* pending partial tail — expected */ }
+    return false;
+  }
+  // Flush before evaluating so the cached decoder is always reset; the
+  // throw is the deferred tail reporting itself.
+  let hadDanglingTail = false;
+  try {
+    decoder.decode();
+  } catch {
+    hadDanglingTail = true;
+  }
+  if (!text || !ASCII_ONLY_RE.test(text)) return false;
+  return hadDanglingTail;
+}

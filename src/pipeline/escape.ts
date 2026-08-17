@@ -1,5 +1,6 @@
 import { findBytes } from '../utils.js';
 import { DETERMINISTIC_CONFIDENCE, DetectionResult } from './index.js';
+import { utf7DecodesWithoutError } from './to-utf8.js';
 
 function _hasValidHzRegions(data: Uint8Array): boolean {
   const begin_marker = new Uint8Array([0x7e, 0x7b]); // "~{"
@@ -109,9 +110,50 @@ function _hasValidUtf7Sequences(data: Uint8Array): boolean {
     const b64Data = data.subarray(pos, i);
     // Guard C: reject base64 blocks with no uppercase letters
     if (b64Len >= 3 && !b64Data.some(b => b >= 0x41 && b <= 0x5a)) { start = i; continue; }
-    if (b64Len >= 3 && _isValidUtf7B64(b64Data)) return true;
+    if (b64Len >= 3 && _isValidUtf7B64(b64Data)) {
+      // Guard D: a block encoding a *single* code unit — with or without a
+      // dash terminator — must decode into a script range where a lone
+      // shifted character plausibly occurs. The corpus's single-unit
+      // blocks live in Latin/Greek/Cyrillic/Hebrew/Arabic supplements,
+      // Thai, general punctuation through arrows (em dashes and ellipses
+      // dominate), CJK, kana, Hangul, and fullwidth forms. An accidental
+      // uppercase run like "+LAY" (chardet issue #371) decodes to U+2C06,
+      // Glagolitic — no genuine lone block in the corpus lands in such a
+      // range. Multi-unit blocks are untouched: accidental ASCII does not
+      // survive the padding and surrogate checks for long runs.
+      if (Math.floor((b64Len * 6) / 16) === 1) {
+        const unit = _singleUnit(b64Data);
+        if (!_plausibleLoneUnit(unit)) {
+          start = i;
+          continue;
+        }
+      }
+      return true;
+    }
     start = Math.max(pos, i);
   }
+}
+
+// Decode the first (only) UTF-16 code unit of a single-unit block.
+function _singleUnit(b64Data: Uint8Array): number {
+  return (
+    ((_B64_DECODE.get(b64Data[0])! << 12) |
+      (_B64_DECODE.get(b64Data[1])! << 6) |
+      _B64_DECODE.get(b64Data[2])!) >> 2
+  );
+}
+
+// Script ranges where a lone shifted character plausibly occurs.
+function _plausibleLoneUnit(unit: number): boolean {
+  return (
+    (unit >= 0x0080 && unit <= 0x07ff) || // Latin supp. .. Arabic
+    (unit >= 0x0e00 && unit <= 0x0fff) || // Thai, Lao, Tibetan
+    (unit >= 0x2000 && unit <= 0x2bff) || // punctuation .. arrows (em dash, euro)
+    (unit >= 0x3000 && unit <= 0x30ff) || // CJK punctuation, kana
+    (unit >= 0x4e00 && unit <= 0x9fff) || // CJK unified
+    (unit >= 0xac00 && unit <= 0xd7a3) || // Hangul
+    (unit >= 0xff00 && unit <= 0xffef)    // fullwidth forms
+  );
 }
 
 // Escape sequence byte patterns for ISO-2022 variants
@@ -175,12 +217,22 @@ export function detectEscapeEncoding(data: Uint8Array): DetectionResult | null {
     return { encoding: 'hz', confidence: DETERMINISTIC_CONFIDENCE, language: 'zh', mimeType: null };
   }
 
-  // UTF-7: every byte must be in 0x00–0x7F
+  // UTF-7: plus-sign shifts into Base64-encoded Unicode. UTF-7 is a 7-bit
+  // encoding (RFC 2152): every byte must be in 0x00–0x7F. The whole buffer
+  // must also *decode* as UTF-7: tabular ASCII like "|16847+|" contains
+  // "+|", which is illegal (a shift must be followed by base64 or "-"), so
+  // the decode gate kills the delimited-data false-positive class outright
+  // while genuine UTF-7 — which real encoders emit as valid streams —
+  // always passes. The decoder fails fast on the first bad sequence.
   if (hasPlus) {
     // Spread into Math.max is unsafe on large Uint8Arrays; loop instead
     let maxByte = 0;
     for (const b of data) { if (b > maxByte) maxByte = b; }
-    if (maxByte < 0x80 && _hasValidUtf7Sequences(data)) {
+    if (
+      maxByte < 0x80 &&
+      utf7DecodesWithoutError(data) &&
+      _hasValidUtf7Sequences(data)
+    ) {
       return { encoding: 'utf-7', confidence: DETERMINISTIC_CONFIDENCE, language: null, mimeType: null };
     }
   }

@@ -41,6 +41,7 @@ export default defineConfig({
       // node:buffer in browser builds, so importing these blows up.
       'tests/equivalences.test.ts',
       'tests/github_issues.test.ts',
+      'tests/roundtrip_short.test.ts',
       // Spawns python3 as a long-lived codec oracle; no browser equivalent.
       'tests/spec_decode_roundtrip.test.ts',
       // Uses node:fs, node:child_process, node:os — Node-only by design.

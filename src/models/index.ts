@@ -173,9 +173,29 @@ export function getIdfWeights(): Uint8Array {
   return idfWeightsCache;
 }
 
+// 256-entry membership table for whitespace bytes whose runs training
+// collapsed. Covers the ASCII whitespace bytes (space, tab, LF, VT, FF, CR)
+// plus NBSP (0xA0): training's run collapse operates on decoded text where
+// regex \s matches all of these, so Latin models carry no run weight for
+// them and an uncollapsed input run would match only unrelated models
+// where the byte happens to be a letter. 0x85 (NEL in the ISO family) is
+// deliberately absent: it decodes to the ellipsis in windows-1252, whose
+// models legitimately carry ellipsis-run weight.
+const ASCII_WHITESPACE_TABLE = new Uint8Array(256);
+for (const b of [0x20, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0xA0]) {
+  ASCII_WHITESPACE_TABLE[b] = 1;
+}
+
 export class BigramProfile {
+  // Exactly one of freq and values carries the weights, never both. The
+  // streaming constructor keeps the dense freq table it had to build and
+  // leaves values empty; fromWeightedFreq fills values parallel to nonzero
+  // and no table, which is what lets it skip a 65536-entry allocation for
+  // the small focused profiles confusion resolution builds (chardet's
+  // BigramProfile stores them the same two ways).
   freq: Uint32Array | number[];
   nonzero: number[];
+  values: number[];
   weightSum: number;
   inputNorm: number;
 
@@ -186,6 +206,7 @@ export class BigramProfile {
       // 0 early when inputNorm == 0, so freq is never indexed.
       this.freq = [];
       this.nonzero = [];
+      this.values = [];
       this.weightSum = 0;
       this.inputNorm = 0;
       return;
@@ -196,7 +217,14 @@ export class BigramProfile {
     const nonzero: number[] = [];
     let wSum = 0;
     for (let i = 0; i < totalBigrams; i++) {
-      const idx = (data[i] << 8) | data[i + 1];
+      const b1 = data[i];
+      const b2 = data[i + 1];
+      // Skip repeated-whitespace bigrams (equivalent to collapsing
+      // whitespace runs, which training does before counting): padding
+      // and indentation carry no encoding signal, and models trained
+      // on lossy transcodes can carry spurious weight for them.
+      if (b1 === b2 && ASCII_WHITESPACE_TABLE[b1]) continue;
+      const idx = (b1 << 8) | b2;
       const w = idf[idx];
       if (freq[idx] === 0) nonzero.push(idx);
       freq[idx] += w;
@@ -204,6 +232,7 @@ export class BigramProfile {
     }
     this.freq = freq;
     this.nonzero = nonzero;
+    this.values = [];
     this.weightSum = wSum;
     let normSq = 0;
     for (const idx of nonzero) {
@@ -215,18 +244,20 @@ export class BigramProfile {
 
   static fromWeightedFreq(weightedFreq: Map<number, number>): BigramProfile {
     const profile = new BigramProfile(new Uint8Array(0));
-    const freq = new Uint32Array(65536);
     const nonzero: number[] = [];
+    const values: number[] = [];
     let weightSum = 0;
     let normSq = 0;
     for (const [idx, count] of weightedFreq) {
-      freq[idx] = count;
-      if (count) nonzero.push(idx);
-      weightSum += count;
-      normSq += count * count;
+      if (count) {
+        nonzero.push(idx);
+        values.push(count);
+        weightSum += count;
+        normSq += count * count;
+      }
     }
-    profile.freq = freq;
     profile.nonzero = nonzero;
+    profile.values = values;
     profile.weightSum = weightSum;
     profile.inputNorm = Math.sqrt(normSq);
     return profile;
@@ -251,17 +282,52 @@ export function scoreWithProfile(
   }
   if (modelNorm === 0) return 0;
   let dot = 0;
-  const freq = profile.freq;
-  for (const idx of profile.nonzero) {
-    dot += model[idx] * freq[idx];
+  const nonzero = profile.nonzero;
+  const values = profile.values;
+  if (values.length) {
+    // Sparse profile (fromWeightedFreq): weights live in the parallel
+    // values list, there is no dense table to index.
+    for (let i = 0; i < nonzero.length; i++) {
+      dot += model[nonzero[i]] * values[i];
+    }
+  } else {
+    const freq = profile.freq;
+    for (const idx of nonzero) {
+      dot += model[idx] * freq[idx];
+    }
   }
   return dot / (modelNorm * profile.inputNorm);
 }
+
+// ADR-0005's hand-audited rare-language set, shared with the encoding-side
+// arbitration gate in pipeline/postprocess. One set, two gates: the
+// deployment evidence that justifies membership is recorded in the ADR and
+// any new genuine specimen forces a re-audit of both.
+export const RARE_LANGUAGES: ReadonlySet<string> = new Set(['gd', 'cy', 'ga', 'br']);
+
+// The ANSI/ASCII-art pseudo-language. Never a valid demotion target for
+// the thin-rare band: swapping a rare label for "zxx" would tell the
+// orchestrator the text has no linguistic content at all.
+export const ART_LANGUAGE = 'zxx';
+
+// The thin-margin band for demoteThinRare: inputs shorter than this are
+// where bigram cosines stop discriminating (apostrophe-rich English
+// snippets score as Gaelic). The callers in pipeline/language own the
+// length judgment because only they know the pre-transcoding size.
+export const THIN_RARE_MAX_BYTES = 128;
+
+// Maximum lead over the best prevalent-language variant for a rare win on
+// a short input to count as noise. Measured mislabels win by <= 0.021;
+// genuine gd/cy snippets measure 0.07+. Short Breton and Irish can sit
+// inside the band and are the accepted casualty class per ADR-0005's
+// addendum — widening the margin widens that class.
+const THIN_RARE_MARGIN = 0.03;
 
 export function scoreBestLanguage(
   data: Uint8Array,
   encoding: string,
   profile?: BigramProfile,
+  { demoteThinRare = false }: { demoteThinRare?: boolean } = {},
 ): [number, string | null] {
   if (data.length === 0 && profile === undefined) return [0, null];
 
@@ -270,14 +336,41 @@ export function scoreBestLanguage(
 
   const p = profile ?? new BigramProfile(data);
 
+  // demoteThinRare is passed only when the caller has judged the original
+  // input thin (under THIN_RARE_MAX_BYTES before any transcoding) — this
+  // function may receive transcoded bytes, so data.length here is not a
+  // reliable proxy for input size. Language-fill callers pass it;
+  // encoding-ranking callers must not, so candidate ordering stays
+  // byte-identical (chardet's score_best_language demote_thin_rare).
   let bestScore = 0;
   let bestLang: string | null = null;
+  let bestPrevalent = 0;
+  let bestPrevalentLang: string | null = null;
   for (const [lang, model, modelKey] of variants) {
     const s = scoreWithProfile(p, model, modelKey);
     if (s > bestScore) {
       bestScore = s;
       bestLang = lang;
     }
+    if (
+      demoteThinRare &&
+      (lang === null || (!RARE_LANGUAGES.has(lang) && lang !== ART_LANGUAGE)) &&
+      s > bestPrevalent
+    ) {
+      bestPrevalent = s;
+      bestPrevalentLang = lang;
+    }
   }
+
+  if (
+    demoteThinRare &&
+    bestLang !== null &&
+    RARE_LANGUAGES.has(bestLang) &&
+    bestPrevalentLang !== null &&
+    bestScore - bestPrevalent < THIN_RARE_MARGIN
+  ) {
+    bestLang = bestPrevalentLang;
+  }
+
   return [bestScore, bestLang];
 }

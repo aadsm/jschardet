@@ -52,6 +52,7 @@ export class UniversalDetector {
   // KB and the buffer is allocated once per detector even for tiny streams.
   private _chunks: Uint8Array[] = [];
   private _bufferLength = 0;
+  private _inputTruncated = false;
   private _done = false;
   private _closed = false;
   private _detection: DetectionResult | null = null;
@@ -98,6 +99,12 @@ export class UniversalDetector {
       this._chunks.push(chunk);
       this._bufferLength += take;
     }
+    if (byteStr.length > Math.max(remaining, 0)) {
+      // Bytes beyond the cap were dropped: the buffer is a truncated view
+      // of the caller's stream, which the pipeline cannot infer from the
+      // buffer length alone (it equals maxBytes exactly).
+      this._inputTruncated = true;
+    }
     if (this._bufferLength >= this._maxBytes) {
       this._done = true;
     }
@@ -114,6 +121,7 @@ export class UniversalDetector {
       }
       const results = runPipeline(data, this._encodingEra, {
         maxBytes: this._maxBytes,
+        inputTruncated: this._inputTruncated,
         includeEncodings: this._includeEncodings,
         excludeEncodings: this._excludeEncodings,
         noMatchEncoding: this._noMatchEncoding,
@@ -128,6 +136,7 @@ export class UniversalDetector {
   reset(): void {
     this._chunks = [];
     this._bufferLength = 0;
+    this._inputTruncated = false;
     this._done = false;
     this._closed = false;
     this._detection = null;
