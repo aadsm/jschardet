@@ -13,13 +13,27 @@ import { detectUtf8 } from '../src/pipeline/utf8.js';
 // ---------------------------------------------------------------------------
 
 // The exact set of [bytes, canonical_name] pairs chardet must recognise.
-// Derived from Unicode §23.8 and the WHATWG decode algorithm.
+// Derived from Unicode §23.8 and the WHATWG decode algorithm, plus
+// chardet's documented divergences (UTF-32, and the payload-validated
+// UTF-7 signature). UTF-7 is also the one exception to the BOM-strip
+// property: Python has no utf-7-sig codec, so decoding with the reported
+// name leaves a leading U+FEFF for the caller to drop.
 const EXPECTED_BOM_SET: Array<[Uint8Array, string]> = [
   [new Uint8Array([0xef, 0xbb, 0xbf]),             'utf-8-sig'],
   [new Uint8Array([0xfe, 0xff]),                   'utf-16'],
   [new Uint8Array([0xff, 0xfe]),                   'utf-16'],
   [new Uint8Array([0x00, 0x00, 0xfe, 0xff]),       'utf-32'],
   [new Uint8Array([0xff, 0xfe, 0x00, 0x00]),       'utf-32'],
+  // Deliberate divergence from WHATWG: the UTF-7 signature (U+FEFF in
+  // UTF-7, four prefixes per RFC 2152). WHATWG excludes UTF-7 from
+  // browsers entirely as a security posture, but chardet already detects
+  // unsigned UTF-7 through the escape stage, and refusing only the
+  // *signed* variant would be incoherent — a signed file would read as
+  // ASCII with a literal "+/v8-" at the front.
+  [new Uint8Array([0x2b, 0x2f, 0x76, 0x38]),       'utf-7'],
+  [new Uint8Array([0x2b, 0x2f, 0x76, 0x39]),       'utf-7'],
+  [new Uint8Array([0x2b, 0x2f, 0x76, 0x2b]),       'utf-7'],
+  [new Uint8Array([0x2b, 0x2f, 0x76, 0x2f]),       'utf-7'],
 ];
 
 function bomKey(bom: Uint8Array, name: string): string {

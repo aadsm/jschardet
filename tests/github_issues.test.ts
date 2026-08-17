@@ -7,6 +7,7 @@ import { detect } from '../src/chardet.js';
 import { EncodingEra } from '../src/enums.js';
 import { isCorrect } from '../src/evaluation.js';
 import { isEquivalentDetection } from './utils.js';
+import * as iconv from 'iconv-lite';
 
 function bytes(s: string): Uint8Array {
   return Uint8Array.from(s, c => c.charCodeAt(0));
@@ -200,6 +201,96 @@ describe('TestEscapeSequences', () => {
     // Other digit-only runs after '+' must also stay ASCII.
     for (const run of ['+200', '+99', '+2000000']) {
       assertDetection(bytes(`the value is ${run} units\n`), 'ascii');
+    }
+  });
+
+  test('plus uppercase word not utf7 — issue #371 follow-up', () => {
+    // Three uppercase base64 characters can pass the padding and surrogate
+    // checks by accident ("LAY" decodes to U+2C06, Glagolitic). Guard D now
+    // requires a dash-less single-unit block to decode into a script range
+    // where a genuine lone shifted character lives.
+    assertDetection(bytes('|16847+|\n|NAME,+LAY|\n'.repeat(20)), 'ascii');
+    assertDetection(
+      bytes('ID|AMOUNT|NAME\n16847+|100|SMITH,+JONES\n29383+|250|NAME,+LAY\n'),
+      'ascii',
+    );
+  });
+
+  test('lone accent still utf7', () => {
+    // Guard D must keep genuine sparse utf-7: lone accents amid ASCII.
+    // Python: "è bello qui, à Paris si va, ù pure\n".encode("utf-7") * 4.
+    assertDetection(
+      bytes('+AOg bello qui, +AOA Paris si va, +APk pure\n'.repeat(4)),
+      'utf-7',
+    );
+  });
+
+  test('utf7 signature detected', () => {
+    // A UTF-7 signature (U+FEFF as "+/v8-") must not read as ASCII.
+    // Python: "﻿Hello there, ...".encode("utf-7").
+    assertDetection(bytes('+/v8-Hello there, signed utf-7 content here.'), 'utf-7');
+  });
+
+  test('utf7 signature prefix alone is not utf7', () => {
+    // The four UTF-7 signature prefixes are ordinary ASCII; a diff of V8
+    // source paths begins with "+/v8". The BOM entry therefore demands the
+    // whole buffer decode as UTF-7 before it believes the prefix.
+    assertDetection(
+      bytes('+/v8/src/api.cc\n+/v8/src/objects.h\nthese lines were added\n'),
+      'ascii',
+    );
+    assertDetection(bytes('+/v9 is the new deps path for the build\n'), 'ascii');
+  });
+
+  test('dash terminated uppercase run not utf7', () => {
+    // Guard D applies with or without the dash: "+LAY-AWAY" stays ASCII.
+    assertDetection(bytes('|16847+|\n|NAME,+LAY-AWAY|\n'.repeat(20)), 'ascii');
+    assertDetection(
+      bytes('SOME NAME,+LAY THEN MORE TEXT FOLLOWS HERE OK\n'.repeat(10)),
+      'ascii',
+    );
+  });
+
+  test('lone punctuation and cjk units stay utf7', () => {
+    // Python's encoder emits "+IBQ" (em dash) and "+ZeU" (kanji) without
+    // dash terminators before direct characters; a guard that only allowed
+    // Latin-supplement lone units flipped these to ASCII. Bytes below are
+    // Python's utf-7 encodings of the em-dash/ellipsis and kanji samples.
+    assertDetection(
+      bytes('The result +IBQ good.\nThe cost +ICY high, but fine.\n'.repeat(6)),
+      'utf-7',
+    );
+    assertDetection(
+      bytes('The kanji for day is +ZeU in Japanese text.\n'.repeat(5)),
+      'utf-7',
+    );
+  });
+});
+
+// Issue #380: complete input detected as an encoding that cannot decode it.
+// b"mam\xe1" (iso-8859-1 "mamá") ranked utf-8 a hair above the Latin
+// candidates, and utf-8 cannot decode the dangling 0xE1 — the caller's very
+// next decode raised. When chardet has seen the caller's entire input and
+// the winner's only multi-byte evidence is the dangling tail itself, the
+// best rival that decodes completely now wins.
+describe('TestIssue380', () => {
+  test('mama returns an encoding that decodes', () => {
+    const data = bytes('mam\xe1');
+    const result = detect(data);
+    expect(result.encoding).not.toBeNull();
+    const decoded = iconv.decode(Buffer.from(data), result.encoding!);
+    expect(decoded).toBe('mamá');
+  });
+
+  test('dangling tail words decode', () => {
+    // The class, not just the instance: accented-final words round-trip.
+    // All characters are < U+0100, so bytes() is the iso-8859-1 encode.
+    for (const word of ['mamá', 'papá', 'café olé', 'groß']) {
+      const data = bytes(word);
+      const result = detect(data);
+      expect(result.encoding, word).not.toBeNull();
+      const decoded = iconv.decode(Buffer.from(data), result.encoding!);
+      expect(decoded.length, word).toBeGreaterThan(0);
     }
   });
 });

@@ -2,6 +2,7 @@
 // Port of chardet/src/chardet/pipeline/orchestrator.py.
 
 import { DEFAULT_MAX_BYTES } from '../utils.js';
+import { ART_LANGUAGE } from '../models/index.js';
 import {
   _NONE_RESULT,
   DETERMINISTIC_CONFIDENCE,
@@ -191,6 +192,11 @@ export interface RunPipelineOptions {
   excludeEncodings?: ReadonlySet<string> | null;
   noMatchEncoding?: string;
   emptyInputEncoding?: string;
+  // Pass true when data is already a truncated view of the caller's input
+  // (UniversalDetector caps its buffer at maxBytes, which this function
+  // cannot see from data.length alone). Truncation by the maxBytes slice
+  // here is detected either way; the flag only ever widens it.
+  inputTruncated?: boolean;
 }
 
 function _runPipelineCore(
@@ -201,8 +207,10 @@ function _runPipelineCore(
   excludeEncodings: ReadonlySet<string> | null,
   noMatchEncoding: string,
   emptyInputEncoding: string,
+  inputTruncated: boolean,
 ): DetectionResult[] {
   const ctx = new PipelineContext();
+  inputTruncated = inputTruncated || data.length > maxBytes;
   // subarray gives a zero-copy view; Python's data[:maxBytes] copies.
   data = data.subarray(0, maxBytes);
 
@@ -359,7 +367,7 @@ function _runPipelineCore(
         ctx,
       );
       if (results.length > 0) {
-        return _internal.postprocessResults(data, results);
+        return _internal.postprocessResults(data, results, { inputTruncated });
       }
     }
   }
@@ -373,7 +381,7 @@ function _runPipelineCore(
     return _makeFallbackOrNone(noMatchEncoding, allowed, 'no_match_encoding');
   }
 
-  return _internal.postprocessResults(data, results);
+  return _internal.postprocessResults(data, results, { inputTruncated });
 }
 
 export function runPipeline(
@@ -395,8 +403,17 @@ export function runPipeline(
     excludeEncodings,
     noMatchEncoding,
     emptyInputEncoding,
+    options?.inputTruncated ?? false,
   );
   results = _internal.fillLanguages(data, results);
+  // The ANSI-art model is keyed under the "zxx" pseudo-language (ISO 639
+  // for "no linguistic content"). Kept internal so language fill does not
+  // overwrite it; callers see language=null.
+  results = results.map(r =>
+    r.language === ART_LANGUAGE
+      ? { encoding: r.encoding, confidence: r.confidence, language: null, mimeType: r.mimeType }
+      : r,
+  );
   results = results.map(_withDefaultMime);
   if (results.length === 0) {
     throw new Error('pipeline must always return at least one result');

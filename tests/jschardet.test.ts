@@ -110,12 +110,14 @@ describe('Bug regressions', () => {
   });
 
   // Sample 2 (jyrkive, 2020): 2 KB of real Shift-JIS Japanese. Ideal: a
-  // Japanese encoding wins. Current top 3:
-  //   1. cp1006    / ur   conf 0.1705
-  //   2. cp932     / ja   conf 0.1174
-  //   3. SHIFT_JIS / ja   conf 0.1162
-  // Japanese candidates are present but cp1006 (Urdu) wrongly takes #1.
-  test.fails('Shift-JIS Japanese text ranks above Urdu cp1006 (issue #30)', () => {
+  // Japanese wins since the chardet 7.6.0 retrain and dead-heat superset
+  // promotion: CP932 and SHIFT_JIS tie at 0.1367 and the superset takes
+  // the top slot, with cp1006 far down the ranking. Matches upstream
+  // Python chardet exactly. Current top 3:
+  //   1. CP932     / ja   conf 0.1367
+  //   2. SHIFT_JIS / ja   conf 0.1367
+  //   3. MacLatin2 / hu   conf 0.0267
+  test('Shift-JIS Japanese text ranks above Urdu cp1006 (issue #30)', () => {
     const all = detectAll(shiftJisParticleSakura);
     expect(all[0].language).toBe('ja');
   });

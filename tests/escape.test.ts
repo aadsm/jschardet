@@ -1,4 +1,5 @@
 import { detectEscapeEncoding, _isValidUtf7B64 } from '../src/pipeline/escape.js';
+import { utf7DecodesWithoutError } from '../src/pipeline/to-utf8.js';
 
 const DETERMINISTIC_CONFIDENCE = 0.95;
 
@@ -264,3 +265,87 @@ describe('_isValidUtf7B64', () => {
 
 // test_utf7_rejects_hex_hash_in_requirements_file omitted: requires chardet.detect()
 // which is not available until Step 8. Add to escape.test.ts when Step 8 is complete.
+
+// ---------------------------------------------------------------------------
+// Strict UTF-7 validity decoder (utf7DecodesWithoutError)
+// ---------------------------------------------------------------------------
+//
+// The decode gate must match CPython's utf_7 incremental decoder exactly —
+// a gate slightly stricter or looser than Python's flips different inputs.
+// Each row is [hex bytes, expected final=false verdict, expected final=true
+// verdict], generated from codecs.getincrementaldecoder("utf-7") (CPython
+// 3.11); the TS implementation was additionally swept against 3,500+
+// randomized oracle cases with zero mismatches at port time. No test here
+// may be edited to match the implementation — regenerate from CPython.
+const UTF7_ORACLE_CASES: Array<[string, boolean, boolean]> = [
+  ['2b7c78', false, false],
+  ['2b2d', true, true],
+  ['2b', true, true],
+  ['2b414545', true, true],
+  ['2b4145452d', true, true],
+  ['2b4145', true, false],
+  ['2b4146', true, false],
+  ['2b3241412d', true, true],
+  ['2b3241446341412d', true, true],
+  ['2b3341412d', true, true],
+  ['612b2062', false, false],
+  ['2b0a', false, false],
+  ['6162ff6364', false, false],
+  ['2b41434521', true, true],
+  ['7c31363834372b7c', false, false],
+  ['2b41454578', true, false],
+  ['2b41454578414545', true, false],
+  ['2b414477', true, true],
+  ['2b414141', true, true],
+  ['2b42424242', true, false],
+  ['2b4141', true, false],
+  ['2b41412d', false, false],
+  ['2b414545782d', false, false],
+  ['2b414545412d', false, false],
+  ['2b324141', true, false],
+  ['2b324144', true, false],
+  ['2b324144634141', true, true],
+  ['0102', true, true],
+  ['2b3d', false, false],
+  ['612b3d78', false, false],
+  ['2b4143453d', true, true],
+  ['2b414545ff', false, false],
+  ['2b41434541', true, false],
+  ['2b4143454178', true, false],
+  ['2b2b', true, false],
+  ['2b2f76382d616263', true, true],
+  ['2b2f7638', true, true],
+  ['2b414546', true, false],
+  ['2b4145462d', false, false],
+  ['2b32414121', true, true],
+  ['2b3241414145452d', false, false],
+  ['48656c6c6f2c20576f726c6421', true, true],
+  ['2b5432744968412d', true, true],
+  ['432b2b323020616e64202b2b726f77', true, false],
+  ['2b313030', true, true],
+  ['2b414745415967426a2d78797a', true, true],
+  ['', true, true],
+  ['2d', true, true],
+  ['2d2d2b', true, true],
+  ['2b2f2f7639', true, false],
+  ['2b2f76392d', false, false],
+  ['2b2f762b', true, false],
+  ['2b2f762f', true, false],
+];
+
+test('utf7DecodesWithoutError matches the CPython oracle', () => {
+  const failures: string[] = [];
+  for (const [hexStr, expectStream, expectFinal] of UTF7_ORACLE_CASES) {
+    const data = new Uint8Array(hexStr.length / 2);
+    for (let i = 0; i < data.length; i++) data[i] = parseInt(hexStr.substr(i * 2, 2), 16);
+    const stream = utf7DecodesWithoutError(data, false);
+    const final = utf7DecodesWithoutError(data, true);
+    if (stream !== expectStream || final !== expectFinal) {
+      failures.push(
+        `${hexStr}: got stream=${stream} final=${final}, ` +
+        `python says stream=${expectStream} final=${expectFinal}`,
+      );
+    }
+  }
+  expect(failures).toEqual([]);
+});

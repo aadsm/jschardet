@@ -1,9 +1,27 @@
-// Port of chardet/src/chardet/pipeline/postprocess.py — post-scoring result
-// adjustments: confusion resolution, niche-Latin demotion, and the KOI8-T
-// promotion.
+// Port of chardet/src/chardet/pipeline/postprocess.py — Stage 13:
+// post-processing rank corrections.
+//
+// After statistical scoring produces a ranked list of candidates, a chain
+// of rank corrections fixes up the ranking when bigrams alone are
+// insufficient — see postprocessResults for the order. The steps:
+// dead-heat priors (superset preference, era prevalence), rare-language
+// arbitration (ADR-0005), confusion-group resolution (delegated to
+// confusion.ts), niche Latin demotion, KOI8-T promotion, classic-Mac
+// line-ending promotion, and last of all the decode-safety flip, which
+// hands a winner whose only multi-byte evidence is an undecodable trailing
+// sequence to the best rival that can decode the caller's complete input.
 
 import { DetectionResult } from './index.js';
-import { resolveConfusionGroups } from './confusion.js';
+import { confusionPairWinner, resolveConfusionGroups } from './confusion.js';
+import { ART_LANGUAGE, RARE_LANGUAGES, getEncIndex } from '../models/index.js';
+import { REGISTRY, lookupEncoding } from '../registry.js';
+import { _COMPAT_NAMES } from '../output_names.js';
+import {
+  danglingTailWithAsciiPrefix,
+  decodesCompletely,
+  decodesWithoutError,
+  whatwgLabelFor,
+} from '../text-decoder.js';
 
 // Common Western Latin encodings that share the iso-8859-1 character repertoire
 // for the byte values where iso-8859-10 is indistinguishable. Used as swap
@@ -159,13 +177,331 @@ function _promoteKoi8t(
   return results;
 }
 
-export function postprocessResults(
+// Confidence gap within which two results count as a statistical dead heat.
+const _DEAD_HEAT_EPSILON = 1e-4;
+
+// On a dead heat between an encoding and its Windows superset, prefer the
+// superset: it decodes everything the base encoding does, so it is never a
+// worse answer when the statistics cannot separate them. Mirrors
+// markup._MARKUP_SUPERSET_PROMOTIONS (chardet also lists shift_jis, which
+// the port folds into shift_jis_2004 — see the registry).
+const _DEAD_HEAT_SUPERSETS: Readonly<Record<string, string>> = Object.freeze({
+  shift_jis_2004: 'cp932',
+  euc_kr: 'cp949',
+});
+
+// Confidence band for the classic-Mac line-ending promotion. Wider than the
+// dead-heat epsilon because bare-\r line endings are decisive platform
+// evidence, not just a prior. Matches confusion._CONFUSION_BAND.
+const _CR_MAC_BAND = 0.005;
+
+// Minimum number of \r line endings before the classic-Mac promotion fires.
+const _CR_MAC_MIN_LINES = 3;
+
+// EncodingEra.LEGACY_MAC.
+const _LEGACY_MAC_ERA = 4;
+
+// Cap on the data scanned for high-byte bigram evidence — matches the
+// window statistical scoring uses (orchestrator's stat-score cap), so the
+// evidence check sees the same bytes the scores were computed from.
+const _EVIDENCE_SCAN_MAX_BYTES = 16384;
+
+// Lowest era bit for encoding (lower = more prevalent today).
+function _eraRank(encoding: string): number {
+  const info = REGISTRY[encoding as keyof typeof REGISTRY];
+  if (info === undefined) return 1 << 30;
+  const era = info.era;
+  return era & -era;
+}
+
+// True if encoding's winning model weights a high-byte bigram present in
+// data. A candidate whose model assigns zero weight to every non-ASCII
+// bigram in the data earned its statistical score purely from ASCII
+// bigrams — noise that cannot distinguish encodings. Only the variant that
+// actually won (language) counts: another language's variant having weight
+// for those bytes says nothing about why this result is on top. Only
+// called on dead heats, so the scan of the (capped) data is off the hot
+// path.
+function _hasHighByteEvidence(
+  data: Uint8Array,
+  encoding: string,
+  language: string | null,
+): boolean {
+  const variants = getEncIndex().get(encoding);
+  if (variants === undefined || variants.length === 0) return false;
+  const window = data.subarray(0, _EVIDENCE_SCAN_MAX_BYTES);
+  if (window.length === 0) return false;
+  const seen = new Set<number>();
+  let prev = window[0];
+  for (let i = 1; i < window.length; i++) {
+    const b = window[i];
+    if (prev >= 0x80 || b >= 0x80) seen.add((prev << 8) | b);
+    prev = b;
+  }
+  if (seen.size === 0) return false;
+  for (const [lang, table] of variants) {
+    if (language !== null && lang !== language) continue;
+    for (const idx of seen) {
+      if (table[idx]) return true;
+    }
+  }
+  return false;
+}
+
+// Break statistical dead heats in favour of the more prevalent era.
+//
+// When several encodings score within _DEAD_HEAT_EPSILON of the top result
+// and the top result's models carry no weight for any high-byte bigram in
+// the data, the ranking is an artifact of ASCII-bigram noise. Promote the
+// candidate from the most prevalent era (modern web > legacy ISO > Mac >
+// regional > DOS > mainframe) so evidence-free dead heats resolve to the
+// likeliest real-world answer. A top result whose models do weight
+// observed high-byte bigrams won on real evidence and is kept, however
+// small its margin.
+function _preferPrevalentOnDeadHeat(
   data: Uint8Array,
   results: DetectionResult[],
 ): DetectionResult[] {
+  const top = results.length > 0 ? results[0] : null;
+  if (top === null || top.encoding === null || results.length < 2) return results;
+  if (_hasHighByteEvidence(data, top.encoding, top.language)) return results;
+  let bestIdx = 0;
+  let bestRank = _eraRank(top.encoding);
+  for (let i = 1; i < results.length; i++) {
+    const r = results[i];
+    if (r.encoding === null) continue;
+    if (top.confidence - r.confidence > _DEAD_HEAT_EPSILON) break;
+    const rank = _eraRank(r.encoding);
+    if (rank < bestRank) {
+      bestRank = rank;
+      bestIdx = i;
+    }
+  }
+  if (bestIdx === 0) return results;
+  return _promoteToTop(results, bestIdx);
+}
+
+// Move results[i] to the top, carrying the current top confidence.
+function _promoteToTop(results: DetectionResult[], i: number): DetectionResult[] {
+  const r = results[i];
+  const promoted: DetectionResult = {
+    encoding: r.encoding,
+    confidence: results[0].confidence,
+    language: r.language,
+    mimeType: r.mimeType,
+  };
+  const rest = results.filter((_, j) => j !== i);
+  return [promoted, ...rest];
+}
+
+// Promote a Windows superset over its base encoding on a dead heat.
+function _promoteSupersetOnDeadHeat(
+  data: Uint8Array,
+  results: DetectionResult[],
+): DetectionResult[] {
+  const top = results.length > 0 ? results[0] : null;
+  if (top === null || top.encoding === null || results.length < 2) return results;
+  const superset = _DEAD_HEAT_SUPERSETS[top.encoding];
+  if (superset === undefined) return results;
+  for (let i = 1; i < results.length; i++) {
+    const r = results[i];
+    if (top.confidence - r.confidence > _DEAD_HEAT_EPSILON) break;
+    if (r.encoding === superset) {
+      const label = whatwgLabelFor(superset);
+      if (label !== null && decodesWithoutError(label, data)) {
+        return _promoteToTop(results, i);
+      }
+    }
+  }
+  return results;
+}
+
+// Maximum lead over the best prevalent-language candidate for a
+// rare-language winner to count as a coin flip rather than evidence. The
+// rare set itself is models.RARE_LANGUAGES — one definition, shared with
+// the language fill's thin-margin band, so the two can never drift apart;
+// the deployment evidence justifying membership is recorded in ADR-0005.
+const _RARE_ARBITRATION_MARGIN = 0.02;
+
+// A rare-language winner above this confidence won on real evidence and is
+// never arbitrated.
+const _RARE_ARBITRATION_MAX_CONFIDENCE = 0.15;
+
+// Demote a rare-language winner that leads a prevalent rival by a coin
+// flip. Fires only when the winner's language is in RARE_LANGUAGES, its
+// absolute confidence is inside the evidence-free zone, and a
+// prevalent-language candidate sits within _RARE_ARBITRATION_MARGIN.
+// Genuine rare-language text fails both gates: even short files score
+// confidently, and their entire neighborhood is same-language variants.
+function _arbitrateRareLanguage(results: DetectionResult[]): DetectionResult[] {
+  const top = results.length > 0 ? results[0] : null;
+  if (
+    top === null ||
+    top.encoding === null ||
+    top.language === null ||
+    !RARE_LANGUAGES.has(top.language) ||
+    top.confidence >= _RARE_ARBITRATION_MAX_CONFIDENCE ||
+    results.length < 2
+  ) {
+    return results;
+  }
+  for (let i = 1; i < results.length; i++) {
+    const r = results[i];
+    if (top.confidence - r.confidence > _RARE_ARBITRATION_MARGIN) break;
+    if (r.encoding === null || r.language === null) continue;
+    if (!RARE_LANGUAGES.has(r.language)) return _promoteToTop(results, i);
+  }
+  return results;
+}
+
+// Promote a classic-Mac candidate when line endings are bare \r.
+//
+// Classic Mac OS is the only platform that terminated lines with a lone
+// carriage return, so data with several \r bytes and no \n is
+// near-certainly Mac-era text. When a LEGACY_MAC candidate scores within
+// _CR_MAC_BAND of a non-Mac top result, promote it — unless the pair has a
+// distinguishing-byte map and the byte-level evidence says the current top
+// wins: a platform prior must not overturn direct evidence that confusion
+// resolution may have just used to establish the top.
+function _promoteMacOnCrLineEndings(
+  data: Uint8Array,
+  results: DetectionResult[],
+): DetectionResult[] {
+  const top = results.length > 0 ? results[0] : null;
+  if (top === null || top.encoding === null || results.length < 2) return results;
+  if (_eraRank(top.encoding) === _LEGACY_MAC_ERA) return results;
+  // An art-model win is not up for prose-based review: the pairwise veto
+  // below reasons about word shapes and prose bigrams, which box-drawing
+  // data is not, and old ANSI art legitimately carries bare-CR line
+  // endings.
+  if (top.language === ART_LANGUAGE) return results;
+  if (data.indexOf(0x0A) >= 0) return results;
+  let crCount = 0;
+  for (let i = 0; i < data.length && crCount < _CR_MAC_MIN_LINES; i++) {
+    if (data[i] === 0x0D) crCount++;
+  }
+  if (crCount < _CR_MAC_MIN_LINES) return results;
+  for (let i = 1; i < results.length; i++) {
+    const r = results[i];
+    if (top.confidence - r.confidence > _CR_MAC_BAND) break;
+    if (r.encoding !== null && _eraRank(r.encoding) === _LEGACY_MAC_ERA) {
+      // Pass both languages so the veto arbitrates this pair under the
+      // same rule confusion resolution just applied to it.
+      const langs = new Set<string>();
+      if (top.language !== null) langs.add(top.language);
+      if (r.language !== null) langs.add(r.language);
+      if (confusionPairWinner(data, top.encoding, r.encoding, langs) === top.encoding) {
+        // Byte-level evidence says the top beats the best-ranked Mac
+        // candidate: stop entirely rather than letting a lower-ranked
+        // sibling take the promotion just because it has no
+        // distinguishing-byte map to be checked against.
+        break;
+      }
+      return _promoteToTop(results, i);
+    }
+  }
+  return results;
+}
+
+// Check that data decodes completely under encoding and its output name.
+//
+// The flip's promise is that the caller's decode of the reported result
+// works, and the caller sees the *public* name: compatNames (the default)
+// can remap to a strictly narrower codec (euc_jis_2004 is reported as
+// EUC-JP), so a rival must decode under both names to be promoted.
+function _decodesUnderPublicNames(data: Uint8Array, encoding: string): boolean {
+  const label = whatwgLabelFor(encoding);
+  if (label === null || !decodesCompletely(label, data)) return false;
+  const display = _COMPAT_NAMES[encoding];
+  if (display === undefined) return true;
+  const displayLabel = whatwgLabelFor(lookupEncoding(display) ?? display);
+  return displayLabel !== null && decodesCompletely(displayLabel, data);
+}
+
+// Promote a strictly decoding rival over a winner with no real evidence.
+//
+// Byte-validity filtering decodes with { stream: true }, tolerating an
+// incomplete multi-byte sequence at the end because detection input is
+// often a prefix of a larger whole. When chardet examined the caller's
+// *entire* input, that tolerance can hand back an encoding the caller's
+// very next decode will reject — a four-byte iso-8859-1 word ending in
+// 0xE1 detected as utf-8 (chardet issue #380).
+//
+// Fires only when the input was not truncated by chardet itself (the
+// orchestrator's maxBytes slice or UniversalDetector's buffer cap —
+// either way these bytes are not the whole story and the caller was told
+// so by inputTruncated), the tail can actually hold a dangling sequence
+// (a high byte in the final four), and the winner's tolerant decode is
+// non-empty pure ASCII — its only multi-byte evidence is the dangling
+// tail itself. The best-ranked rival that decodes the input completely
+// under both its internal and public names then takes the top slot,
+// regardless of the confidence gap: an all-ASCII-evidence winner detected
+// nothing the rival did not also detect. If no listed rival decodes, the
+// winner stands.
+//
+// The pure-ASCII condition is what makes the unconditional flip safe: a
+// short mid-character CJK cut has a correct answer that cannot decode the
+// input, and flipping it to whichever single-byte codec happens to decode
+// the bytes trades a right answer for a wrong one (measured upstream: 34
+// correct CJK answers lost under a gap-based rule, zero under this one).
+function _preferDecodableOnTie(
+  data: Uint8Array,
+  results: DetectionResult[],
+  inputTruncated: boolean,
+): DetectionResult[] {
+  const top = results.length > 0 ? results[0] : null;
+  if (inputTruncated || top === null || top.encoding === null || results.length < 2) {
+    return results;
+  }
+  // A dangling multi-byte tail needs a high byte among the final bytes
+  // (empty data trivially has none).
+  let highTail = false;
+  for (let i = Math.max(0, data.length - 4); i < data.length; i++) {
+    if (data[i] >= 0x80) {
+      highTail = true;
+      break;
+    }
+  }
+  if (!highTail) return results;
+  const topLabel = whatwgLabelFor(top.encoding);
+  if (topLabel === null || !danglingTailWithAsciiPrefix(topLabel, data)) {
+    return results;
+  }
+  for (let i = 1; i < results.length; i++) {
+    const r = results[i];
+    if (r.encoding === null || !_decodesUnderPublicNames(data, r.encoding)) continue;
+    return _promoteToTop(results, i);
+  }
+  return results;
+}
+
+// Apply rank corrections to the statistically scored results.
+//
+// Steps run in sequence, weakest evidence first: dead-heat priors
+// (superset preference, era prevalence), rare-language arbitration, then
+// confusion-group resolution, niche Latin demotion, and KOI8-T promotion
+// (byte-level evidence), and finally the classic-Mac line-ending promotion
+// (platform evidence that should override the priors). The decode-safety
+// tiebreak runs last of all: whatever the ranking settled on, a winner
+// that cannot decode the caller's complete input, and whose own evidence
+// is nothing but the undecodable tail, yields to the best-ranked rival
+// that can decode it.
+//
+// inputTruncated is true when the caller's input was longer than maxBytes,
+// i.e. data is a chardet-made slice rather than the caller's whole input.
+export function postprocessResults(
+  data: Uint8Array,
+  results: DetectionResult[],
+  { inputTruncated = false }: { inputTruncated?: boolean } = {},
+): DetectionResult[] {
+  results = _promoteSupersetOnDeadHeat(data, results);
+  results = _preferPrevalentOnDeadHeat(data, results);
+  results = _arbitrateRareLanguage(results);
   results = resolveConfusionGroups(data, results);
   results = _demoteNicheLatin(data, results);
-  return _promoteKoi8t(data, results);
+  results = _promoteKoi8t(data, results);
+  results = _promoteMacOnCrLineEndings(data, results);
+  return _preferDecodableOnTie(data, results, inputTruncated);
 }
 
 export {
@@ -176,7 +512,14 @@ export {
   _ISO_8859_14_DISTINGUISHING,
   _KOI8_T_DISTINGUISHING,
   _WINDOWS_1254_DISTINGUISHING,
+  _arbitrateRareLanguage,
+  _decodesUnderPublicNames,
   _demoteNicheLatin,
+  _hasHighByteEvidence,
+  _preferDecodableOnTie,
+  _preferPrevalentOnDeadHeat,
   _promoteKoi8t,
+  _promoteMacOnCrLineEndings,
+  _promoteSupersetOnDeadHeat,
   _shouldDemote,
 };
