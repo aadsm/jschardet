@@ -181,7 +181,7 @@ export function getIdfWeights(): Uint8Array {
 // where the byte happens to be a letter. 0x85 (NEL in the ISO family) is
 // deliberately absent: it decodes to the ellipsis in windows-1252, whose
 // models legitimately carry ellipsis-run weight.
-const ASCII_WHITESPACE_TABLE = new Uint8Array(256);
+export const ASCII_WHITESPACE_TABLE = new Uint8Array(256);
 for (const b of [0x20, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0xA0]) {
   ASCII_WHITESPACE_TABLE[b] = 1;
 }

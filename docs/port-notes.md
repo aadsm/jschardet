@@ -81,7 +81,7 @@ When pointing at Python code in a comment, use **symbol names** (function, class
 
 Attribute precisely: say **"chardet's X"** for upstream chardet symbols (`chardet's decodes_without_error`, `chardet's _letter_case_table`) and reserve **"Python"/"CPython"** for the language and its stdlib (`codecs`, `unicodedata`, `bytes.translate`, the `utf_7` codec). The port leans on both, and "Python's X" for a chardet symbol reads as a stdlib claim. Example:
 
-    // Python _detect_pep263 short-circuits if no '#' is in the first 200 bytes.
+    // chardet's _detect_pep263 short-circuits if no '#' is in the first 200 bytes.
 
 not
 
@@ -109,3 +109,46 @@ Mirror the Python source's literal form so the TS port stays grep-able against `
 - **Mixed sequences** → `concat(...arrays)` helper (existing convention in `tests/markup.test.ts`).
 
 For Python tests that encode non-ASCII strings under non-UTF-8 labels (e.g. `"text".encode("iso-8859-7")`), inline the byte sequence as a `new Uint8Array([...])` literal with a comment naming the source encoding. Tests run on Node, which exposes `TextDecoder` for legacy labels but no symmetric `TextEncoder` — hand-rolling per-encoding encoders for the test harness duplicates the Python codec library and is out of scope. Pre-computed byte literals stay readable and keep the TS test suite dependency-free. Generate the inlined bytes with Python's codecs — the source of truth — not a JS-side encoder: an encoder whose table differs from Python's by one byte makes the ported test exercise different input than the upstream test, and it still passes.
+
+## Niche-Latin demotion: evidence margin ahead of upstream
+
+**chardet 7.6.0:** `_should_demote` stands down whenever any distinguishing
+byte of the demotion candidate is present in the data.
+
+**TypeScript:** also demotes when the winner's high-byte evidence
+contribution (`_highByteEvidenceMargin`, in confidence units over the
+statistical scoring window) is at or under `_DEAD_HEAT_EPSILON`. A
+mostly-ASCII Windows-1252 file whose only non-ASCII bytes are one
+0xD6/0xF6 pair otherwise detects as hp-roman8: the single 0xD6 both hands
+hp-roman8 a sub-epsilon dead-heat lead and, being in hp-roman8's
+distinguishing set, vetoes the demotion built for exactly that
+misdetection.
+
+The demotion's swap target also diverges: among common Latin candidates
+within `_DEAD_HEAT_EPSILON` of the best-placed one, era prevalence picks
+the replacement (cp1252 over iso8859-1) instead of the first common Latin
+in confidence order — inside that band the order is the same sub-epsilon
+noise the demotion exists to overrule. A candidate trailing the best
+common Latin by more than the epsilon lost to it on real evidence and
+stays put. The band is anchored at the best candidate, not at the demoted
+top: whether two rivals are separable is a fact about their own gap, not
+about their distance to the entry just ruled noise.
+
+This is a deliberate port-ahead change, not a permanent divergence: the
+identical fix is committed on the submodule branch
+`fix-dead-heat-evidence-margin` (intended for an upstream PR, rebased
+onto upstream main). The full-corpus parity run against the patched
+submodule — measured while its twin commit sat on the 7.6.0 tag —
+scored 2516/2517 exact matches, the same single documented cp932
+divergence as the plain 7.6.0 pin; after the rebase the submodule
+branch carries unrelated upstream-unreleased changes, so a fresh
+parity run against it no longer isolates this port. Until upstream
+merges, `tests/compare-detect/run.sh` against the vanilla tag will
+additionally DIFF on inputs of this shape.
+
+The era-prevalence prior's binary evidence gate is deliberately NOT
+tightened: measured over the corpus, the evidence contributions of
+correct dead-heat winners (cp437/cp850 files, 2.9e-5..9.5e-5) overlap the
+hp-roman8 misdetection (3.5e-5), so any threshold there trades one class
+for the other. Pinned by `tests/postprocess.test.ts`'s noise-level test
+and the Icelandic real-evidence test.

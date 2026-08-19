@@ -3397,38 +3397,54 @@ var _KOI8_T_DISTINGUISHING = /* @__PURE__ */ new Set([
   165,
   181
 ]);
-function _shouldDemote(encoding, data4) {
+function _shouldDemote(encoding, data4, language) {
   const distinguishing = _DEMOTION_CANDIDATES.get(encoding);
   if (distinguishing === void 0) {
     return false;
   }
+  let hasDistinguishing = false;
   for (let i = 0; i < data4.length; i++) {
     const b = data4[i];
     if (b > 127 && distinguishing.has(b)) {
-      return false;
+      hasDistinguishing = true;
+      break;
     }
   }
-  return true;
+  if (!hasDistinguishing) return true;
+  return _highByteEvidenceMargin(data4, encoding, language) <= _DEAD_HEAT_EPSILON;
 }
 function _demoteNicheLatin(data4, results) {
-  if (results.length > 1 && results[0].encoding !== null && _shouldDemote(results[0].encoding, data4)) {
+  if (results.length > 1 && results[0].encoding !== null && _shouldDemote(results[0].encoding, data4, results[0].language)) {
     const demotedEncoding = results[0].encoding;
     const topConf = results[0].confidence;
-    for (let i = 1; i < results.length; i++) {
-      const r = results[i];
-      if (r.encoding !== null && _COMMON_LATIN_ENCODINGS.has(r.encoding)) {
-        const promoted = {
-          encoding: r.encoding,
-          confidence: topConf,
-          language: r.language,
-          mimeType: r.mimeType
-        };
-        const others = results.filter(
-          (x) => x.encoding !== demotedEncoding && x !== r
-        );
-        const demotedEntries = results.filter((x) => x.encoding === demotedEncoding);
-        return [promoted, ...others, ...demotedEntries];
+    const candidates = results.slice(1).filter(
+      (x) => x.encoding !== null && _COMMON_LATIN_ENCODINGS.has(x.encoding)
+    );
+    if (candidates.length > 0) {
+      const leadConf = candidates[0].confidence;
+      const inBand = candidates.filter(
+        (x) => leadConf - x.confidence <= _DEAD_HEAT_EPSILON
+      );
+      let r = inBand[0];
+      let bestRank = _eraRank(r.encoding);
+      for (const c of inBand) {
+        const rank = _eraRank(c.encoding);
+        if (rank < bestRank) {
+          r = c;
+          bestRank = rank;
+        }
       }
+      const promoted = {
+        encoding: r.encoding,
+        confidence: topConf,
+        language: r.language,
+        mimeType: r.mimeType
+      };
+      const others = results.filter(
+        (x) => x.encoding !== demotedEncoding && x !== r
+      );
+      const demotedEntries = results.filter((x) => x.encoding === demotedEncoding);
+      return [promoted, ...others, ...demotedEntries];
     }
   }
   return results;
@@ -3498,6 +3514,38 @@ function _hasHighByteEvidence(data4, encoding, language) {
     }
   }
   return false;
+}
+function _highByteEvidenceMargin(data4, encoding, language) {
+  const variants = getEncIndex().get(encoding);
+  if (variants === void 0 || variants.length === 0) return 0;
+  const window = data4.subarray(0, _EVIDENCE_SCAN_MAX_BYTES);
+  if (window.length === 0) return 0;
+  const full = new BigramProfile(window);
+  if (full.inputNorm === 0) return 0;
+  const idf = getIdfWeights();
+  const freq = /* @__PURE__ */ new Map();
+  let prev = window[0];
+  for (let i = 1; i < window.length; i++) {
+    const b = window[i];
+    if ((prev >= 128 || b >= 128) && !(prev === b && ASCII_WHITESPACE_TABLE[b])) {
+      const idx = prev << 8 | b;
+      freq.set(idx, (freq.get(idx) ?? 0) + idf[idx]);
+    }
+    prev = b;
+  }
+  if (freq.size === 0) return 0;
+  const focused = BigramProfile.fromWeightedFreq(freq);
+  const rescale = focused.inputNorm / full.inputNorm;
+  let best = 0;
+  for (const [lang, model, modelKey] of variants) {
+    if (language !== null && lang !== language) continue;
+    const s = scoreWithProfile(focused, model, modelKey);
+    if (s > 0) {
+      const margin = s * rescale;
+      if (margin > best) best = margin;
+    }
+  }
+  return best;
 }
 function _preferPrevalentOnDeadHeat(data4, results) {
   const top = results.length > 0 ? results[0] : null;

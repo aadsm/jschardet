@@ -13,7 +13,15 @@
 
 import { DetectionResult } from './index.js';
 import { confusionPairWinner, resolveConfusionGroups } from './confusion.js';
-import { ART_LANGUAGE, RARE_LANGUAGES, getEncIndex } from '../models/index.js';
+import {
+  ART_LANGUAGE,
+  ASCII_WHITESPACE_TABLE,
+  BigramProfile,
+  RARE_LANGUAGES,
+  getEncIndex,
+  getIdfWeights,
+  scoreWithProfile,
+} from '../models/index.js';
 import { REGISTRY, lookupEncoding } from '../registry.js';
 import { _COMPAT_NAMES } from '../output_names.js';
 import {
@@ -95,18 +103,40 @@ const _KOI8_T_DISTINGUISHING: ReadonlySet<number> = new Set([
   0x80, 0x81, 0x83, 0x8A, 0x8C, 0x8D, 0x8E, 0x90, 0xA1, 0xA2, 0xA5, 0xB5,
 ]);
 
-function _shouldDemote(encoding: string, data: Uint8Array): boolean {
+// True if encoding is a demotion candidate with no real byte evidence.
+//
+// Checks whether any byte in data falls in the set of byte values that
+// decode differently under the given encoding vs iso-8859-1. If none do,
+// the data is equally valid under both encodings and there is no
+// byte-level evidence for preferring the candidate encoding.
+//
+// Presence alone is not enough to stand the demotion down, though: a
+// mostly-ASCII Latin-1 file whose only non-ASCII bytes are one 0xD6/0xF6
+// pair carries a "distinguishing" byte (0xD6 is a lowercase letter under
+// hp-roman8, uppercase O-umlaut under Latin-1) while the winning model
+// earned less confidence from all its high-byte bigrams than the
+// dead-heat epsilon. Such a win is statistical noise wearing a
+// distinguishing byte as a costume, so the demotion also fires when the
+// high-byte evidence contribution is at or under the noise floor.
+function _shouldDemote(
+  encoding: string,
+  data: Uint8Array,
+  language: string | null,
+): boolean {
   const distinguishing = _DEMOTION_CANDIDATES.get(encoding);
   if (distinguishing === undefined) {
     return false;
   }
+  let hasDistinguishing = false;
   for (let i = 0; i < data.length; i++) {
     const b = data[i];
     if (b > 0x7F && distinguishing.has(b)) {
-      return false;
+      hasDistinguishing = true;
+      break;
     }
   }
-  return true;
+  if (!hasDistinguishing) return true;
+  return _highByteEvidenceMargin(data, encoding, language) <= _DEAD_HEAT_EPSILON;
 }
 
 function _demoteNicheLatin(
@@ -116,25 +146,47 @@ function _demoteNicheLatin(
   if (
     results.length > 1
     && results[0].encoding !== null
-    && _shouldDemote(results[0].encoding, data)
+    && _shouldDemote(results[0].encoding, data, results[0].language)
   ) {
     const demotedEncoding = results[0].encoding;
     const topConf = results[0].confidence;
-    for (let i = 1; i < results.length; i++) {
-      const r = results[i];
-      if (r.encoding !== null && _COMMON_LATIN_ENCODINGS.has(r.encoding)) {
-        const promoted: DetectionResult = {
-          encoding: r.encoding,
-          confidence: topConf,
-          language: r.language,
-          mimeType: r.mimeType,
-        };
-        const others = results.filter(
-          x => x.encoding !== demotedEncoding && x !== r,
-        );
-        const demotedEntries = results.filter(x => x.encoding === demotedEncoding);
-        return [promoted, ...others, ...demotedEntries];
+    // The replacement is the most prevalent common Latin candidate among
+    // those tied with the best-scoring one (within _DEAD_HEAT_EPSILON of
+    // the highest-confidence common Latin candidate): inside that band the
+    // confidence order is noise — the very premise of the demotion — so
+    // era prevalence picks between e.g. iso8859-1 and cp1252 rather than
+    // a sub-epsilon score difference. A candidate trailing the best
+    // common Latin by more than the epsilon lost to it on real evidence
+    // and stays put.
+    const candidates = results.slice(1).filter(
+      (x): x is DetectionResult & { encoding: string } =>
+        x.encoding !== null && _COMMON_LATIN_ENCODINGS.has(x.encoding),
+    );
+    if (candidates.length > 0) {
+      const leadConf = candidates[0].confidence;
+      const inBand = candidates.filter(
+        x => leadConf - x.confidence <= _DEAD_HEAT_EPSILON,
+      );
+      let r = inBand[0];
+      let bestRank = _eraRank(r.encoding);
+      for (const c of inBand) {
+        const rank = _eraRank(c.encoding);
+        if (rank < bestRank) {
+          r = c;
+          bestRank = rank;
+        }
       }
+      const promoted: DetectionResult = {
+        encoding: r.encoding,
+        confidence: topConf,
+        language: r.language,
+        mimeType: r.mimeType,
+      };
+      const others = results.filter(
+        x => x.encoding !== demotedEncoding && x !== r,
+      );
+      const demotedEntries = results.filter(x => x.encoding === demotedEncoding);
+      return [promoted, ...others, ...demotedEntries];
     }
   }
   return results;
@@ -246,6 +298,58 @@ function _hasHighByteEvidence(
     }
   }
   return false;
+}
+
+// The confidence encoding's winning model earned from high-byte bigrams
+// (chardet's _high_byte_evidence_margin). Measured in confidence units:
+// the winning variant's cosine terms restricted to bigrams with a byte
+// >= 0x80, over the same scoring window and with the same
+// repeated-whitespace skip the statistical score used (computed as a
+// focused-profile score rescaled from the focused norm to the full
+// window's norm). Used by the niche-Latin demotion, where presence alone
+// must not veto: a lone accented letter can put one weight-1 bigram in
+// some variant's table and hand the candidate a lead worth less than the
+// dead-heat epsilon itself. Only the variant that actually won (language)
+// counts. Only called on niche-Latin tops, so the scan of the (capped)
+// data is off the hot path.
+function _highByteEvidenceMargin(
+  data: Uint8Array,
+  encoding: string,
+  language: string | null,
+): number {
+  const variants = getEncIndex().get(encoding);
+  if (variants === undefined || variants.length === 0) return 0;
+  const window = data.subarray(0, _EVIDENCE_SCAN_MAX_BYTES);
+  if (window.length === 0) return 0;
+  const full = new BigramProfile(window);
+  if (full.inputNorm === 0) return 0;
+  const idf = getIdfWeights();
+  const freq = new Map<number, number>();
+  let prev = window[0];
+  for (let i = 1; i < window.length; i++) {
+    const b = window[i];
+    if ((prev >= 0x80 || b >= 0x80) && !(prev === b && ASCII_WHITESPACE_TABLE[b])) {
+      const idx = (prev << 8) | b;
+      freq.set(idx, (freq.get(idx) ?? 0) + idf[idx]);
+    }
+    prev = b;
+  }
+  if (freq.size === 0) return 0;
+  const focused = BigramProfile.fromWeightedFreq(freq);
+  // scoreWithProfile normalizes by the focused profile's norm; rescale to
+  // the full window's norm so the result is the contribution these bigrams
+  // make to the candidate's actual confidence.
+  const rescale = focused.inputNorm / full.inputNorm;
+  let best = 0;
+  for (const [lang, model, modelKey] of variants) {
+    if (language !== null && lang !== language) continue;
+    const s = scoreWithProfile(focused, model, modelKey);
+    if (s > 0) {
+      const margin = s * rescale;
+      if (margin > best) best = margin;
+    }
+  }
+  return best;
 }
 
 // Break statistical dead heats in favour of the more prevalent era.
@@ -516,6 +620,7 @@ export {
   _decodesUnderPublicNames,
   _demoteNicheLatin,
   _hasHighByteEvidence,
+  _highByteEvidenceMargin,
   _preferDecodableOnTie,
   _preferPrevalentOnDeadHeat,
   _promoteKoi8t,
