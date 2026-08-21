@@ -14,13 +14,24 @@ import {
 } from '../src/evaluation.js';
 import { REGISTRY, lookupEncoding } from '../src/registry.js';
 import { collectTestFiles, getDataDir, isEquivalentDetection, normalizeLanguage } from './utils.js';
+import { _shutdown } from './helpers/codecs.js';
 
 // ---------------------------------------------------------------------------
 // Known accuracy failures — marked so CI stays green but gaps are tracked.
 // ---------------------------------------------------------------------------
 
+// Failures the port expects but upstream does not. Each entry is a
+// documented behavioral divergence, never an inherited one — keep the
+// inherited blocks below identical to chardet's test_accuracy.py.
+const _DIVERGENT_FAILURES: readonly string[] = [
+  // Python resolves this via the markup decode-safety promotion, which cannot
+  // fire under WHATWG (its shift_jis decoder already accepts CP932
+  // extensions) — see _MARKUP_SUPERSET_PROMOTIONS in src/pipeline/orchestrator.ts.
+  'cp932-ja/y-moto.com.xml',
+];
+
 const _KNOWN_FAILURES: ReadonlySet<string> = new Set([
-  // Failures inherited from the Python known-failures list.
+  // Inherited verbatim from the Python known-failures list.
   'cp437-en/culturax_00001.txt',
   'cp500-es/culturax_mC4_87070.txt',
   'cp850-en/culturax_00001.txt',
@@ -28,25 +39,17 @@ const _KNOWN_FAILURES: ReadonlySet<string> = new Set([
   'cp850-ms/culturax_00000.txt',
   'cp858-en/culturax_00000.txt',
   'cp858-ms/culturax_00000.txt',
-  // Python resolves this via the markup decode-safety promotion, which cannot
-  // fire under WHATWG (its shift_jis decoder already accepts CP932
-  // extensions) — see _MARKUP_SUPERSET_PROMOTIONS in src/pipeline/orchestrator.ts.
-  'cp932-ja/y-moto.com.xml',
   'iso-8859-15-en/culturax_00002.txt',
-  'iso-8859-16-ro/_ude_1.txt',
-  'macroman-en/culturax_mC4_84512.txt',
-  'macroman-id/culturax_mC4_114889.txt',
+  ..._DIVERGENT_FAILURES,
 ]);
 
 const _KNOWN_ERA_FILTERED_FAILURES: ReadonlySet<string> = new Set([
-  // Failures inherited from the Python known-failures list.
+  // Inherited verbatim from the Python era-filtered list.
   'cp500-es/culturax_mC4_87070.txt',
   'cp850-fi/culturax_00001.txt',
-  // WHATWG-unportable decode-safety promotion — see the note in _KNOWN_FAILURES.
-  'cp932-ja/y-moto.com.xml',
   'iso-8859-2-hu/torokorszag.blogspot.com.xml',
-  'iso-8859-16-ro/_ude_1.txt',
   'macroman-da/culturax_mC4_83469.txt',
+  ..._DIVERGENT_FAILURES,
 ]);
 
 // ---------------------------------------------------------------------------
@@ -79,19 +82,25 @@ const _rows = _testFiles.map(([enc, lang, fp]): [string, string | null, string |
 // Tests
 // ---------------------------------------------------------------------------
 
+// The equivalence fallback may spawn the Python codec oracle.
+afterAll(async () => {
+  await _shutdown();
+});
+
 describe('detect', () => {
-  test.each(_rows)('%s', (testId, enc, lang, fp) => {
+  test.each(_rows)('%s', async (testId, enc, lang, fp) => {
     const isKnown = _KNOWN_FAILURES.has(testId);
     const data = fs.readFileSync(fp);
     const result = detect(data, { encodingEra: EncodingEra.ALL, preferSuperset: true });
     const detected = result.encoding;
 
-    const check = (): void => {
+    const check = async (): Promise<void> => {
       if (enc === null) {
         expect(detected).toBeNull();
       } else {
         expect(
-          isCorrect(enc, detected) || isEquivalentDetection(data, enc, detected),
+          isCorrect(enc, detected) ||
+            (await isEquivalentDetection(data, enc, detected)),
         ).toBe(true);
       }
     };
@@ -100,7 +109,7 @@ describe('detect', () => {
       // xfail: we expect this to throw; if it passes, that's an xpass (report it).
       let threw = false;
       try {
-        check();
+        await check();
       } catch {
         threw = true;
       }
@@ -110,7 +119,7 @@ describe('detect', () => {
         );
       }
     } else {
-      check();
+      await check();
 
       // Language: warn only, never fail.
       if (enc !== null && lang !== null) {
@@ -127,19 +136,20 @@ describe('detect', () => {
 });
 
 describe('detect_era_filtered', () => {
-  test.each(_rows)('%s', (testId, enc, lang, fp) => {
+  test.each(_rows)('%s', async (testId, enc, lang, fp) => {
     const isKnown = _KNOWN_ERA_FILTERED_FAILURES.has(testId);
     const era = _encodingEra(enc);
     const data = fs.readFileSync(fp);
     const result = detect(data, { encodingEra: era, preferSuperset: true });
     const detected = result.encoding;
 
-    const check = (): void => {
+    const check = async (): Promise<void> => {
       if (enc === null) {
         expect(detected).toBeNull();
       } else {
         expect(
-          isCorrect(enc, detected) || isEquivalentDetection(data, enc, detected),
+          isCorrect(enc, detected) ||
+            (await isEquivalentDetection(data, enc, detected)),
         ).toBe(true);
       }
     };
@@ -147,7 +157,7 @@ describe('detect_era_filtered', () => {
     if (isKnown) {
       let threw = false;
       try {
-        check();
+        await check();
       } catch {
         threw = true;
       }
@@ -157,7 +167,7 @@ describe('detect_era_filtered', () => {
         );
       }
     } else {
-      check();
+      await check();
     }
   });
 });

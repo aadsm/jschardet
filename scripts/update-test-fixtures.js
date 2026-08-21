@@ -2,8 +2,8 @@
 //
 // Pulls the small set of fixture files used by browser-eligible tests
 // (koi8t, cjk_gating, mime_type) out of the chardet test-data repo and
-// copies them into tests/fixtures/<subdir>/. Run manually whenever the
-// pinned ref bumps:
+// copies them into tests/fixtures/<subdir>/. Run automatically by
+// scripts/update-chardet.js after each pin change, or manually:
 //
 //   npm run update-test-fixtures
 //
@@ -15,9 +15,9 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
-  TEST_DATA_REF,
   TEST_DATA_REF_FILE,
   cloneTestData,
+  getTestDataRef,
 } from './lib/test-data.js';
 
 const _root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
@@ -49,18 +49,24 @@ const FIXTURES = [
 ];
 
 function main() {
+  const ref = getTestDataRef();
   const tmpClone = fs.mkdtempSync(path.join(_root, '.tmp-fixtures-'));
   try {
-    cloneTestData(tmpClone, TEST_DATA_REF, _root);
+    cloneTestData(tmpClone, ref === 'main' ? null : ref, _root);
 
-    fs.rmSync(_fixturesDir, { recursive: true, force: true });
-    fs.mkdirSync(_fixturesDir, { recursive: true });
+    // Clear only the subdirectories the manifest owns — tests/fixtures/
+    // also holds committed fixtures from other sources (GitHub-issue
+    // samples) that this script must not touch.
+    const ownedDirs = new Set(FIXTURES.map(({ dst }) => dst.split('/')[0]));
+    for (const dir of ownedDirs) {
+      fs.rmSync(path.join(_fixturesDir, dir), { recursive: true, force: true });
+    }
 
     for (const { src, dst } of FIXTURES) {
       const srcPath = path.join(tmpClone, src);
       const dstPath = path.join(_fixturesDir, dst);
       if (!fs.existsSync(srcPath)) {
-        throw new Error(`Source file missing in test-data ref ${TEST_DATA_REF}: ${src}`);
+        throw new Error(`Source file missing in test-data ref ${ref}: ${src}`);
       }
       fs.mkdirSync(path.dirname(dstPath), { recursive: true });
       fs.copyFileSync(srcPath, dstPath);
@@ -70,9 +76,9 @@ function main() {
 
     fs.writeFileSync(
       path.join(_fixturesDir, TEST_DATA_REF_FILE),
-      TEST_DATA_REF + '\n',
+      ref + '\n',
     );
-    console.log(`\nWrote ${FIXTURES.length} fixtures from test-data@${TEST_DATA_REF}`);
+    console.log(`\nWrote ${FIXTURES.length} fixtures from test-data@${ref}`);
   } finally {
     fs.rmSync(tmpClone, { recursive: true, force: true });
   }
