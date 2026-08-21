@@ -9,6 +9,7 @@ import { ISO_TO_LANGUAGE } from '../src/utils.js';
 import {
   ensureTestData,
 } from '../scripts/lib/test-data.js';
+import { decode, UnicodeDecodeError, LookupError } from './helpers/codecs.js';
 
 // Repo root resolved from this file's location (tests/ → repo root).
 const _REPO_ROOT = path.resolve(fileURLToPath(import.meta.url), '..', '..');
@@ -90,11 +91,11 @@ function _charsEquivalent(a: string, b: string): boolean {
  * Only available in Node.js — see the stub in src/evaluation.ts for why
  * this cannot live there.
  */
-export function isEquivalentDetection(
+export async function isEquivalentDetection(
   data: Uint8Array,
   expected: string | null,
   detected: string | null,
-): boolean {
+): Promise<boolean> {
   if (expected === null) return detected === null;
   if (detected === null) return false;
 
@@ -102,19 +103,33 @@ export function isEquivalentDetection(
   const normDet = lookupEncoding(detected) ?? detected.toLowerCase();
   if (normExp === normDet) return true;
 
-  if (!iconv.encodingExists(normExp) || !iconv.encodingExists(normDet)) return false;
-
-  try {
-    const buf = Buffer.from(data);
-    const textExp = iconv.decode(buf, normExp);
-    const textDet = iconv.decode(buf, normDet);
-    if (textExp === textDet) return true;
-    if (textExp.length !== textDet.length) return false;
-    for (let i = 0; i < textExp.length; i++) {
-      if (!_charsEquivalent(textExp[i], textDet[i])) return false;
+  let textExp: string;
+  let textDet: string;
+  if (iconv.encodingExists(normExp) && iconv.encodingExists(normDet)) {
+    try {
+      const buf = Buffer.from(data);
+      textExp = iconv.decode(buf, normExp);
+      textDet = iconv.decode(buf, normDet);
+    } catch {
+      return false;
     }
-    return true;
-  } catch {
-    return false;
+  } else {
+    // iconv-lite lacks some Python codecs (the EBCDIC family among them),
+    // so fall back to the Python codec oracle — the verdict then rests on
+    // the same bytes.decode() as upstream's is_equivalent_detection.
+    try {
+      textExp = await decode(data, normExp);
+      textDet = await decode(data, normDet);
+    } catch (e) {
+      if (e instanceof UnicodeDecodeError || e instanceof LookupError) return false;
+      throw e;
+    }
   }
+
+  if (textExp === textDet) return true;
+  if (textExp.length !== textDet.length) return false;
+  for (let i = 0; i < textExp.length; i++) {
+    if (!_charsEquivalent(textExp[i], textDet[i])) return false;
+  }
+  return true;
 }

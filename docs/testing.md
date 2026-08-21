@@ -42,6 +42,10 @@ Mirror the Python source's literal form so the TS port stays grep-able against [
 
 For Python tests that encode non-ASCII text under a specific label (e.g. `"text".encode("iso-8859-7")`), inline the byte sequence as a `new Uint8Array([...])` literal with a comment naming the source encoding.
 
+## Test Corpus
+
+`tests/data/` is a machine-local cache of the [chardet test-data repo](https://github.com/chardet/test-data), cloned on demand by `ensureTestData` ([`scripts/lib/test-data.js`](../scripts/lib/test-data.js)). The ref to clone is derived from the chardet submodule — the checkout when present, the recorded pin otherwise — mapped to the test-data tag of the same name (chardet tags test-data per release). A commit at no release tag derives to `main`, mirroring upstream's rule for dev builds. A `.test-data-ref` marker inside the cache records what it holds; when it stops matching the derived ref, the cache is wiped and re-cloned.
+
 ## Fixtures
 
 Tests that need real corpus bytes import them via a `?uint8array` query suffix:
@@ -50,7 +54,7 @@ Tests that need real corpus bytes import them via a `?uint8array` query suffix:
 import sample from './fixtures/<subdir>/<name>?uint8array';
 ```
 
-The suffix is handled by [`scripts/lib/uint8array-plugin.js`](../scripts/lib/uint8array-plugin.js). Fixtures live under [`tests/fixtures/`](../tests/fixtures/) and are committed. Refresh them from `chardet/test-data` with `npm run update-test-fixtures`; the source-to-destination manifest is at the top of [`scripts/update-test-fixtures.js`](../scripts/update-test-fixtures.js).
+The suffix is handled by [`scripts/lib/uint8array-plugin.js`](../scripts/lib/uint8array-plugin.js). Fixtures live under [`tests/fixtures/`](../tests/fixtures/) and are committed. They are refreshed from `chardet/test-data` by `update-chardet` after each pin change (manually: `npm run update-test-fixtures`); the source-to-destination manifest is at the top of [`scripts/update-test-fixtures.js`](../scripts/update-test-fixtures.js).
 
 ## `isEquivalentDetection`
 
@@ -58,7 +62,7 @@ Two encodings are equivalent if they decode the input bytes to the same text.
 There are two implementations:
 
 - [`src/evaluation.ts`](../src/evaluation.ts) — no-op stub used in browser builds (iconv-lite can't run in a browser)
-- [`tests/utils.ts`](../tests/utils.ts) — real implementation via iconv-lite, used by all Node tests
+- [`tests/utils.ts`](../tests/utils.ts) — real implementation via iconv-lite, used by all Node tests; for encodings iconv-lite lacks (the EBCDIC family) it decodes through the Python codec oracle ([`tests/helpers/codecs.ts`](../tests/helpers/codecs.ts)), so verdicts match upstream's `bytes.decode()`. The oracle makes it async.
 
 Test files import it from `./utils.js`, not `../src/equivalences.js`.
 
@@ -67,7 +71,7 @@ Test files import it from `./utils.js`, not `../src/equivalences.js`.
 These tests are excluded from [`vitest.browser.config.ts`](../vitest.browser.config.ts) because they depend on Node-only capabilities:
 
 - [`accuracy.test.ts`](../tests/accuracy.test.ts) — dynamically clones a 100 MB corpus
-- [`equivalences.test.ts`](../tests/equivalences.test.ts), [`github_issues.test.ts`](../tests/github_issues.test.ts) — iconv-lite oracle; safer-buffer needs `Buffer.prototype`, which Vite externalizes in browser builds
+- [`equivalences.test.ts`](../tests/equivalences.test.ts), [`evaluation.test.ts`](../tests/evaluation.test.ts), [`github_issues.test.ts`](../tests/github_issues.test.ts) — iconv-lite oracle; safer-buffer needs `Buffer.prototype`, which Vite externalizes in browser builds
 - [`spec_decode_roundtrip.test.ts`](../tests/spec_decode_roundtrip.test.ts) —
   spawns a `python3` subprocess
 

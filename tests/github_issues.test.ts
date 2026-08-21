@@ -7,6 +7,7 @@ import { detect } from '../src/chardet.js';
 import { EncodingEra } from '../src/enums.js';
 import { isCorrect } from '../src/evaluation.js';
 import { isEquivalentDetection } from './utils.js';
+import { _shutdown } from './helpers/codecs.js';
 import * as iconv from 'iconv-lite';
 
 function bytes(s: string): Uint8Array {
@@ -21,10 +22,10 @@ function concat(...arrs: Uint8Array[]): Uint8Array {
   return out;
 }
 
-function assertDetection(data: Uint8Array, expected: string, era = EncodingEra.ALL): void {
+async function assertDetection(data: Uint8Array, expected: string, era = EncodingEra.ALL): Promise<void> {
   const result = detect(data, { encodingEra: era, preferSuperset: true });
   const detected = result.encoding;
-  if (!isCorrect(expected, detected) && !isEquivalentDetection(data, expected, detected)) {
+  if (!isCorrect(expected, detected) && !(await isEquivalentDetection(data, expected, detected))) {
     throw new Error(`expected=${expected}, got=${detected} (confidence=${result.confidence.toFixed(2)})`);
   }
 }
@@ -33,41 +34,46 @@ function assertDetection(data: Uint8Array, expected: string, era = EncodingEra.A
 // SHORT INPUT / SINGLE CHARACTER UTF-8 DETECTION
 // ==========================================================================
 
+// The equivalence fallback may spawn the Python codec oracle.
+afterAll(async () => {
+  await _shutdown();
+});
+
 describe('TestShortUtf8', () => {
-  test('single eacute — issue #37', () => {
-    assertDetection(bytes('\xc3\xa9'), 'utf-8');
+  test('single eacute — issue #37', async () => {
+    await assertDetection(bytes('\xc3\xa9'), 'utf-8');
   });
 
-  test('double eacute — issue #37', () => {
-    assertDetection(bytes('\xc3\xa9\xc3\xa9'), 'utf-8');
+  test('double eacute — issue #37', async () => {
+    await assertDetection(bytes('\xc3\xa9\xc3\xa9'), 'utf-8');
   });
 
-  test('foo eacute — issue #134', () => {
-    assertDetection(bytes('foo \xc3\xa9'), 'utf-8');
+  test('foo eacute — issue #134', async () => {
+    await assertDetection(bytes('foo \xc3\xa9'), 'utf-8');
   });
 
-  test('degree symbol — issue #305', () => {
-    assertDetection(bytes('\xc2\xb0'), 'utf-8');
+  test('degree symbol — issue #305', async () => {
+    await assertDetection(bytes('\xc2\xb0'), 'utf-8');
   });
 
-  test('german umlaut in sentence — issue #288', () => {
-    assertDetection(bytes('Sch\xc3\xb6ne gesunde Pflanzen'), 'utf-8');
+  test('german umlaut in sentence — issue #288', async () => {
+    await assertDetection(bytes('Sch\xc3\xb6ne gesunde Pflanzen'), 'utf-8');
   });
 
-  test('pokemon slogan — issue #308', () => {
-    assertDetection(bytes('___!" (Pok\xc3\xa9mon slogan)'), 'utf-8');
+  test('pokemon slogan — issue #308', async () => {
+    await assertDetection(bytes('___!" (Pok\xc3\xa9mon slogan)'), 'utf-8');
   });
 
-  test('bullet character — issue #61', () => {
-    assertDetection(bytes('FAHR\xe2\x80\xa2WERK'), 'utf-8');
+  test('bullet character — issue #61', async () => {
+    await assertDetection(bytes('FAHR\xe2\x80\xa2WERK'), 'utf-8');
   });
 
-  test('right single quotation — issue #185', () => {
-    assertDetection(bytes('Carter\xe2\x80\x99s Janitorial'), 'utf-8');
+  test('right single quotation — issue #185', async () => {
+    await assertDetection(bytes('Carter\xe2\x80\x99s Janitorial'), 'utf-8');
   });
 
-  test('python file with umlaut — issue #75', () => {
-    assertDetection(
+  test('python file with umlaut — issue #75', async () => {
+    await assertDetection(
       concat(
         bytes('#!/usr/bin/env python3\n# coding: utf-8\n#\n'),
         bytes('#'.repeat(45) + '\n\n'),
@@ -77,8 +83,8 @@ describe('TestShortUtf8', () => {
     );
   });
 
-  test('csv with umlaut — issue #138', () => {
-    assertDetection(
+  test('csv with umlaut — issue #138', async () => {
+    await assertDetection(
       concat(
         bytes('"Companyname","Prename","Surename","Streetname","ZIP","City",'),
         bytes('"Phone","Fax","Email","Website","Category"\n'),
@@ -90,32 +96,32 @@ describe('TestShortUtf8', () => {
     );
   });
 
-  test('gebuehrenfrei — issue #28', () => {
-    assertDetection(bytes('geb\xc3\xbchrenfrei'), 'utf-8');
+  test('gebuehrenfrei — issue #28', async () => {
+    await assertDetection(bytes('geb\xc3\xbchrenfrei'), 'utf-8');
   });
 
-  test('example aacute — issue #28', () => {
-    assertDetection(bytes('ex\xc3\xa1mple'), 'utf-8');
+  test('example aacute — issue #28', async () => {
+    await assertDetection(bytes('ex\xc3\xa1mple'), 'utf-8');
   });
 
-  test('naive idiaeresis — issue #28', () => {
-    assertDetection(bytes('na\xc3\xafve'), 'utf-8');
+  test('naive idiaeresis — issue #28', async () => {
+    await assertDetection(bytes('na\xc3\xafve'), 'utf-8');
   });
 
-  test('sie hoeren — issue #28', () => {
-    assertDetection(bytes('sie h\xc3\xb6ren'), 'utf-8');
+  test('sie hoeren — issue #28', async () => {
+    await assertDetection(bytes('sie h\xc3\xb6ren'), 'utf-8');
   });
 
-  test('section sign — issue #308', () => {
-    assertDetection(bytes('42 CFR \xc2\xa7 400.200\n'), 'utf-8');
+  test('section sign — issue #308', async () => {
+    await assertDetection(bytes('42 CFR \xc2\xa7 400.200\n'), 'utf-8');
   });
 
-  test('cinecitta agrave — issue #60', () => {
-    assertDetection(bytes('Cinecitt\xc3\xa0 Make'), 'utf-8');
+  test('cinecitta agrave — issue #60', async () => {
+    await assertDetection(bytes('Cinecitt\xc3\xa0 Make'), 'utf-8');
   });
 
-  test('utf8 extended latin — issue #292', () => {
-    assertDetection(
+  test('utf8 extended latin — issue #292', async () => {
+    await assertDetection(
       concat(
         bytes('# test data with some utf-8 sequences\n'),
         bytes('\xc4\x80\xc4\x81\xc4\x82\xc4\x83'),
@@ -126,8 +132,8 @@ describe('TestShortUtf8', () => {
     );
   });
 
-  test('utf8 abcapitalia — issue #160', () => {
-    assertDetection(bytes('\x61\x62\xc3\x8f\x61'), 'utf-8');
+  test('utf8 abcapitalia — issue #160', async () => {
+    await assertDetection(bytes('\x61\x62\xc3\x8f\x61'), 'utf-8');
   });
 });
 
@@ -136,8 +142,8 @@ describe('TestShortUtf8', () => {
 // ==========================================================================
 
 describe('TestUtf8Emoji', () => {
-  test('purple heart emoji — issue #128', () => {
-    assertDetection(
+  test('purple heart emoji — issue #128', async () => {
+    await assertDetection(
       concat(
         bytes('scriptencoding utf-8\n" \xf0\x9f\x92\x9c\n'),
         bytes('" set list listchars=tab:\xc2\xbb\xc2\xb7,trail:\xc2\xb7,'),
@@ -147,8 +153,8 @@ describe('TestUtf8Emoji', () => {
     );
   });
 
-  test('cat emoji — issue #28', () => {
-    assertDetection(bytes('This is a cat \xf0\x9f\x98\xb8'), 'utf-8');
+  test('cat emoji — issue #28', async () => {
+    await assertDetection(bytes('This is a cat \xf0\x9f\x98\xb8'), 'utf-8');
   });
 });
 
@@ -157,12 +163,12 @@ describe('TestUtf8Emoji', () => {
 // ==========================================================================
 
 describe('TestUtf8Bom', () => {
-  test('bom with crlf — issue #34', () => {
-    assertDetection(bytes('\xef\xbb\xbf\r\n#include <stdio.h>\r\n'), 'utf-8-sig');
+  test('bom with crlf — issue #34', async () => {
+    await assertDetection(bytes('\xef\xbb\xbf\r\n#include <stdio.h>\r\n'), 'utf-8-sig');
   });
 
-  test('bom hello world — issue #30', () => {
-    assertDetection(bytes('\xef\xbb\xbfHello World'), 'utf-8-sig');
+  test('bom hello world — issue #30', async () => {
+    await assertDetection(bytes('\xef\xbb\xbfHello World'), 'utf-8-sig');
   });
 });
 
@@ -171,23 +177,23 @@ describe('TestUtf8Bom', () => {
 // ==========================================================================
 
 describe('TestEscapeSequences', () => {
-  test('tilde brace not hz — issue #82', () => {
-    assertDetection(bytes('~{,\n~},\n'), 'ascii');
+  test('tilde brace not hz — issue #82', async () => {
+    await assertDetection(bytes('~{,\n~},\n'), 'ascii');
   });
 
-  test('tilde brace inline — issue #290', () => {
-    assertDetection(bytes('xxx~{xxx'), 'ascii');
+  test('tilde brace inline — issue #290', async () => {
+    await assertDetection(bytes('xxx~{xxx'), 'ascii');
   });
 
-  test('esc in utf8 — issue #65', () => {
-    assertDetection(bytes('\xc8\x8d\x1b'), 'utf-8');
+  test('esc in utf8 — issue #65', async () => {
+    await assertDetection(bytes('\xc8\x8d\x1b'), 'utf-8');
   });
 
-  test('esc in ascii long — issue #63', () => {
-    assertDetection(concat(bytes('0'.repeat(100)), bytes('\x1b')), 'ascii');
+  test('esc in ascii long — issue #63', async () => {
+    await assertDetection(concat(bytes('0'.repeat(100)), bytes('\x1b')), 'ascii');
   });
 
-  test('plus digits not utf7 — issue #371', () => {
+  test('plus digits not utf7 — issue #371', async () => {
     // UTF-7 Guard C rejects base64 runs containing no uppercase ASCII
     // letters. bytes.islower() is not that test — it is False for an
     // all-digit run like "100" (no cased characters), which let "+100" slip
@@ -197,70 +203,70 @@ describe('TestEscapeSequences', () => {
       'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do '
       + 'eiusmod tempor incididunt ut labore et dolore magna aliqua.\n\n+100\n',
     );
-    assertDetection(text, 'ascii');
+    await assertDetection(text, 'ascii');
     // Other digit-only runs after '+' must also stay ASCII.
     for (const run of ['+200', '+99', '+2000000']) {
-      assertDetection(bytes(`the value is ${run} units\n`), 'ascii');
+      await assertDetection(bytes(`the value is ${run} units\n`), 'ascii');
     }
   });
 
-  test('plus uppercase word not utf7 — issue #371 follow-up', () => {
+  test('plus uppercase word not utf7 — issue #371 follow-up', async () => {
     // Three uppercase base64 characters can pass the padding and surrogate
     // checks by accident ("LAY" decodes to U+2C06, Glagolitic). Guard D now
     // requires a dash-less single-unit block to decode into a script range
     // where a genuine lone shifted character lives.
-    assertDetection(bytes('|16847+|\n|NAME,+LAY|\n'.repeat(20)), 'ascii');
-    assertDetection(
+    await assertDetection(bytes('|16847+|\n|NAME,+LAY|\n'.repeat(20)), 'ascii');
+    await assertDetection(
       bytes('ID|AMOUNT|NAME\n16847+|100|SMITH,+JONES\n29383+|250|NAME,+LAY\n'),
       'ascii',
     );
   });
 
-  test('lone accent still utf7', () => {
+  test('lone accent still utf7', async () => {
     // Guard D must keep genuine sparse utf-7: lone accents amid ASCII.
     // Python: "è bello qui, à Paris si va, ù pure\n".encode("utf-7") * 4.
-    assertDetection(
+    await assertDetection(
       bytes('+AOg bello qui, +AOA Paris si va, +APk pure\n'.repeat(4)),
       'utf-7',
     );
   });
 
-  test('utf7 signature detected', () => {
+  test('utf7 signature detected', async () => {
     // A UTF-7 signature (U+FEFF as "+/v8-") must not read as ASCII.
     // Python: "﻿Hello there, ...".encode("utf-7").
-    assertDetection(bytes('+/v8-Hello there, signed utf-7 content here.'), 'utf-7');
+    await assertDetection(bytes('+/v8-Hello there, signed utf-7 content here.'), 'utf-7');
   });
 
-  test('utf7 signature prefix alone is not utf7', () => {
+  test('utf7 signature prefix alone is not utf7', async () => {
     // The four UTF-7 signature prefixes are ordinary ASCII; a diff of V8
     // source paths begins with "+/v8". The BOM entry therefore demands the
     // whole buffer decode as UTF-7 before it believes the prefix.
-    assertDetection(
+    await assertDetection(
       bytes('+/v8/src/api.cc\n+/v8/src/objects.h\nthese lines were added\n'),
       'ascii',
     );
-    assertDetection(bytes('+/v9 is the new deps path for the build\n'), 'ascii');
+    await assertDetection(bytes('+/v9 is the new deps path for the build\n'), 'ascii');
   });
 
-  test('dash terminated uppercase run not utf7', () => {
+  test('dash terminated uppercase run not utf7', async () => {
     // Guard D applies with or without the dash: "+LAY-AWAY" stays ASCII.
-    assertDetection(bytes('|16847+|\n|NAME,+LAY-AWAY|\n'.repeat(20)), 'ascii');
-    assertDetection(
+    await assertDetection(bytes('|16847+|\n|NAME,+LAY-AWAY|\n'.repeat(20)), 'ascii');
+    await assertDetection(
       bytes('SOME NAME,+LAY THEN MORE TEXT FOLLOWS HERE OK\n'.repeat(10)),
       'ascii',
     );
   });
 
-  test('lone punctuation and cjk units stay utf7', () => {
+  test('lone punctuation and cjk units stay utf7', async () => {
     // Python's encoder emits "+IBQ" (em dash) and "+ZeU" (kanji) without
     // dash terminators before direct characters; a guard that only allowed
     // Latin-supplement lone units flipped these to ASCII. Bytes below are
     // Python's utf-7 encodings of the em-dash/ellipsis and kanji samples.
-    assertDetection(
+    await assertDetection(
       bytes('The result +IBQ good.\nThe cost +ICY high, but fine.\n'.repeat(6)),
       'utf-7',
     );
-    assertDetection(
+    await assertDetection(
       bytes('The kanji for day is +ZeU in Japanese text.\n'.repeat(5)),
       'utf-7',
     );
@@ -274,7 +280,7 @@ describe('TestEscapeSequences', () => {
 // the winner's only multi-byte evidence is the dangling tail itself, the
 // best rival that decodes completely now wins.
 describe('TestIssue380', () => {
-  test('mama returns an encoding that decodes', () => {
+  test('mama returns an encoding that decodes', async () => {
     const data = bytes('mam\xe1');
     const result = detect(data);
     expect(result.encoding).not.toBeNull();
@@ -282,7 +288,7 @@ describe('TestIssue380', () => {
     expect(decoded).toBe('mamá');
   });
 
-  test('dangling tail words decode', () => {
+  test('dangling tail words decode', async () => {
     // The class, not just the instance: accented-final words round-trip.
     // All characters are < U+0100, so bytes() is the iso-8859-1 encode.
     for (const word of ['mamá', 'papá', 'café olé', 'groß']) {
@@ -300,28 +306,28 @@ describe('TestIssue380', () => {
 // ==========================================================================
 
 describe('TestUtf1632', () => {
-  test('utf16 with null after bom — issue #62', () => {
-    assertDetection(bytes('\xff\xfe\x00\x000\x00'), 'utf-16');
+  test('utf16 with null after bom — issue #62', async () => {
+    await assertDetection(bytes('\xff\xfe\x00\x000\x00'), 'utf-16');
   });
 
-  test('utf16 le bom returns utf16 — issue #364', () => {
-    assertDetection(bytes('\xff\xfeH\x00e\x00l\x00l\x00o\x00'), 'utf-16');
+  test('utf16 le bom returns utf16 — issue #364', async () => {
+    await assertDetection(bytes('\xff\xfeH\x00e\x00l\x00l\x00o\x00'), 'utf-16');
   });
 
-  test('utf16 be bom returns utf16 — issue #364', () => {
-    assertDetection(bytes('\xfe\xff\x00H\x00e\x00l\x00l\x00o'), 'utf-16');
+  test('utf16 be bom returns utf16 — issue #364', async () => {
+    await assertDetection(bytes('\xfe\xff\x00H\x00e\x00l\x00l\x00o'), 'utf-16');
   });
 
-  test('utf32 le bom returns utf32 — issue #364', () => {
-    assertDetection(bytes('\xff\xfe\x00\x00H\x00\x00\x00'), 'utf-32');
+  test('utf32 le bom returns utf32 — issue #364', async () => {
+    await assertDetection(bytes('\xff\xfe\x00\x00H\x00\x00\x00'), 'utf-32');
   });
 
-  test('utf32 be bom returns utf32 — issue #364', () => {
-    assertDetection(bytes('\x00\x00\xfe\xff\x00\x00\x00H'), 'utf-32');
+  test('utf32 be bom returns utf32 — issue #364', async () => {
+    await assertDetection(bytes('\x00\x00\xfe\xff\x00\x00\x00H'), 'utf-32');
   });
 
-  test('utf16le no bom — issue #105', () => {
-    assertDetection(
+  test('utf16le no bom — issue #105', async () => {
+    await assertDetection(
       bytes('H\x00e\x00l\x00l\x00o\x00 \x00W\x00o\x00r\x00l\x00d\x00'),
       'utf-16-le',
     );
@@ -333,20 +339,20 @@ describe('TestUtf1632', () => {
 // ==========================================================================
 
 describe('TestCjkShortInputs', () => {
-  test('single chinese char gb2312 — issue #219', () => {
-    assertDetection(bytes('\xd6\xd0'), 'gb2312');
+  test('single chinese char gb2312 — issue #219', async () => {
+    await assertDetection(bytes('\xd6\xd0'), 'gb2312');
   });
 
-  test('korean name euckr — issue #161', () => {
-    assertDetection(bytes('\xb1\xe8\xbc\xba\xbd\xc4'), 'euc-kr');
+  test('korean name euckr — issue #161', async () => {
+    await assertDetection(bytes('\xb1\xe8\xbc\xba\xbd\xc4'), 'euc-kr');
   });
 
-  test('chinese in ascii path — issue #294', () => {
-    assertDetection(bytes('*file_import {D:/\xc9\xe8\xbc\xc6-1.step} {Step Files}'), 'gb2312');
+  test('chinese in ascii path — issue #294', async () => {
+    await assertDetection(bytes('*file_import {D:/\xc9\xe8\xbc\xc6-1.step} {Step Files}'), 'gb2312');
   });
 
-  test('chinese gb2312 text — issue #247', () => {
-    assertDetection(bytes('\xb0\xb2\xbb\xd5\xb9\xe3\xcc\xb6\xb3\xa1'), 'gb2312');
+  test('chinese gb2312 text — issue #247', async () => {
+    await assertDetection(bytes('\xb0\xb2\xbb\xd5\xb9\xe3\xcc\xb6\xb3\xa1'), 'gb2312');
   });
 });
 
@@ -355,8 +361,8 @@ describe('TestCjkShortInputs', () => {
 // ==========================================================================
 
 describe('TestGb18030', () => {
-  test('gb18030 with bom — issue #178', () => {
-    assertDetection(
+  test('gb18030 with bom — issue #178', async () => {
+    await assertDetection(
       concat(
         bytes('\x841\x953'),  // GB18030 encoding of U+FEFF (BOM)
         bytes('\xce\xd2\xc3\xbb\xd3\xd0\xc2\xf1\xd4\xb9\xa3\xac'),
@@ -373,8 +379,8 @@ describe('TestGb18030', () => {
 // ==========================================================================
 
 describe('TestWrongEncodingModernWeb', () => {
-  test('portuguese iso88591 — issue #24', () => {
-    assertDetection(
+  test('portuguese iso88591 — issue #24', async () => {
+    await assertDetection(
       concat(
         bytes('"ULTIMA ATUALIZACAO";"17/03/2014 04:01"\r\n'),
         bytes('"ANO";"MES";"SENADOR";"TIPO_DESPESA";"CNPJ_CPF";'),
@@ -390,20 +396,20 @@ describe('TestWrongEncodingModernWeb', () => {
     );
   });
 
-  test('smart apostrophe win1252 — issue #53', () => {
-    assertDetection(bytes("today\x92s research"), 'windows-1252', EncodingEra.MODERN_WEB);
+  test('smart apostrophe win1252 — issue #53', async () => {
+    await assertDetection(bytes("today\x92s research"), 'windows-1252', EncodingEra.MODERN_WEB);
   });
 
-  test('latin1 accented chars — issue #242', () => {
-    assertDetection(
+  test('latin1 accented chars — issue #242', async () => {
+    await assertDetection(
       bytes('latin-1 encoded string > \xe9\xe1\xfb'),
       'iso-8859-1',
       EncodingEra.MODERN_WEB,
     );
   });
 
-  test('subtitle acute apostrophes — issue #279', () => {
-    assertDetection(
+  test('subtitle acute apostrophes — issue #279', async () => {
+    await assertDetection(
       concat(
         bytes('y!\r\n- We\xb4re going to get him.\r\n- He was here.\r\n'),
         bytes("Don\xb4t worry, we\xb4ll find him.\r\n"),
@@ -415,8 +421,8 @@ describe('TestWrongEncodingModernWeb', () => {
     );
   });
 
-  test('iso88591 pound middot — issue #170', () => {
-    assertDetection(
+  test('iso88591 pound middot — issue #170', async () => {
+    await assertDetection(
       concat(
         bytes('OTE up to \xa350K first year!. to emergency situations '),
         bytes('\xb7 perform all activities with children, i.e. jump, '),
@@ -442,8 +448,8 @@ describe('TestWrongEncodingModernWeb', () => {
 
 describe('TestKnownFailures', () => {
   // Issue #96: French windows-1252 text was previously detected as windows-1251; now fixed.
-  test('french win1252 anonymized — issue #96', () => {
-    assertDetection(
+  test('french win1252 anonymized — issue #96', async () => {
+    await assertDetection(
       concat(
         bytes('xxxx), xx xxxxxx xx xxxxxx xx\xe9\xe9x \xe0 xxxxx x xxxx \n'),
         bytes('xxxxx\xe9 xx xx xxx xxxxxxx\xe9.\n\n*__*\n\n'),
@@ -483,8 +489,8 @@ describe('TestKnownFailures', () => {
 // ==========================================================================
 
 describe('TestWindows1252Bytes', () => {
-  test('euro sign win1252 — issue #317', () => {
-    assertDetection(bytes('\x80'), 'windows-1252');
+  test('euro sign win1252 — issue #317', async () => {
+    await assertDetection(bytes('\x80'), 'windows-1252');
   });
 });
 
@@ -493,12 +499,12 @@ describe('TestWindows1252Bytes', () => {
 // ==========================================================================
 
 describe('TestGreek', () => {
-  test('nbsp with angle bracket — issue #64', () => {
-    assertDetection(bytes('<\xa0'), 'iso-8859-7');
+  test('nbsp with angle bracket — issue #64', async () => {
+    await assertDetection(bytes('<\xa0'), 'iso-8859-7');
   });
 
-  test('greek text omilia — issue #124', () => {
-    assertDetection(bytes('\xcc\xe5 \xef\xec\xe9\xeb\xdf\xe1 \xf4\xe7\xf2'), 'iso-8859-7');
+  test('greek text omilia — issue #124', async () => {
+    await assertDetection(bytes('\xcc\xe5 \xef\xec\xe9\xeb\xdf\xe1 \xf4\xe7\xf2'), 'iso-8859-7');
   });
 });
 
@@ -507,20 +513,20 @@ describe('TestGreek', () => {
 // ==========================================================================
 
 describe('TestNoCrash', () => {
-  test('issue #67 no crash', () => {
+  test('issue #67 no crash', async () => {
     const result = detect(bytes('\xfe\xcf'), { encodingEra: EncodingEra.ALL });
     expect(typeof result).toBe('object');
     expect('encoding' in result).toBe(true);
   });
 
-  test('issue #367 short two-byte runtime error', () => {
+  test('issue #367 short two-byte runtime error', async () => {
     const result = detect(bytes('\xf9\x92'));
     expect(typeof result).toBe('object');
     expect('encoding' in result).toBe(true);
     expect(result.encoding).not.toBeNull();
   });
 
-  test('issue #367 additional two-byte sequences', () => {
+  test('issue #367 additional two-byte sequences', async () => {
     const samples: Uint8Array[] = [
       bytes('\x81\x40'),  // cp932 lead byte + valid trail
       bytes('\xf0\x80'),  // cp932 high lead byte
@@ -542,7 +548,7 @@ describe('TestNoCrash', () => {
 // ==========================================================================
 
 describe('TestNullSeparators', () => {
-  test('null separated ascii — issue #346', () => {
+  test('null separated ascii — issue #346', async () => {
     const data = concat(
       bytes('master:README.md\x002\x00For support slack to #kodiak-support\n'),
       bytes('master:support.txt\x001\x00For support slack to #kodiak-support\n'),
@@ -552,7 +558,7 @@ describe('TestNullSeparators', () => {
     expect(result.confidence).toBe(0.99);
   });
 
-  test('find print0 output', () => {
+  test('find print0 output', async () => {
     const data = concat(
       bytes('/home/user/documents/report.txt\x00'),
       bytes('/home/user/documents/notes.txt\x00'),

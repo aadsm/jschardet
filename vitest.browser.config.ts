@@ -40,6 +40,7 @@ export default defineConfig({
       // iconv-lite oracle is Node-only (Buffer); Vite externalizes
       // node:buffer in browser builds, so importing these blows up.
       'tests/equivalences.test.ts',
+      'tests/evaluation.test.ts',
       'tests/github_issues.test.ts',
       'tests/roundtrip_short.test.ts',
       // Spawns python3 as a long-lived codec oracle; no browser equivalent.

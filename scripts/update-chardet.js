@@ -2,6 +2,7 @@
 import { execSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
+import { TEST_DATA_REPO } from './lib/test-data.js';
 import { generate as generateWhatwgMap } from './generate-encodings-whatwg-map.js';
 import { generate as generateModelBins } from './generate-model-bins.js';
 import { generate as generateSbcsUndefinedBytes } from './generate-sbcs-undefined-bytes.js';
@@ -20,6 +21,25 @@ function usage() {
   process.exit(1);
 }
 
+function refreshTestFixtures(tag) {
+  // The corpus ref is derived from the submodule at run time, so the only
+  // corpus work an update needs is refreshing the committed fixtures — but
+  // check the matching test-data tag exists first: chardet tags test-data
+  // with the same version for every release, so a missing tag means the
+  // convention broke upstream. Stop rather than silently regenerate the
+  // fixtures from the 'main' fallback. tests/data/ needs no refresh here —
+  // ensureTestData re-clones it on the next test run when .test-data-ref
+  // goes stale.
+  const remoteTag = execSync(
+    `git ls-remote --tags ${TEST_DATA_REPO} refs/tags/${tag}`,
+    { encoding: 'utf8' },
+  );
+  if (!remoteTag.trim()) {
+    throw new Error(`test-data repo has no tag ${tag}; fixtures not refreshed`);
+  }
+  execSync('node scripts/update-test-fixtures.js', { cwd: root, stdio: 'inherit' });
+}
+
 async function updateSubmodule(tag) {
   console.log(`Fetching ${tag}...`);
   execSync(`git fetch --depth=1 origin tag ${tag}`, { cwd: chardetDir, stdio: 'inherit' });
@@ -30,6 +50,7 @@ async function updateSubmodule(tag) {
   generateSbcsUndefinedBytes();
   generateConfusionCaseTables();
   await generateModelBins();
+  refreshTestFixtures(tag);
 }
 
 async function main() {

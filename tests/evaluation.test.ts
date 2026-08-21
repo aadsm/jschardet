@@ -5,67 +5,79 @@ import {
   isLanguageEquivalent,
 } from '../src/evaluation.js';
 import { isEquivalentDetection } from './utils.js';
+import { _shutdown } from './helpers/codecs.js';
+
+// The equivalence fallback may spawn the Python codec oracle.
+afterAll(async () => {
+  await _shutdown();
+});
 
 describe('isEquivalentDetection', () => {
-  test('identical decode returns true', () => {
+  test('identical decode returns true', async () => {
     const data = new TextEncoder().encode('Hello, world!');
-    expect(isEquivalentDetection(data, 'ascii', 'utf-8')).toBe(true);
+    expect(await isEquivalentDetection(data, 'ascii', 'utf-8')).toBe(true);
   });
 
-  test('base letter match returns true', () => {
+  test('base letter match returns true', async () => {
     // 0xC3 is A-tilde in iso-8859-1, A-breve in iso-8859-2; both strip to "A"
     const data = new Uint8Array([0xc3]);
-    expect(isEquivalentDetection(data, 'iso-8859-1', 'iso-8859-2')).toBe(true);
+    expect(await isEquivalentDetection(data, 'iso-8859-1', 'iso-8859-2')).toBe(true);
   });
 
-  test('completely different decode returns false', () => {
+  test('completely different decode returns false', async () => {
     const data = new Uint8Array([0xc0, 0xc1, 0xc2, 0xc3, 0xc4]);
-    expect(isEquivalentDetection(data, 'iso-8859-1', 'iso-8859-5')).toBe(false);
+    expect(await isEquivalentDetection(data, 'iso-8859-1', 'iso-8859-5')).toBe(false);
   });
 
-  test('null detected returns false', () => {
+  test('null detected returns false', async () => {
     const data = new TextEncoder().encode('Hello');
-    expect(isEquivalentDetection(data, 'utf-8', null)).toBe(false);
+    expect(await isEquivalentDetection(data, 'utf-8', null)).toBe(false);
   });
 
-  test('decode error returns false', () => {
+  test('decode error returns false', async () => {
     // 0x81 is not a valid UTF-8 lead byte
     const data = new Uint8Array([0x81, 0x82, 0x83]);
-    expect(isEquivalentDetection(data, 'iso-8859-1', 'utf-8')).toBe(false);
+    expect(await isEquivalentDetection(data, 'iso-8859-1', 'utf-8')).toBe(false);
   });
 
-  test('empty data returns true', () => {
-    expect(isEquivalentDetection(new Uint8Array(), 'utf-8', 'iso-8859-1')).toBe(true);
+  test('empty data returns true', async () => {
+    expect(await isEquivalentDetection(new Uint8Array(), 'utf-8', 'iso-8859-1')).toBe(true);
   });
 
-  test('normalized name match returns true', () => {
+  test('ebcdic pair decodes identically', async () => {
+    // "Hello".encode("cp037")
+    const data = new Uint8Array([0xc8, 0x85, 0x93, 0x93, 0x96]);
+    expect(await isEquivalentDetection(data, 'cp037', 'cp500')).toBe(true);
+  });
+
+  test('normalized name match returns true', async () => {
     const data = new TextEncoder().encode('Hello');
-    expect(isEquivalentDetection(data, 'UTF-8', 'utf8')).toBe(true);
+    expect(await isEquivalentDetection(data, 'UTF-8', 'utf8')).toBe(true);
   });
 
-  test('unknown encoding returns false', () => {
+  test('unknown encoding returns false', async () => {
     const data = new TextEncoder().encode('Hello');
-    expect(isEquivalentDetection(data, 'utf-8', 'not-a-real-encoding')).toBe(false);
+    expect(await isEquivalentDetection(data, 'utf-8', 'not-a-real-encoding')).toBe(false);
   });
 
-  test('currency sign vs euro sign accepted', () => {
+  test('currency sign vs euro sign accepted', async () => {
     // 0xA4 = ¤ in iso-8859-1, € in iso-8859-15
     const data = new Uint8Array([0xa4]);
-    expect(isEquivalentDetection(data, 'iso-8859-1', 'iso-8859-15')).toBe(true);
+    expect(await isEquivalentDetection(data, 'iso-8859-1', 'iso-8859-15')).toBe(true);
   });
 
-  test('symbol vs letter difference returns false', () => {
+  test('symbol vs letter difference returns false', async () => {
     // 0xD7 = × in iso-8859-1, Ч in iso-8859-5
     const data = new Uint8Array([0xd7]);
-    expect(isEquivalentDetection(data, 'iso-8859-1', 'iso-8859-5')).toBe(false);
+    expect(await isEquivalentDetection(data, 'iso-8859-1', 'iso-8859-5')).toBe(false);
   });
 
-  test('expected null, detected null returns true', () => {
-    expect(isEquivalentDetection(new Uint8Array([0x00, 0x01]), null, null)).toBe(true);
+  test('expected null, detected null returns true', async () => {
+    expect(await isEquivalentDetection(new Uint8Array([0x00, 0x01]), null, null)).toBe(true);
   });
 
-  test('expected null, detected encoding returns false', () => {
-    expect(isEquivalentDetection(new Uint8Array([0x00, 0x01]), null, 'utf-8')).toBe(false);
+  test('expected null, detected encoding returns false', async () => {
+    expect(await isEquivalentDetection(new Uint8Array([0x00, 0x01]), null, 'utf-8')).toBe(false);
   });
 });
 
