@@ -127,19 +127,26 @@ test('truncated tail keeps encoding as candidate', () => {
   expect(filterByValidity(data, candidates).length).toBeGreaterThan(0);
 });
 
+// These three assert on the gb18030 label, where Python's test uses its gbk
+// codec. The port has no gbk label — ENCODING_WHATWG_MAP routes the whole GB
+// family through gb18030, which is also what the WHATWG Encoding Standard
+// does (GBK's decoder *is* gb18030's decoder). Passing 'gbk' here would test a
+// label no call site can produce, and Node <= 20's gbk decoder accepts these
+// invalid bytes rather than rejecting them. See "Truncation-tolerant validity
+// decoding" in docs/port-notes.md.
 test('illegal trail byte still eliminates encoding', () => {
-  // 0xD6 is a valid gbk lead byte; 0x20 is not a valid trail byte.
-  expect(decodesWithoutError('gbk', hex('d5e2cac7d620'))).toBe(false);
+  // 0xD6 is a valid GB lead byte; 0x20 is not a valid trail byte.
+  expect(decodesWithoutError('gb18030', hex('d5e2cac7d620'))).toBe(false);
 });
 
 test('unmapped bytes still eliminate encoding', () => {
-  expect(decodesWithoutError('gbk', hex('d5e2cac7ffff'))).toBe(false);
+  expect(decodesWithoutError('gb18030', hex('d5e2cac7ffff'))).toBe(false);
 });
 
 test('corruption before a truncated tail is still caught', () => {
   // Corrupt pair mid-buffer, then a dangling lead byte at the end. Tolerating
   // the tail must not tolerate the corruption ahead of it.
-  expect(decodesWithoutError('gbk', hex('d5e2ffffd2bbd6'))).toBe(false);
+  expect(decodesWithoutError('gb18030', hex('d5e2ffffd2bbd6'))).toBe(false);
 });
 
 test('markup declaration survives the scan limit cut', () => {

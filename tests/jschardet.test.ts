@@ -15,6 +15,12 @@ import euckrKo from './fixtures/euc-kr-ko.txt?uint8array';
 import gb18030UserdbPanda from './fixtures/gb18030-userdb_panda.yar.txt?uint8array';
 import iso88591Pt from './fixtures/iso-8859-1-pt.txt?uint8array';
 import utf8StripSh from './fixtures/utf-8-strip.sh.txt?uint8array';
+import big5ZhCorrupt from './fixtures/big5-zh-corrupt.txt?uint8array';
+
+// Node is where the big5 validity divergence below lives. A positive check
+// rather than "no window": under a DOM environment (jsdom, happy-dom) window
+// exists on Node too, and that must not silently skip the case.
+const IS_NODE = typeof process !== 'undefined' && process.versions?.node != null;
 
 describe('detectEncodings', () => {
   test("shouldn't accept unknown encodings", () => {
@@ -228,6 +234,34 @@ describe('Bug regressions', () => {
     expect(result.encoding).toBe('ascii');
     expect(result.confidence).toBe(1);
   });
+
+  // Not an issue report — a divergence from upstream we cannot fix from here,
+  // pinned so we hear about it when the platform moves.
+  //
+  // 0xFF is illegal in Big5, so Python's codec raises and filter_by_validity
+  // drops the encoding. Node's TextDecoder does not raise: ICU substitutes
+  // U+F8F8 (Private Use Area) and reports success, which decodesWithoutError
+  // cannot distinguish from a clean decode, so big5hkscs survives validity
+  // filtering and wins. The fixture is 400 bytes of Big5 Chinese with two
+  // 0xFF bytes spliced in at offset 120:
+  //   port      1. Big5 / zh   conf 0.4164
+  //   upstream  Big5 eliminated; top is cp1006 / ur conf 0.0076
+  //
+  // Node-only, hence runIf: Chromium rejects the same bytes, so browser
+  // builds already match upstream and the assertion below passes there.
+  // Node 22 quietly fixed the identical bug for gbk (U+F8F5) without anyone
+  // noticing for weeks; when a release does the same for big5 this flips to
+  // "expected to fail, but passed" and we can delete it. Rejecting PUA output
+  // is not the fix — 6217 of big5's 19720 decodable pairs map there
+  // legitimately. See "Truncation-tolerant validity decoding" in
+  // docs/port-notes.md.
+  test.runIf(IS_NODE).fails(
+    'invalid Big5 bytes eliminate Big5 the way upstream does',
+    () => {
+      const all = detectAll(big5ZhCorrupt);
+      expect(all.some(r => String(r.encoding).toLowerCase().startsWith('big5'))).toBe(false);
+    },
+  );
 });
 
 // Browser callers hold file data as an ArrayBuffer (fetch, File.arrayBuffer,
