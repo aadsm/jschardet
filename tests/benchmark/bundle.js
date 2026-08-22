@@ -26,28 +26,18 @@
 //   node tests/benchmark/bundle.js
 //
 // First run installs jschardet 3 into tests/bench-deps/ (cached afterwards).
+//
+// tests/bundle-size.test.ts imports measureBundle/toKiB from here, so module
+// scope stays pure: no side effects, and nothing pulled in beyond node:fs and
+// node:zlib. Installing jschardet 3 (which shells out to npm) and reading its
+// version happen in the CLI block at the bottom, behind a dynamic import.
 import { readFileSync } from 'node:fs';
 import { gzipSync } from 'node:zlib';
-import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
-import { ensureJschardetV3 } from './lib/jschardet-v3.js';
 
 const root = dirname(dirname(dirname(fileURLToPath(import.meta.url))));
 const v3Dir = join(root, 'tests', 'bench-deps', 'jschardet-3', 'node_modules', 'jschardet');
-
-ensureJschardetV3(root);
-
-const _require = createRequire(import.meta.url);
-const v3label = `jschardet ${_require(join(v3Dir, 'package.json')).version}`;
-const v4label = `jschardet ${JSON.parse(readFileSync(join(root, 'package.json'), 'utf8')).version}`;
-
-// Both projects ship the browser IIFE build under the same name; that is the
-// file a <script src> consumer downloads, so it is what the tables quote.
-const targets = [
-  { label: v4label, path: join(root, 'dist', 'jschardet.min.js') },
-  { label: v3label, path: join(v3Dir, 'dist', 'jschardet.min.js') },
-];
 
 export function measureBundle(path) {
   const bytes = readFileSync(path);
@@ -86,5 +76,19 @@ README row: **${withThousands(toKiB(v4.minified))} / ${withThousands(toKiB(v4.gz
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {
+  const { createRequire } = await import('node:module');
+  const { ensureJschardetV3 } = await import('./lib/jschardet-v3.js');
+  ensureJschardetV3(root);
+
+  const _require = createRequire(import.meta.url);
+  const v3label = `jschardet ${_require(join(v3Dir, 'package.json')).version}`;
+  const v4label = `jschardet ${JSON.parse(readFileSync(join(root, 'package.json'), 'utf8')).version}`;
+
+  // Both projects ship the browser IIFE build under the same name; that is the
+  // file a <script src> consumer downloads, so it is what the tables quote.
+  const targets = [
+    { label: v4label, path: join(root, 'dist', 'jschardet.min.js') },
+    { label: v3label, path: join(v3Dir, 'dist', 'jschardet.min.js') },
+  ];
   printResults(targets.map(({ label, path }) => ({ label, ...measureBundle(path) })));
 }

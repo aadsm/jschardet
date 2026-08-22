@@ -54,6 +54,10 @@ export default defineConfig({
       // Exercises the IIFE browser bundle via a <script> tag; only meaningful
       // under vitest.bundles.jschardet.config.ts (which builds the bundle first).
       'tests/jschardet.global.test.ts',
+      // Measures the committed dist/ bundle with node:fs and node:zlib and
+      // compares it against README.md; it is an assertion about files on
+      // disk, so there is nothing for the browser to run.
+      'tests/bundle-size.test.ts',
     ],
     browser: {
       enabled: true,
