@@ -26,8 +26,11 @@ jobs:
       - run: npm ci
       - run: npm run typecheck
       - run: npm run build
-      - run: npm test
-      - run: npm run test:browser
+      # Before the tests, not after: tests/packaging.test.ts exercises
+      # build/index.cjs and build/index.d.cts, which only these two scripts
+      # produce. build/ is gitignored, so on a fresh checkout they do not
+      # exist and those tests fail on an artefact that is missing rather
+      # than on the code under test.
       - run: npm run build:bundles && npm run build:types
       - name: Check dist files match source
         env:
@@ -35,6 +38,8 @@ jobs:
         run: |
           git diff --stat --no-color --exit-code \
           || (echo "dist files at $COMMIT_URL do not match source. Run 'npm run build && npm run build:bundles && npm run build:types' and commit." && exit 1)
+      - run: npm test
+      - run: npm run test:browser
       # Assembles the tarball exactly as `npm publish` would, without writing or
       # uploading it, and logs its contents and size. A `files` glob that stopped
       # matching, or a `bin` path that isn't shipped, fails here rather than at
