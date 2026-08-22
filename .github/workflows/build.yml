@@ -3,6 +3,16 @@ on:
   workflow_dispatch:
   workflow_call:
   pull_request:
+  # Every branch, not just the default one: work here lands by pushing a
+  # branch directly and opening a PR later, if at all, so a default-branch
+  # filter would leave that work unbuilt — which is how eight commits reached
+  # update-chardet-7.6.0 without a single run.
+  push:
+# A branch that is pushed and then PR'd fires both triggers; same ref, same
+# group, so the older run is cancelled rather than duplicating the work.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 permissions:
   contents: read
 jobs:
