@@ -10,21 +10,21 @@ The API is `detect()` and `detectAll()`, returning `encoding`, `confidence`, `la
 
 ## Features
 
-99.2% accuracy on 2,517 test files, up from 42.0% in jschardet 3, with ~6× the throughput and ~9× lower peak memory. Language detection for every result. MIME type detection for binary files.
+99.4% accuracy on 3,125 test files, up from 43.0% in jschardet 3, with ~5× the throughput and ~9× lower peak memory. Language detection for every result. MIME type detection for binary files.
 
-| | jschardet 4.0.0 | jschardet 3.1.4 | chardet 7.4.3 (Python) |
+| | jschardet 4.0.0 | jschardet 3.1.4 | chardet 7.6.0 (Python) |
 |---|---|---|---|
-| Accuracy (2,517 files) | **99.2%** | 42.0% | 99.2% |
-| Speed | **945 files/s** | 154 files/s | 187 files/s |
-| Language detection | **97.4%** | — | 97.4% |
-| Peak memory | **84.5 MiB** | 751.4 MiB | 50.7 MiB |
-| Bundle size (min / gzip) | **1,043 / 676 KiB** | 334 / 120 KiB | — |
-| Cold start (import + first detect) | **80.3 ms** | 25.7 ms | 94.9 ms |
+| Accuracy (3,125 files) | **99.4%** | 43.0% | 99.5% |
+| Speed | **568 files/s** | 125 files/s | 212 files/s |
+| Language detection | **93.3%** | — | 93.3% |
+| Peak memory | **89.9 MiB** | 829.1 MiB | 37.4 MiB |
+| Bundle size (min / gzip) | **1,070 / 683 KiB** | 334 / 120 KiB | — |
+| Cold start (import + first detect) | **107.9 ms** | 27.8 ms | 99.7 ms |
 | Runs in browsers | **yes** | yes | — |
 | MIME type detection | **yes** | no | yes |
 | License | **0BSD** | LGPL | 0BSD |
 
-Compared to jschardet 3, v4 has a larger bundle and a ~80 ms first-call cost. Both come from shipping a larger detection model; the model decompresses once on first `detect()` and stays in memory afterwards, so subsequent calls run at full speed.
+Compared to jschardet 3, v4 has a larger bundle and a ~110 ms first-call cost. Both come from shipping a larger detection model; the model decompresses once on first `detect()` and stays in memory afterwards, so subsequent calls run at full speed.
 
 See [docs/performance.md](docs/performance.md) for the full benchmark methodology and per-encoding accuracy.
 

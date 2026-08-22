@@ -1,6 +1,6 @@
 # jschardet performance
 
-Benchmarked on 2026-05-26 against 2517 test files from the
+Benchmarked on 2026-08-22 against 3125 test files from the
 [chardet test corpus](https://github.com/chardet/test-data).
 Methodology mirrors
 [chardet/docs/rewrite_performance.md](https://github.com/chardet/chardet/blob/main/docs/rewrite_performance.md):
@@ -13,7 +13,7 @@ Three detectors are compared:
 
 - **jschardet 3.1.4** — the previous JavaScript port
 - **jschardet 4.0.0** — this package, a TypeScript ground-up port of chardet 7
-- **chardet 7.4.3** — upstream Python, run via PYTHONPATH against the
+- **chardet 7.6.0** — upstream Python, run via PYTHONPATH against the
   `chardet/` submodule
 
 Reproduce locally:
@@ -29,23 +29,25 @@ npm run benchmark:memory
 
 | Detector        | Correct   | Accuracy |
 |-----------------|-----------|----------|
-| jschardet 3.1.4 | 1057/2517 | 42.0%    |
-| jschardet 4.0.0 | 2496/2517 | 99.2%    |
-| chardet 7.4.3   | 2496/2517 | 99.2%    |
+| jschardet 3.1.4 | 1344/3125 | 43.0%    |
+| jschardet 4.0.0 | 3107/3125 | 99.4%    |
+| chardet 7.6.0   | 3108/3125 | 99.5%    |
 
-jschardet 4 lifts accuracy by 57.2pp over jschardet 3 — the underlying
+jschardet 4 lifts accuracy by 56.4pp over jschardet 3 — the underlying
 chardet rewrite ships new bigram models, EBCDIC/DOS/Mac coverage, and
-magic-number plus markup-charset pipelines that v3 lacked.
+magic-number plus markup-charset pipelines that v3 lacked. It trails
+upstream by a single file (one cp932 sample, see the per-encoding table
+below); every other encoding matches chardet exactly.
 
 ## Language detection accuracy
 
 | Detector        | Correct   | Accuracy |
 |-----------------|-----------|----------|
 | jschardet 3.1.4 | n/a       | n/a      |
-| jschardet 4.0.0 | 2445/2509 | 97.4%    |
-| chardet 7.4.3   | 2445/2509 | 97.4%    |
+| jschardet 4.0.0 | 2909/3117 | 93.3%    |
+| chardet 7.6.0   | 2909/3117 | 93.3%    |
 
-jschardet 3 does not return a `language` field. The 64 wrong-language
+jschardet 3 does not return a `language` field. The 208 wrong-language
 cases under jschardet 4 are primarily confusable language pairs within
 the same script (Danish/Norwegian, Belarusian/Bulgarian for Cyrillic,
 etc.).
@@ -59,13 +61,25 @@ don't, to keep runtime reasonable.
 
 | Detector        | Files/s | Mean    | Median  | p90      | p95      |
 |-----------------|---------|---------|---------|----------|----------|
-| jschardet 3.1.4 |     154 | 6.51 ms | 0.59 ms |  3.58 ms |  6.17 ms |
-| jschardet 4.0.0 |     945 | 1.06 ms | 0.28 ms |  2.26 ms |  3.31 ms |
-| chardet 7.4.3   |     187 | 5.36 ms | 1.89 ms | 12.77 ms | 16.22 ms |
+| jschardet 3.1.4 |     125 | 8.02 ms | 0.76 ms |  8.95 ms | 18.11 ms |
+| jschardet 4.0.0 |     568 | 1.76 ms | 0.43 ms |  2.75 ms |  4.44 ms |
+| chardet 7.6.0   |     212 | 4.71 ms | 1.89 ms | 10.98 ms | 15.70 ms |
 
-jschardet 4 processes about 6× more files per second than jschardet 3
+jschardet 4 processes about 5× more files per second than jschardet 3
 on this corpus, and the tail latency narrows too — p95 drops from
-6.17 ms to 3.31 ms.
+18.11 ms to 4.44 ms.
+
+This port does not implement upstream's rowmax scoring pruning (see
+[port-notes.md](port-notes.md#statistical-scoring-rowmax-pruning-not-ported));
+it always scores every candidate, matching chardet's `full_ranking=True`
+path. Probed separately against this corpus pin, that fast path is worth
+single-digit percent here rather than the multiple upstream's "~2.9x with
+mypyc" changelog entry suggests: pruning skips 22% of model scorings
+(263k vs 337k across the corpus), statistical scoring accounts for only
+~21% of this port's detection time, and chardet's own pruned and unpruned
+paths measure within ~4% of each other when run interpreted. Making
+single-byte scoring entirely free — a ceiling no real pruning reaches —
+lifts a probe build by ~30%.
 
 ## Cold start
 
@@ -73,16 +87,16 @@ Import time and first `detect()` call latency in a fresh subprocess
 (median of 5 runs). Each measurement is isolated to avoid module-cache
 effects.
 
-| Detector        | Import   | First detect | Total    |
-|-----------------|----------|--------------|----------|
-| jschardet 3.1.4 | 25.14 ms |      0.59 ms | 25.73 ms |
-| jschardet 4.0.0 | 34.76 ms |     45.51 ms | 80.27 ms |
-| chardet 7.4.3   | 29.81 ms |     65.08 ms | 94.90 ms |
+| Detector        | Import   | First detect | Total     |
+|-----------------|----------|--------------|-----------|
+| jschardet 3.1.4 | 27.18 ms |      0.59 ms |  27.77 ms |
+| jschardet 4.0.0 | 42.21 ms |     65.64 ms | 107.85 ms |
+| chardet 7.6.0   | 35.51 ms |     64.14 ms |  99.65 ms |
 
 jschardet 4 trades a heavier first-call cost for a lighter steady state:
 the bigram models ship zlib-compressed and decompress lazily on the first
 `detect()` call (see [docs/model-compression.md](model-compression.md)),
-so cold-start latency is ~3× higher than jschardet 3 but every
+so cold-start latency is ~4× higher than jschardet 3 but every
 subsequent call is faster (see throughput above). jschardet 3 has no
 models to decompress, which is why its first detect is essentially free.
 
@@ -99,114 +113,115 @@ the same syscall on both sides keeps the numbers comparable.
 
 | Detector        | Baseline RSS | Import delta | Peak delta | Final RSS |
 |-----------------|--------------|--------------|------------|-----------|
-| jschardet 3.1.4 | 106.7 MiB    | 2.2 MiB      | 751.4 MiB  | 858.1 MiB |
-| jschardet 4.0.0 | 106.6 MiB    | 7.1 MiB      | 84.5 MiB   | 191.1 MiB |
-| chardet 7.4.3   |  59.5 MiB    | 4.5 MiB      | 50.7 MiB   | 110.2 MiB |
+| jschardet 3.1.4 | 137.8 MiB    | 620.0 KiB    | 829.1 MiB  | 966.9 MiB |
+| jschardet 4.0.0 | 137.2 MiB    | 6.0 MiB      | 89.9 MiB   | 227.1 MiB |
+| chardet 7.6.0   |  88.9 MiB    | 8.5 MiB      | 37.4 MiB   | 126.3 MiB |
 
-jschardet 4's peak RSS is ~9× lower than jschardet 3 (84.5 MiB vs
-751.4 MiB of growth above baseline). The chardet rewrite's dense bigram
+jschardet 4's peak RSS is ~9× lower than jschardet 3 (89.9 MiB vs
+829.1 MiB of growth above baseline). The chardet rewrite's dense bigram
 model format (one 64 KiB lookup table per language, loaded once and
 shared across calls) replaces the per-call sparse-map allocations that
 drive v3's high water mark.
 
-The baseline gap between Node (~107 MiB) and Python (~60 MiB) is the
+The baseline gap between Node (~137 MiB) and Python (~89 MiB) is the
 interpreter's own resident footprint plus the corpus bytes — both
 workers pre-load the full corpus into memory before measuring baseline,
 so the corpus shows up there rather than under the detector.
 
 ## Per-encoding accuracy
 
-| Encoding         | N   | jschardet 3.1.4  | jschardet 4.0.0  | chardet 7.4.3    |
+| Encoding         |   N | jschardet 3.1.4  | jschardet 4.0.0  | chardet 7.6.0    |
 |------------------|-----|------------------|------------------|------------------|
 | (binary)         |   8 | 7/8 (87.5%)      | 8/8 (100.0%)     | 8/8 (100.0%)     |
-| ascii            |  18 | 17/18 (94.4%)    | 18/18 (100.0%)   | 18/18 (100.0%)   |
+| ascii            |  32 | 31/32 (96.9%)    | 32/32 (100.0%)   | 32/32 (100.0%)   |
 | big5             |  29 | 29/29 (100.0%)   | 29/29 (100.0%)   | 29/29 (100.0%)   |
-| cp037            |  28 | 0/28 (0.0%)      | 28/28 (100.0%)   | 28/28 (100.0%)   |
+| cp037            |  34 | 0/34 (0.0%)      | 28/34 (82.4%)    | 28/34 (82.4%)    |
 | cp1006           |   3 | 0/3 (0.0%)       | 3/3 (100.0%)     | 3/3 (100.0%)     |
-| cp1026           |   3 | 0/3 (0.0%)       | 3/3 (100.0%)     | 3/3 (100.0%)     |
-| cp1125           |   3 | 0/3 (0.0%)       | 3/3 (100.0%)     | 3/3 (100.0%)     |
-| cp273            |   3 | 0/3 (0.0%)       | 3/3 (100.0%)     | 3/3 (100.0%)     |
-| cp424            |   4 | 0/4 (0.0%)       | 4/4 (100.0%)     | 4/4 (100.0%)     |
-| cp437            |  27 | 0/27 (0.0%)      | 26/27 (96.3%)    | 26/27 (96.3%)    |
-| cp500            |  24 | 0/24 (0.0%)      | 23/24 (95.8%)    | 23/24 (95.8%)    |
-| cp720            |   6 | 0/6 (0.0%)       | 6/6 (100.0%)     | 6/6 (100.0%)     |
-| cp737            |   1 | 0/1 (0.0%)       | 1/1 (100.0%)     | 1/1 (100.0%)     |
-| cp775            |  10 | 0/10 (0.0%)      | 10/10 (100.0%)   | 10/10 (100.0%)   |
-| cp850            |  37 | 0/37 (0.0%)      | 34/37 (91.9%)    | 34/37 (91.9%)    |
-| cp852            |  24 | 0/24 (0.0%)      | 24/24 (100.0%)   | 24/24 (100.0%)   |
+| cp1026           |   8 | 0/8 (0.0%)       | 8/8 (100.0%)     | 8/8 (100.0%)     |
+| cp1125           |   5 | 0/5 (0.0%)       | 5/5 (100.0%)     | 5/5 (100.0%)     |
+| cp273            |   7 | 0/7 (0.0%)       | 7/7 (100.0%)     | 7/7 (100.0%)     |
+| cp424            |   9 | 0/9 (0.0%)       | 9/9 (100.0%)     | 9/9 (100.0%)     |
+| cp437            |  33 | 0/33 (0.0%)      | 32/33 (97.0%)    | 32/33 (97.0%)    |
+| cp500            |  29 | 0/29 (0.0%)      | 28/29 (96.6%)    | 28/29 (96.6%)    |
+| cp720            |   8 | 0/8 (0.0%)       | 8/8 (100.0%)     | 8/8 (100.0%)     |
+| cp737            |   3 | 0/3 (0.0%)       | 3/3 (100.0%)     | 3/3 (100.0%)     |
+| cp775            |  12 | 0/12 (0.0%)      | 12/12 (100.0%)   | 12/12 (100.0%)   |
+| cp850            |  45 | 0/45 (0.0%)      | 42/45 (93.3%)    | 42/45 (93.3%)    |
+| cp852            |  26 | 0/26 (0.0%)      | 26/26 (100.0%)   | 26/26 (100.0%)   |
 | cp855            |  39 | 39/39 (100.0%)   | 39/39 (100.0%)   | 39/39 (100.0%)   |
-| cp856            |   3 | 0/3 (0.0%)       | 3/3 (100.0%)     | 3/3 (100.0%)     |
-| cp857            |   4 | 0/4 (0.0%)       | 4/4 (100.0%)     | 4/4 (100.0%)     |
-| cp858            |  33 | 0/33 (0.0%)      | 31/33 (93.9%)    | 31/33 (93.9%)    |
-| cp860            |   3 | 0/3 (0.0%)       | 3/3 (100.0%)     | 3/3 (100.0%)     |
-| cp861            |   3 | 0/3 (0.0%)       | 3/3 (100.0%)     | 3/3 (100.0%)     |
-| cp862            |   3 | 0/3 (0.0%)       | 3/3 (100.0%)     | 3/3 (100.0%)     |
-| cp863            |   3 | 0/3 (0.0%)       | 3/3 (100.0%)     | 3/3 (100.0%)     |
+| cp856            |   8 | 0/8 (0.0%)       | 8/8 (100.0%)     | 8/8 (100.0%)     |
+| cp857            |   6 | 0/6 (0.0%)       | 6/6 (100.0%)     | 6/6 (100.0%)     |
+| cp858            |  35 | 0/35 (0.0%)      | 33/35 (94.3%)    | 33/35 (94.3%)    |
+| cp860            |   6 | 0/6 (0.0%)       | 6/6 (100.0%)     | 6/6 (100.0%)     |
+| cp861            |   5 | 0/5 (0.0%)       | 5/5 (100.0%)     | 5/5 (100.0%)     |
+| cp862            |   5 | 0/5 (0.0%)       | 5/5 (100.0%)     | 5/5 (100.0%)     |
+| cp863            |   5 | 0/5 (0.0%)       | 5/5 (100.0%)     | 5/5 (100.0%)     |
 | cp864            |   1 | 0/1 (0.0%)       | 1/1 (100.0%)     | 1/1 (100.0%)     |
-| cp865            |   4 | 0/4 (0.0%)       | 4/4 (100.0%)     | 4/4 (100.0%)     |
+| cp865            |   6 | 0/6 (0.0%)       | 6/6 (100.0%)     | 6/6 (100.0%)     |
 | cp866            |  37 | 37/37 (100.0%)   | 37/37 (100.0%)   | 37/37 (100.0%)   |
-| cp869            |   4 | 0/4 (0.0%)       | 4/4 (100.0%)     | 4/4 (100.0%)     |
-| cp874            |   2 | 0/2 (0.0%)       | 0/2 (0.0%)       | 0/2 (0.0%)       |
-| cp875            |   3 | 0/3 (0.0%)       | 3/3 (100.0%)     | 3/3 (100.0%)     |
-| cp932            |   5 | 0/5 (0.0%)       | 4/5 (80.0%)      | 4/5 (80.0%)      |
-| cp949            |   1 | 0/1 (0.0%)       | 1/1 (100.0%)     | 1/1 (100.0%)     |
+| cp869            |   6 | 0/6 (0.0%)       | 6/6 (100.0%)     | 6/6 (100.0%)     |
+| cp874            |   8 | 5/8 (62.5%)      | 6/8 (75.0%)      | 6/8 (75.0%)      |
+| cp875            |   8 | 0/8 (0.0%)       | 8/8 (100.0%)     | 8/8 (100.0%)     |
+| cp932            |   9 | 0/9 (0.0%)       | 8/9 (88.9%)      | 9/9 (100.0%)     |
+| cp949            |   8 | 7/8 (87.5%)      | 8/8 (100.0%)     | 8/8 (100.0%)     |
 | euc-jp           |  32 | 32/32 (100.0%)   | 32/32 (100.0%)   | 32/32 (100.0%)   |
 | euc-kr           |  33 | 33/33 (100.0%)   | 33/33 (100.0%)   | 33/33 (100.0%)   |
-| gb18030          |   4 | 4/4 (100.0%)     | 4/4 (100.0%)     | 4/4 (100.0%)     |
-| gb2312           |  24 | 24/24 (100.0%)   | 23/24 (95.8%)    | 23/24 (95.8%)    |
-| hp-roman8        |  42 | 12/42 (28.6%)    | 42/42 (100.0%)   | 42/42 (100.0%)   |
-| hz-gb-2312       |   2 | 2/2 (100.0%)     | 2/2 (100.0%)     | 2/2 (100.0%)     |
-| iso-2022-jp      |   3 | 3/3 (100.0%)     | 3/3 (100.0%)     | 3/3 (100.0%)     |
-| iso-2022-jp-2004 |   3 | 3/3 (100.0%)     | 3/3 (100.0%)     | 3/3 (100.0%)     |
-| iso-2022-jp-ext  |   1 | 1/1 (100.0%)     | 1/1 (100.0%)     | 1/1 (100.0%)     |
-| iso-2022-kr      |   5 | 5/5 (100.0%)     | 5/5 (100.0%)     | 5/5 (100.0%)     |
-| iso-8859-1       |  34 | 22/34 (64.7%)    | 34/34 (100.0%)   | 34/34 (100.0%)   |
-| iso-8859-10      |   6 | 3/6 (50.0%)      | 6/6 (100.0%)     | 6/6 (100.0%)     |
-| iso-8859-13      |  11 | 1/11 (9.1%)      | 11/11 (100.0%)   | 11/11 (100.0%)   |
-| iso-8859-14      |  10 | 7/10 (70.0%)     | 10/10 (100.0%)   | 10/10 (100.0%)   |
-| iso-8859-15      |  30 | 18/30 (60.0%)    | 29/30 (96.7%)    | 29/30 (96.7%)    |
-| iso-8859-16      |  18 | 0/18 (0.0%)      | 16/18 (88.9%)    | 16/18 (88.9%)    |
-| iso-8859-2       |  46 | 15/46 (32.6%)    | 46/46 (100.0%)   | 46/46 (100.0%)   |
-| iso-8859-3       |  11 | 0/11 (0.0%)      | 11/11 (100.0%)   | 11/11 (100.0%)   |
-| iso-8859-4       |   7 | 0/7 (0.0%)       | 7/7 (100.0%)     | 7/7 (100.0%)     |
+| gb18030          |   9 | 9/9 (100.0%)     | 9/9 (100.0%)     | 9/9 (100.0%)     |
+| gb2312           |  24 | 24/24 (100.0%)   | 24/24 (100.0%)   | 24/24 (100.0%)   |
+| hp-roman8        |  44 | 12/44 (27.3%)    | 44/44 (100.0%)   | 44/44 (100.0%)   |
+| hz-gb-2312       |   8 | 8/8 (100.0%)     | 8/8 (100.0%)     | 8/8 (100.0%)     |
+| iso-2022-jp      |   8 | 8/8 (100.0%)     | 8/8 (100.0%)     | 8/8 (100.0%)     |
+| iso-2022-jp-2004 |   6 | 6/6 (100.0%)     | 6/6 (100.0%)     | 6/6 (100.0%)     |
+| iso-2022-jp-ext  |   4 | 4/4 (100.0%)     | 4/4 (100.0%)     | 4/4 (100.0%)     |
+| iso-2022-kr      |   8 | 8/8 (100.0%)     | 8/8 (100.0%)     | 8/8 (100.0%)     |
+| iso-8859-1       |  75 | 46/75 (61.3%)    | 75/75 (100.0%)   | 75/75 (100.0%)   |
+| iso-8859-10      |   8 | 5/8 (62.5%)      | 8/8 (100.0%)     | 8/8 (100.0%)     |
+| iso-8859-11      |   3 | 3/3 (100.0%)     | 3/3 (100.0%)     | 3/3 (100.0%)     |
+| iso-8859-13      |  16 | 1/16 (6.3%)      | 16/16 (100.0%)   | 16/16 (100.0%)   |
+| iso-8859-14      |  19 | 14/19 (73.7%)    | 19/19 (100.0%)   | 19/19 (100.0%)   |
+| iso-8859-15      |  42 | 26/42 (61.9%)    | 41/42 (97.6%)    | 41/42 (97.6%)    |
+| iso-8859-16      |  22 | 0/22 (0.0%)      | 22/22 (100.0%)   | 22/22 (100.0%)   |
+| iso-8859-2       |  71 | 18/71 (25.4%)    | 71/71 (100.0%)   | 71/71 (100.0%)   |
+| iso-8859-3       |  13 | 0/13 (0.0%)      | 13/13 (100.0%)   | 13/13 (100.0%)   |
+| iso-8859-4       |  15 | 4/15 (26.7%)     | 15/15 (100.0%)   | 15/15 (100.0%)   |
 | iso-8859-5       |  51 | 51/51 (100.0%)   | 51/51 (100.0%)   | 51/51 (100.0%)   |
-| iso-8859-6       |   9 | 0/9 (0.0%)       | 9/9 (100.0%)     | 9/9 (100.0%)     |
+| iso-8859-6       |  15 | 0/15 (0.0%)      | 15/15 (100.0%)   | 15/15 (100.0%)   |
 | iso-8859-7       |  17 | 10/17 (58.8%)    | 17/17 (100.0%)   | 17/17 (100.0%)   |
 | iso-8859-8       |  21 | 21/21 (100.0%)   | 21/21 (100.0%)   | 21/21 (100.0%)   |
-| iso-8859-9       |  10 | 0/10 (0.0%)      | 10/10 (100.0%)   | 10/10 (100.0%)   |
-| johab            |   7 | 0/7 (0.0%)       | 7/7 (100.0%)     | 7/7 (100.0%)     |
+| iso-8859-9       |  45 | 0/45 (0.0%)      | 45/45 (100.0%)   | 45/45 (100.0%)   |
+| johab            |  10 | 0/10 (0.0%)      | 10/10 (100.0%)   | 10/10 (100.0%)   |
 | koi8-r           |  25 | 25/25 (100.0%)   | 25/25 (100.0%)   | 25/25 (100.0%)   |
 | koi8-t           |   3 | 0/3 (0.0%)       | 3/3 (100.0%)     | 3/3 (100.0%)     |
-| koi8-u           |   3 | 0/3 (0.0%)       | 3/3 (100.0%)     | 3/3 (100.0%)     |
-| kz1048           |   4 | 0/4 (0.0%)       | 4/4 (100.0%)     | 4/4 (100.0%)     |
+| koi8-u           |  11 | 0/11 (0.0%)      | 11/11 (100.0%)   | 11/11 (100.0%)   |
+| kz1048           |   6 | 0/6 (0.0%)       | 6/6 (100.0%)     | 6/6 (100.0%)     |
 | maccyrillic      |  38 | 34/38 (89.5%)    | 38/38 (100.0%)   | 38/38 (100.0%)   |
-| macgreek         |   3 | 0/3 (0.0%)       | 3/3 (100.0%)     | 3/3 (100.0%)     |
-| maciceland       |   3 | 0/3 (0.0%)       | 3/3 (100.0%)     | 3/3 (100.0%)     |
-| maclatin2        |  21 | 0/21 (0.0%)      | 21/21 (100.0%)   | 21/21 (100.0%)   |
-| macroman         |  41 | 0/41 (0.0%)      | 39/41 (95.1%)    | 39/41 (95.1%)    |
-| macturkish       |   3 | 0/3 (0.0%)       | 3/3 (100.0%)     | 3/3 (100.0%)     |
-| ptcp154          |   4 | 0/4 (0.0%)       | 4/4 (100.0%)     | 4/4 (100.0%)     |
+| macgreek         |   5 | 0/5 (0.0%)       | 5/5 (100.0%)     | 5/5 (100.0%)     |
+| maciceland       |   5 | 0/5 (0.0%)       | 5/5 (100.0%)     | 5/5 (100.0%)     |
+| maclatin2        |  23 | 0/23 (0.0%)      | 23/23 (100.0%)   | 23/23 (100.0%)   |
+| macroman         |  46 | 0/46 (0.0%)      | 46/46 (100.0%)   | 46/46 (100.0%)   |
+| macturkish       |   5 | 0/5 (0.0%)       | 5/5 (100.0%)     | 5/5 (100.0%)     |
+| ptcp154          |   6 | 0/6 (0.0%)       | 6/6 (100.0%)     | 6/6 (100.0%)     |
 | shift-jis        |   3 | 3/3 (100.0%)     | 3/3 (100.0%)     | 3/3 (100.0%)     |
 | shift_jis        |  31 | 31/31 (100.0%)   | 31/31 (100.0%)   | 31/31 (100.0%)   |
 | tis-620          |   8 | 8/8 (100.0%)     | 8/8 (100.0%)     | 8/8 (100.0%)     |
-| utf-16           | 152 | 152/152 (100.0%) | 152/152 (100.0%) | 152/152 (100.0%) |
-| utf-16be         | 149 | 0/149 (0.0%)     | 148/149 (99.3%)  | 148/149 (99.3%)  |
-| utf-16le         | 149 | 0/149 (0.0%)     | 148/149 (99.3%)  | 148/149 (99.3%)  |
-| utf-32           | 150 | 150/150 (100.0%) | 150/150 (100.0%) | 150/150 (100.0%) |
-| utf-32be         | 149 | 0/149 (0.0%)     | 149/149 (100.0%) | 149/149 (100.0%) |
-| utf-32le         | 149 | 0/149 (0.0%)     | 149/149 (100.0%) | 149/149 (100.0%) |
-| utf-7            | 143 | 0/143 (0.0%)     | 143/143 (100.0%) | 143/143 (100.0%) |
-| utf-8            | 170 | 170/170 (100.0%) | 169/170 (99.4%)  | 169/170 (99.4%)  |
-| utf-8-sig        | 145 | 0/145 (0.0%)     | 145/145 (100.0%) | 145/145 (100.0%) |
-| windows-1250     |  37 | 3/37 (8.1%)      | 37/37 (100.0%)   | 37/37 (100.0%)   |
-| windows-1251     |  62 | 58/62 (93.5%)    | 62/62 (100.0%)   | 62/62 (100.0%)   |
-| windows-1252     |  31 | 20/31 (64.5%)    | 30/31 (96.8%)    | 30/31 (96.8%)    |
-| windows-1253     |   2 | 0/2 (0.0%)       | 2/2 (100.0%)     | 2/2 (100.0%)     |
-| windows-1254     |   1 | 0/1 (0.0%)       | 1/1 (100.0%)     | 1/1 (100.0%)     |
+| utf-16           | 220 | 220/220 (100.0%) | 220/220 (100.0%) | 220/220 (100.0%) |
+| utf-16be         | 153 | 0/153 (0.0%)     | 153/153 (100.0%) | 153/153 (100.0%) |
+| utf-16le         | 154 | 0/154 (0.0%)     | 154/154 (100.0%) | 154/154 (100.0%) |
+| utf-32           | 154 | 154/154 (100.0%) | 154/154 (100.0%) | 154/154 (100.0%) |
+| utf-32be         | 153 | 0/153 (0.0%)     | 153/153 (100.0%) | 153/153 (100.0%) |
+| utf-32le         | 153 | 0/153 (0.0%)     | 153/153 (100.0%) | 153/153 (100.0%) |
+| utf-7            | 149 | 0/149 (0.0%)     | 149/149 (100.0%) | 149/149 (100.0%) |
+| utf-8            | 268 | 268/268 (100.0%) | 268/268 (100.0%) | 268/268 (100.0%) |
+| utf-8-sig        | 151 | 0/151 (0.0%)     | 151/151 (100.0%) | 151/151 (100.0%) |
+| windows-1250     |  44 | 3/44 (6.8%)      | 44/44 (100.0%)   | 44/44 (100.0%)   |
+| windows-1251     |  63 | 59/63 (93.7%)    | 63/63 (100.0%)   | 63/63 (100.0%)   |
+| windows-1252     |  44 | 28/44 (63.6%)    | 44/44 (100.0%)   | 44/44 (100.0%)   |
+| windows-1253     |   8 | 3/8 (37.5%)      | 8/8 (100.0%)     | 8/8 (100.0%)     |
+| windows-1254     |   9 | 0/9 (0.0%)       | 9/9 (100.0%)     | 9/9 (100.0%)     |
 | windows-1255     |   7 | 7/7 (100.0%)     | 6/7 (85.7%)      | 6/7 (85.7%)      |
-| windows-1256     |   9 | 0/9 (0.0%)       | 9/9 (100.0%)     | 9/9 (100.0%)     |
-| windows-1257     |   4 | 0/4 (0.0%)       | 4/4 (100.0%)     | 4/4 (100.0%)     |
-| windows-1258     |   5 | 0/5 (0.0%)       | 5/5 (100.0%)     | 5/5 (100.0%)     |
+| windows-1256     |  46 | 0/46 (0.0%)      | 46/46 (100.0%)   | 46/46 (100.0%)   |
+| windows-1257     |  18 | 1/18 (5.6%)      | 18/18 (100.0%)   | 18/18 (100.0%)   |
+| windows-1258     |  14 | 2/14 (14.3%)     | 14/14 (100.0%)   | 14/14 (100.0%)   |
 
 The full list of known per-file failures is tracked in
 `tests/accuracy.test.ts`.
