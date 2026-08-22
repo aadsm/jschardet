@@ -48,7 +48,7 @@ auto-generates the submodule's gitignored `_version.py` (otherwise
 This doc is a snapshot, not a generated artefact, and the cross-detector
 comparisons only hold if every number came from the same machine, Node
 version, and chardet submodule pin. When refreshing the numbers, re-run
-all four benchmarks together in one session:
+the timing benchmarks together in one session:
 
     npm run benchmark:all
 
@@ -56,6 +56,15 @@ Then update the tables, the date stamp at the top, the hardware block
 at the bottom, and any prose multipliers (e.g. "~6×", "57.2pp") that
 are derived from the table numbers. Never edit a single table or
 multiplier in isolation — refresh the whole set or none.
+
+`benchmark:bundle` is the exception to all of the above: dist/ is
+committed, so bundle size is a deterministic function of the repo rather
+than a measurement of this machine. It can be re-run anywhere, on its
+own, without invalidating the rest of the set, and
+`tests/bundle-size.test.ts` fails when the README drifts more than 1%
+from the committed bundle. Paste the "README row" line it prints rather
+than rounding by hand, and note that its gzip figures come from
+node:zlib — the `gzip` binary emits ~0.6% larger at the same level.
 
 Round prose multipliers to whole numbers with a `~` prefix (e.g. "~6×",
 not "6.1×"): they're asymptotic comparisons, and one decimal place
