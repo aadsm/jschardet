@@ -4354,7 +4354,7 @@ var jschardet = (() => {
   }
 
   // src/version.js
-  var VERSION = "4.0.0-rc.1";
+  var VERSION = "4.0.0-rc.2";
 
   // src/index.ts
   var _debug = false;
