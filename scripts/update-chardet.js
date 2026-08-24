@@ -37,7 +37,10 @@ function refreshTestFixtures(tag) {
   if (!remoteTag.trim()) {
     throw new Error(`test-data repo has no tag ${tag}; fixtures not refreshed`);
   }
-  execSync('node scripts/update-test-fixtures.js', { cwd: root, stdio: 'inherit' });
+  // Pass the ref rather than letting the script derive it: the checkout is
+  // already at the new tag while HEAD still records the old pin, so deriving
+  // would (rightly) refuse.
+  execSync(`node scripts/update-test-fixtures.js ${tag}`, { cwd: root, stdio: 'inherit' });
 }
 
 async function updateSubmodule(tag) {
