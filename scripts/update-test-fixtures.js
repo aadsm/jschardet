@@ -5,7 +5,8 @@
 // copies them into tests/fixtures/<subdir>/. Run automatically by
 // scripts/update-chardet.js after each pin change, or manually:
 //
-//   npm run update-test-fixtures
+//   npm run update-test-fixtures             (ref derived from the pin)
+//   npm run update-test-fixtures -- 7.6.0     (explicit test-data ref)
 //
 // The full corpus used by accuracy.test.ts is still cloned on demand
 // into tests/data/ at runtime; this script is for the committed subset
@@ -49,7 +50,7 @@ const FIXTURES = [
 ];
 
 function main() {
-  const ref = getTestDataRef();
+  const ref = process.argv[2] ?? getTestDataRef();
   const tmpClone = fs.mkdtempSync(path.join(_root, '.tmp-fixtures-'));
   try {
     cloneTestData(tmpClone, ref === 'main' ? null : ref, _root);

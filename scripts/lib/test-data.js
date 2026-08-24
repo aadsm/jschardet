@@ -51,6 +51,30 @@ export function resolveChardetTag(sha) {
   return null;
 }
 
+/**
+ * Refuses a submodule checkout that is not the pin recorded in HEAD. The
+ * corpus follows the checkout, but src/models/*.bin.js is generated from the
+ * pin, so a drifted checkout scores one chardet release's corpus against
+ * another's model data — failures that read as port regressions and are not.
+ */
+function _assertCheckoutMatchesPin() {
+  let checkout, pin;
+  try {
+    checkout = _git('rev-parse HEAD', _chardetDir);
+    pin = _git('ls-tree HEAD chardet', _root).split(/\s+/)[2];
+  } catch {
+    return; // uninitialized submodule or no git metadata: nothing to compare
+  }
+  if (checkout !== pin) {
+    throw new Error(
+      `chardet submodule is checked out at ${checkout.slice(0, 12)}, not the pin ` +
+      `recorded in HEAD (${pin.slice(0, 12)}); the corpus and src/models/*.bin.js ` +
+      `would come from different chardet releases.\n` +
+      `  Fix: git submodule update --checkout chardet`,
+    );
+  }
+}
+
 let _cachedRef;
 
 /**
@@ -65,6 +89,7 @@ let _cachedRef;
  */
 export function getTestDataRef() {
   if (_cachedRef !== undefined) return _cachedRef;
+  _assertCheckoutMatchesPin();
   let sha;
   try {
     sha = _git('rev-parse HEAD', _chardetDir);
