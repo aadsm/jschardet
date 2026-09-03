@@ -21,7 +21,7 @@
 import { detect } from '../src/chardet.js';
 import * as iconv from 'iconv-lite';
 import { REGISTRY, lookupEncoding } from '../src/registry.js';
-import { SBCS_UNDEFINED_BYTES } from '../src/sbcs-undefined-bytes.js';
+import { decodesAsSingleByte } from '../src/pipeline/byte-decode.js';
 
 function hexToBytes(hex: string): Uint8Array {
   const out = new Uint8Array(hex.length / 2);
@@ -84,17 +84,12 @@ function decodesCleanly(data: Uint8Array, encoding: string): string | null {
   const name = candidates.find(n => iconv.encodingExists(n));
   if (name === undefined) {
     // iconv gap (e.g. cp1006, which Python's codec library has). For a
-    // single-byte encoding "decodes" reduces to "no undefined byte";
-    // SBCS_UNDEFINED_BYTES records the gaps, absence means all 256 bytes
-    // map. Return a placeholder — no fidelity check is possible here.
+    // single-byte encoding "decodes" reduces to "no undefined byte", which
+    // the byte tables answer. Return a placeholder — no fidelity check is
+    // possible here.
     const canonical = lookupEncoding(encoding);
     if (canonical === null || REGISTRY[canonical].isMultibyte) return null;
-    const undefSet = SBCS_UNDEFINED_BYTES[canonical];
-    if (undefSet !== undefined) {
-      for (const b of data) {
-        if (undefSet.has(b)) return null;
-      }
-    }
+    if (decodesAsSingleByte(canonical, data) === false) return null;
     return '(decodes; not decodable by iconv)';
   }
   const text = iconv.decode(Buffer.from(data), name);

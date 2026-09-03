@@ -45,7 +45,7 @@ rules and benchmark policy in `CLAUDE.md`.
 ## 2. Pin and regenerate
 
 - `node scripts/update-chardet.js <tag>` — regenerates the WHATWG map, model
-  bins, sbcs-undefined-bytes, and confusion case tables, and refreshes the
+  bins, and byte decode tables, and refreshes the
   committed fixtures. The test-data corpus ref needs no step of its own: it
   is derived from the submodule at test time (see "Test Corpus" in
   docs/testing.md). Version-stamp-only diffs in generated files are normal

@@ -2,30 +2,34 @@
 // chardet/src/chardet/pipeline/validity.py — filter_by_validity.
 
 import { EncodingInfo } from '../registry.js';
-import { SBCS_UNDEFINED_BYTES } from '../sbcs-undefined-bytes.js';
 import { decodesCompletely, decodesWithoutError, whatwgLabelFor } from '../text-decoder.js';
+import { decodesAsSingleByte } from './byte-decode.js';
 
 // The validity stage's per-encoding predicate: "could these bytes be text in
-// this encoding?", answered exactly as filter_by_validity would. The
-// build-time-extracted undefined-byte set is derived from Python's strict
-// codec behaviour and is authoritative for the SBCS it covers, so it is
-// consulted before TextDecoder — windows-125x (and other SBCS with WHATWG
-// labels) then match Python's strict decode instead of WHATWG's permissive
-// pass-through of undefined C1 positions. An encoding with neither a table
-// entry nor a WHATWG label cannot be checked and is treated as valid, exactly
-// as filter_by_validity keeps it.
+// this encoding?", answered exactly as filter_by_validity would. A
+// single-byte encoding is answered from the byte tables, which carry
+// Python's strict codec behaviour and are authoritative — windows-125x (and
+// other SBCS with WHATWG labels) then match Python's strict decode instead
+// of WHATWG's permissive pass-through of undefined C1 positions, and the
+// pages TextDecoder lacks are checked rather than waved through. A
+// multi-byte encoding decodes through TextDecoder; one with no WHATWG label
+// cannot be checked and is treated as valid, exactly as filter_by_validity
+// keeps it.
+//
+// ascii is the one single-byte codec kept on the TextDecoder path: its WHATWG
+// label is an alias of windows-1252, so it accepts every high byte here,
+// where Python's codec rejects them. The ascii stage settles pure-ASCII
+// input before validity runs, and the strict sibling below answers ascii
+// from the tables.
 //
 // Callers that must reproduce validity's judgment on a different window — the
 // past-cap validity hold, and prefer_superset's decode-safety check — go
 // through this, never raw decodesWithoutError, or windows-1252's gap-filling
 // WHATWG decoder passes bytes (0x81, 0x8D, 0x9D) that Python's codec rejects.
 export function decodesUnderValidity(encName: string, data: Uint8Array): boolean {
-  const undefSet = SBCS_UNDEFINED_BYTES[encName];
-  if (undefSet !== undefined) {
-    for (let i = 0; i < data.length; i++) {
-      if (undefSet.has(data[i])) return false;
-    }
-    return true;
+  if (encName !== 'ascii') {
+    const singleByte = decodesAsSingleByte(encName, data);
+    if (singleByte !== null) return singleByte;
   }
   const label = whatwgLabelFor(encName);
   if (label === null) return true;
@@ -41,26 +45,12 @@ export function decodesUnderValidity(encName: string, data: Uint8Array): boolean
 // It must reproduce Python's strict per-codec behaviour, which the WHATWG
 // decoders relax: 'ascii' is a WHATWG alias for windows-1252 (so its decoder
 // accepts every high byte), and the windows-125x decoders gap-fill the C1
-// positions Python leaves undefined. Consult the authoritative tables first —
-// all-7-bit for ascii, the SBCS undefined-byte set otherwise — before falling
-// back to TextDecoder for the encodings it decodes faithfully.
+// positions Python leaves undefined. Every single-byte encoding, ascii
+// included, is answered from the authoritative byte tables; TextDecoder is
+// left the multi-byte encodings, which it decodes faithfully.
 export function decodesCompletelyUnderValidity(encName: string, data: Uint8Array): boolean {
-  if (encName === 'ascii') {
-    for (let i = 0; i < data.length; i++) {
-      if (data[i] >= 0x80) return false;
-    }
-    return true;
-  }
-  const undefSet = SBCS_UNDEFINED_BYTES[encName];
-  if (undefSet !== undefined) {
-    // A single-byte encoding decodes its whole input iff no undefined byte
-    // appears: every defined byte maps, and there is no multi-byte tail to
-    // truncate.
-    for (let i = 0; i < data.length; i++) {
-      if (undefSet.has(data[i])) return false;
-    }
-    return true;
-  }
+  const singleByte = decodesAsSingleByte(encName, data);
+  if (singleByte !== null) return singleByte;
   const label = whatwgLabelFor(encName);
   if (label === null) return false;
   return decodesCompletely(label, data);

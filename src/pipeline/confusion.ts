@@ -14,7 +14,14 @@ import {
 import { DetectionResult } from './index.js';
 import { lookupEncoding } from '../registry.js';
 import { readBytes as readConfusionBin } from '../models/confusion.bin.js';
-import { BYTE_DECODE_TABLES, ByteDecodeTable } from './_byte-decode-tables.js';
+import {
+  CATEGORY_NAMES,
+  UNDECODABLE_CP,
+  byteDecodeTable,
+  category,
+  categoryIndex,
+  decodedCodePoint,
+} from './byte-decode.js';
 
 interface DiffEntry {
   diffBytes: Set<number>;
@@ -22,18 +29,6 @@ interface DiffEntry {
 }
 
 export type DistinguishingMaps = Map<string, DiffEntry>;
-
-// uint8 -> Unicode general category, inverse of the mapping used at
-// serialization time (scripts/confusion_training.py upstream).
-const _INT_TO_CATEGORY: readonly string[] = [
-  'Lu', 'Ll', 'Lt', 'Lm', 'Lo',
-  'Mn', 'Mc', 'Me',
-  'Nd', 'Nl', 'No',
-  'Pc', 'Pd', 'Ps', 'Pe', 'Pi', 'Pf', 'Po',
-  'Sm', 'Sc', 'Sk', 'So',
-  'Zs', 'Zl', 'Zp',
-  'Cc', 'Cf', 'Cs', 'Co', 'Cn',
-];
 
 function pairKey(a: string, b: string): string {
   return `${a}\x00${b}`;
@@ -72,9 +67,12 @@ export function _deserializeConfusionDataFromBytes(data: Uint8Array): Distinguis
       const catBInt = view.getUint8(offset + 2);
       offset += 3;
       diffBytes.add(bv);
+      // uint8 -> Unicode general category, inverse of the mapping used at
+      // serialization time (scripts/confusion_training.py upstream) — the
+      // same order the byte tables store.
       categories.set(bv, [
-        _INT_TO_CATEGORY[catAInt] ?? 'Cn',
-        _INT_TO_CATEGORY[catBInt] ?? 'Cn',
+        CATEGORY_NAMES[catAInt] ?? 'Cn',
+        CATEGORY_NAMES[catBInt] ?? 'Cn',
       ]);
     }
     result.set(pairKey(nameA, nameB), { diffBytes, categories });
@@ -166,7 +164,7 @@ export const _testHooks = { denseHitDivisor: 4 };
 // other letter (combining marks count as letters, since in decomposed text a
 // base letter's neighbor is its diacritic — word-internal, not a boundary).
 // That verdict is a pure function of the byte's Unicode general category, so
-// the port derives it from the per-byte categories in _byte-decode-tables.ts
+// the port derives it from the per-byte categories in the byte tables
 // (generate-byte-tables.js verifies the derivation matches chardet's own
 // table byte-for-byte before emitting). Whitespace deliberately counts as a
 // plain non-letter: exempting space-adjacent letters from the isolated-letter
@@ -174,12 +172,12 @@ export const _testHooks = { denseHitDivisor: 4 };
 const _EMPTY_CASE_TABLE = new Uint8Array(256);
 const _caseTableCache = new Map<string, Uint8Array>();
 
-// Category index (into _INT_TO_CATEGORY) -> letter kind. Lu -> 1; the other
+// Category index (into CATEGORY_NAMES) -> letter kind. Lu -> 1; the other
 // letter categories (Ll/Lt/Lm/Lo) and the combining marks (Mn/Mc/Me) -> 2;
 // everything else -> 0.
 const _CASE_FROM_CAT: Uint8Array = (() => {
-  const t = new Uint8Array(_INT_TO_CATEGORY.length);
-  _INT_TO_CATEGORY.forEach((cat, i) => {
+  const t = new Uint8Array(CATEGORY_NAMES.length);
+  CATEGORY_NAMES.forEach((cat, i) => {
     t[i] = cat === 'Lu' ? 1 : cat[0] === 'L' || cat[0] === 'M' ? 2 : 0;
   });
   return t;
@@ -188,7 +186,7 @@ const _CASE_FROM_CAT: Uint8Array = (() => {
 export function _letterCaseTable(encoding: string): Uint8Array {
   let table = _caseTableCache.get(encoding);
   if (table !== undefined) return table;
-  const decode = _byteDecodeTable(encoding);
+  const decode = byteDecodeTable(encoding);
   if (decode === null) {
     // No generated table (an encoding outside the registry); all-zero means
     // every reading counts as a non-letter.
@@ -196,7 +194,7 @@ export function _letterCaseTable(encoding: string): Uint8Array {
   } else {
     table = new Uint8Array(256);
     for (let i = 0; i < 256; i++) {
-      table[i] = _CASE_FROM_CAT[decode.cats.charCodeAt(i)] ?? 0;
+      table[i] = _CASE_FROM_CAT[categoryIndex(decode, i)] ?? 0;
     }
   }
   _caseTableCache.set(encoding, table);
@@ -556,25 +554,6 @@ export function buildFocusedProfile(
   return BigramProfile.fromWeightedFreq(freq);
 }
 
-// Byte -> decode-table lookup, keyed by canonical codec name (chardet resolves
-// aliases through the codec registry; mirror with lookupEncoding).
-let _decodeTablesByCanonical: Map<string, ByteDecodeTable> | null = null;
-function _byteDecodeTable(encoding: string): ByteDecodeTable | null {
-  if (_decodeTablesByCanonical === null) {
-    _decodeTablesByCanonical = new Map();
-    for (const [name, table] of Object.entries(BYTE_DECODE_TABLES)) {
-      _decodeTablesByCanonical.set(lookupEncoding(name) ?? name, table);
-    }
-  }
-  return _decodeTablesByCanonical.get(lookupEncoding(encoding) ?? encoding) ?? null;
-}
-
-// Sentinel code point for a byte that raised on decode; distinct from the
-// 0xFFFE "decoded to zero or more than one char" sentinel, so both compare by
-// value in differingHighBytes (undecodable != empty, matching Python's
-// None != "").
-const _UNDECODABLE_CP = 0xFFFF;
-
 const _differingHighBytesCache = new Map<string, Set<number>>();
 
 // Byte values >= 0x80 that encA and encB decode to different text.
@@ -588,12 +567,12 @@ export function differingHighBytes(encA: string, encB: string): Set<number> {
   const key = pairKey(encA, encB);
   const cached = _differingHighBytesCache.get(key);
   if (cached !== undefined) return cached;
-  const ta = _byteDecodeTable(encA);
-  const tb = _byteDecodeTable(encB);
+  const ta = byteDecodeTable(encA);
+  const tb = byteDecodeTable(encB);
   const out = new Set<number>();
   for (let b = 0x80; b < 0x100; b++) {
-    const cpA = ta === null ? _UNDECODABLE_CP : ta.cps.charCodeAt(b - 0x80);
-    const cpB = tb === null ? _UNDECODABLE_CP : tb.cps.charCodeAt(b - 0x80);
+    const cpA = ta === null ? UNDECODABLE_CP : decodedCodePoint(ta, b);
+    const cpB = tb === null ? UNDECODABLE_CP : decodedCodePoint(tb, b);
     if (cpA !== cpB) out.add(b);
   }
   _differingHighBytesCache.set(key, out);
@@ -612,12 +591,12 @@ export function _pairCategories(
   encB: string,
   diffBytes: Set<number>,
 ): Map<number, [string, string]> {
-  const ta = _byteDecodeTable(encA);
-  const tb = _byteDecodeTable(encB);
+  const ta = byteDecodeTable(encA);
+  const tb = byteDecodeTable(encB);
   const table = new Map<number, [string, string]>();
   for (const b of diffBytes) {
-    const catA = ta === null ? 'Cn' : (_INT_TO_CATEGORY[ta.cats.charCodeAt(b)] ?? 'Cn');
-    const catB = tb === null ? 'Cn' : (_INT_TO_CATEGORY[tb.cats.charCodeAt(b)] ?? 'Cn');
+    const catA = ta === null ? 'Cn' : category(ta, b);
+    const catB = tb === null ? 'Cn' : category(tb, b);
     table.set(b, [catA, catB]);
   }
   return table;
