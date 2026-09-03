@@ -2,11 +2,17 @@
 // chardet/src/chardet/pipeline/validity.py — filter_by_validity.
 
 import { EncodingInfo } from '../registry.js';
-import { decodesCompletely, decodesWithoutError, whatwgLabelFor } from '../text-decoder.js';
-import { decodesAsSingleByte } from './byte-decode.js';
+import {
+  whatwgDanglingTailWithAsciiPrefix,
+  whatwgDecodesCompletely,
+  whatwgDecodesWithoutError,
+  whatwgLabelFor,
+} from '../text-decoder.js';
+import { byteDecodeTable, decodesAsSingleByte } from './byte-decode.js';
 
-// The validity stage's per-encoding predicate: "could these bytes be text in
-// this encoding?", answered exactly as filter_by_validity would. A
+// chardet's decodes_without_error, the validity stage's per-encoding
+// predicate: "could these bytes be text in this encoding?", answered exactly
+// as filter_by_validity would. A
 // single-byte encoding is answered from the byte tables, which carry
 // Python's strict codec behaviour and are authoritative — windows-125x (and
 // other SBCS with WHATWG labels) then match Python's strict decode instead
@@ -24,22 +30,22 @@ import { decodesAsSingleByte } from './byte-decode.js';
 //
 // Callers that must reproduce validity's judgment on a different window — the
 // past-cap validity hold, and prefer_superset's decode-safety check — go
-// through this, never raw decodesWithoutError, or windows-1252's gap-filling
+// through this, never raw whatwgDecodesWithoutError, or windows-1252's gap-filling
 // WHATWG decoder passes bytes (0x81, 0x8D, 0x9D) that Python's codec rejects.
-export function decodesUnderValidity(encName: string, data: Uint8Array): boolean {
+export function decodesWithoutError(encName: string, data: Uint8Array): boolean {
   if (encName !== 'ascii') {
     const singleByte = decodesAsSingleByte(encName, data);
     if (singleByte !== null) return singleByte;
   }
   const label = whatwgLabelFor(encName);
   if (label === null) return true;
-  return decodesWithoutError(label, data);
+  return whatwgDecodesWithoutError(label, data);
 }
 
-// The strict, whole-input sibling of decodesUnderValidity: "does the caller's
-// own data.decode(encName) succeed over the entire input?", mirroring Python's
-// decodes_completely (a one-shot fatal decode, so a truncated multi-byte tail
-// is an error, not a deferred tail). Used by the decode-safety flip, whose
+// chardet's decodes_completely, the strict, whole-input sibling of
+// decodesWithoutError: "does the caller's own data.decode(encName) succeed
+// over the entire input?" (a one-shot fatal decode, so a truncated multi-byte
+// tail is an error, not a deferred tail). Used by the decode-safety flip, whose
 // promise is that the reported name decodes the caller's complete input.
 //
 // It must reproduce Python's strict per-codec behaviour, which the WHATWG
@@ -48,12 +54,26 @@ export function decodesUnderValidity(encName: string, data: Uint8Array): boolean
 // positions Python leaves undefined. Every single-byte encoding, ascii
 // included, is answered from the authoritative byte tables; TextDecoder is
 // left the multi-byte encodings, which it decodes faithfully.
-export function decodesCompletelyUnderValidity(encName: string, data: Uint8Array): boolean {
+export function decodesCompletely(encName: string, data: Uint8Array): boolean {
   const singleByte = decodesAsSingleByte(encName, data);
   if (singleByte !== null) return singleByte;
   const label = whatwgLabelFor(encName);
   if (label === null) return false;
-  return decodesCompletely(label, data);
+  return whatwgDecodesCompletely(label, data);
+}
+
+// chardet's dangling_tail_with_ascii_prefix: "is data non-empty pure ASCII
+// followed by an incomplete multi-byte sequence?" — the decode-safety flip's
+// test that a winner's only non-ASCII evidence is its undecodable tail. A
+// single-byte encoding has no multi-byte tail, so the answer is false without
+// a decode; a multi-byte encoding is answered by its WHATWG decoder, and one
+// with no WHATWG decoder cannot be checked (chardet answers False for a codec
+// it cannot build).
+export function danglingTailWithAsciiPrefix(encName: string, data: Uint8Array): boolean {
+  if (byteDecodeTable(encName)?.singleByte) return false;
+  const label = whatwgLabelFor(encName);
+  if (label === null) return false;
+  return whatwgDanglingTailWithAsciiPrefix(label, data);
 }
 
 export function filterByValidity(
@@ -64,7 +84,7 @@ export function filterByValidity(
 
   const valid: EncodingInfo[] = [];
   for (const enc of candidates) {
-    if (decodesUnderValidity(enc.name, data)) {
+    if (decodesWithoutError(enc.name, data)) {
       valid.push(enc);
     }
   }

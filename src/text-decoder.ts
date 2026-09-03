@@ -2,6 +2,13 @@
 // docs/architecture.md: chardet candidates use Python codec names but
 // TextDecoder only accepts WHATWG labels, and decoders should be cached for
 // the process/page lifetime.
+//
+// The whatwg-prefixed predicates decode by WHATWG label with WHATWG's rules:
+// single-byte decoders that gap-fill positions CPython leaves undefined, and
+// a subset and its superset collapsed onto one decoder. The port of chardet's
+// decodes_without_error / decodes_completely, keyed by chardet name and
+// answering single-byte encodings from the byte tables, is in
+// pipeline/validity.ts; these are its multi-byte path.
 
 import { ENCODING_WHATWG_MAP } from './encoding-whatwg-map.js';
 
@@ -59,7 +66,7 @@ export function decoderForLabel(label: string): TextDecoder {
 // with no mapping — is mid-buffer and still throws. See "Truncation-tolerant
 // validity decoding" in docs/port-notes.md before changing this or calling
 // decoderForLabel directly for a validity check.
-export function decodesWithoutError(label: string, data: Uint8Array): boolean {
+export function whatwgDecodesWithoutError(label: string, data: Uint8Array): boolean {
   const decoder = decoderForLabel(label);
   try {
     decoder.decode(data, { stream: true });
@@ -77,12 +84,12 @@ export function decodesWithoutError(label: string, data: Uint8Array): boolean {
 }
 
 // Port of chardet's decodes_completely — the strict sibling of
-// decodesWithoutError: a one-shot fatal decode, so an incomplete multi-byte
+// whatwgDecodesWithoutError: a one-shot fatal decode, so an incomplete multi-byte
 // sequence at the end is an error rather than a deferred tail. This is the
 // question that matters when the data is the caller's entire input —
 // data.decode(encoding) in Python, or a fatal TextDecoder over the whole
 // buffer, makes exactly this judgment.
-export function decodesCompletely(label: string, data: Uint8Array): boolean {
+export function whatwgDecodesCompletely(label: string, data: Uint8Array): boolean {
   const decoder = decoderForLabel(label);
   try {
     decoder.decode(data);
@@ -94,7 +101,8 @@ export function decodesCompletely(label: string, data: Uint8Array): boolean {
 
 const ASCII_ONLY_RE = /^[\x00-\x7F]*$/;
 
-// Port of chardet's dangling_tail_with_ascii_prefix. One decode pass answers
+// The WHATWG-label half of chardet's dangling_tail_with_ascii_prefix (the
+// port by encoding name is in pipeline/validity.ts). One decode pass answers
 // both halves of the decode-safety question: the tolerant ({ stream: true })
 // decode yields the text before any deferred tail, and flushing the decoder
 // afterwards throws exactly when a deferred tail existed. True means the
@@ -106,7 +114,7 @@ const ASCII_ONLY_RE = /^[\x00-\x7F]*$/;
 // entire input is one dangling sequence): that candidate has zero decoded
 // evidence, not ASCII evidence, and a clipped multi-byte fragment is better
 // served by the ranking's own judgment.
-export function danglingTailWithAsciiPrefix(label: string, data: Uint8Array): boolean {
+export function whatwgDanglingTailWithAsciiPrefix(label: string, data: Uint8Array): boolean {
   const decoder = decoderForLabel(label);
   let text: string;
   try {

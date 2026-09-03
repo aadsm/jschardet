@@ -1,9 +1,9 @@
 import { DETERMINISTIC_CONFIDENCE, DetectionResult, PipelineContext } from './index.js';
 import { lookupEncoding, EncodingName, REGISTRY } from '../registry.js';
-import { decodesWithoutError, whatwgLabelFor } from '../text-decoder.js';
+import { whatwgDecodesWithoutError, whatwgLabelFor } from '../text-decoder.js';
 import { computeStructuralScore } from './structural.js';
 import { EncodingEra } from '../enums.js';
-import { decodesUnderValidity } from './validity.js';
+import { decodesWithoutError } from './validity.js';
 import { byteDecodeTable, decodeSingleByteText } from './byte-decode.js';
 
 const _SCAN_LIMIT = 4096;
@@ -28,7 +28,7 @@ function _isAscii(s: string): boolean {
 function _validateBytes(data: Uint8Array, encoding: EncodingName): boolean {
   const label = whatwgLabelFor(encoding);
   if (!label) return true;
-  return decodesWithoutError(label, data.subarray(0, _SCAN_LIMIT));
+  return whatwgDecodesWithoutError(label, data.subarray(0, _SCAN_LIMIT));
 }
 
 // Charset declarations in EBCDIC-encoded markup, matched against a cp037
@@ -85,7 +85,7 @@ function _detectEbcdicDeclaration(head: Uint8Array): DetectionResult | null {
       if (
         encoding !== null &&
         (REGISTRY[encoding].era & EncodingEra.MAINFRAME) !== 0 &&
-        decodesUnderValidity(encoding, head)
+        decodesWithoutError(encoding, head)
       ) {
         return {
           encoding,
@@ -205,13 +205,13 @@ export function promoteMarkupSuperset(
   if (supersetInfo === undefined) {
     return markupResult;
   }
-  // Validate: superset must be able to decode the data. decodesWithoutError is
+  // Validate: superset must be able to decode the data. whatwgDecodesWithoutError is
   // fatal:true (Python errors="strict"), tolerating only a truncated tail.
   const label = whatwgLabelFor(supersetName);
   if (label === null) {
     return markupResult;
   }
-  if (!decodesWithoutError(label, data)) {
+  if (!whatwgDecodesWithoutError(label, data)) {
     return markupResult;
   }
   // Compare structural scores on the head only. Multi-byte structure is

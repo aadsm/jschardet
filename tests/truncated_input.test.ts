@@ -10,7 +10,7 @@
 //
 // A one-shot strict decode cannot tell a truncated tail from corrupt data, so
 // a single dangling lead byte would drop every CJK candidate and the answer
-// would come down to input-length parity. decodesWithoutError defers the
+// would come down to input-length parity. whatwgDecodesWithoutError defers the
 // partial tail instead — see "Truncation-tolerant validity decoding" in
 // docs/port-notes.md.
 
@@ -19,7 +19,7 @@ import { EncodingEra } from '../src/enums.js';
 import { detectMarkupCharset } from '../src/pipeline/markup.js';
 import { filterByValidity } from '../src/pipeline/validity.js';
 import { getCandidates } from '../src/registry.js';
-import { danglingTailWithAsciiPrefix, decoderForLabel, decodesCompletely, decodesWithoutError, whatwgLabelFor } from '../src/text-decoder.js';
+import { whatwgDanglingTailWithAsciiPrefix, decoderForLabel, whatwgDecodesCompletely, whatwgDecodesWithoutError, whatwgLabelFor } from '../src/text-decoder.js';
 import { _decodesUnderPublicNames } from '../src/pipeline/postprocess.js';
 import { UniversalDetector } from '../src/detector.js';
 
@@ -136,17 +136,17 @@ test('truncated tail keeps encoding as candidate', () => {
 // decoding" in docs/port-notes.md.
 test('illegal trail byte still eliminates encoding', () => {
   // 0xD6 is a valid GB lead byte; 0x20 is not a valid trail byte.
-  expect(decodesWithoutError('gb18030', hex('d5e2cac7d620'))).toBe(false);
+  expect(whatwgDecodesWithoutError('gb18030', hex('d5e2cac7d620'))).toBe(false);
 });
 
 test('unmapped bytes still eliminate encoding', () => {
-  expect(decodesWithoutError('gb18030', hex('d5e2cac7ffff'))).toBe(false);
+  expect(whatwgDecodesWithoutError('gb18030', hex('d5e2cac7ffff'))).toBe(false);
 });
 
 test('corruption before a truncated tail is still caught', () => {
   // Corrupt pair mid-buffer, then a dangling lead byte at the end. Tolerating
   // the tail must not tolerate the corruption ahead of it.
-  expect(decodesWithoutError('gb18030', hex('d5e2ffffd2bbd6'))).toBe(false);
+  expect(whatwgDecodesWithoutError('gb18030', hex('d5e2ffffd2bbd6'))).toBe(false);
 });
 
 test('markup declaration survives the scan limit cut', () => {
@@ -186,14 +186,14 @@ test('detection survives the max bytes cut', () => {
 // No Python counterpart — guards a TextDecoder-specific hazard of the
 // { stream: true } implementation.
 test('a deferred partial tail does not leak into the shared decoder cache', () => {
-  // decodesWithoutError decodes with { stream: true } against a cached — and
+  // whatwgDecodesWithoutError decodes with { stream: true } against a cached — and
   // therefore stateful — TextDecoder, which markup and utf1632 also pull text
   // from. Without the flush, the pending lead byte from a truncated validity
   // check is prepended to the next buffer, shifting every subsequent character
   // pair. That corrupts silently: the decode still succeeds, it just returns
   // the wrong text.
   const truncated = _ZH_GBK.subarray(0, _ZH_GBK.length - 1);
-  expect(decodesWithoutError('gbk', truncated)).toBe(true);
+  expect(whatwgDecodesWithoutError('gbk', truncated)).toBe(true);
 
   const expected = new TextDecoder('gbk', { fatal: true }).decode(_ZH_GBK);
   expect(decoderForLabel('gbk').decode(_ZH_GBK)).toBe(expected);
@@ -202,11 +202,11 @@ test('a deferred partial tail does not leak into the shared decoder cache', () =
 // ---- Decode-safety additions (chardet issue #380) ----
 
 // The strict sibling: same bytes, final=true flips the verdict.
-test('decodesCompletely rejects the tail-tolerance gap', () => {
+test('whatwgDecodesCompletely rejects the tail-tolerance gap', () => {
   const dangling = hex('6d616de1'); // "mamá".encode("iso-8859-1"), lone 0xE1 lead
-  expect(decodesWithoutError(whatwgLabelFor('utf-8')!, dangling)).toBe(true);
-  expect(decodesCompletely(whatwgLabelFor('utf-8')!, dangling)).toBe(false);
-  expect(decodesCompletely(whatwgLabelFor('cp1250')!, dangling)).toBe(true);
+  expect(whatwgDecodesWithoutError(whatwgLabelFor('utf-8')!, dangling)).toBe(true);
+  expect(whatwgDecodesCompletely(whatwgLabelFor('utf-8')!, dangling)).toBe(false);
+  expect(whatwgDecodesCompletely(whatwgLabelFor('cp1250')!, dangling)).toBe(true);
 });
 
 // The flip's evidence test: non-empty ASCII prefix plus a deferred tail.
@@ -214,14 +214,14 @@ test('decodesCompletely rejects the tail-tolerance gap', () => {
 // emoji is one dangling sequence with *nothing* decoded, which is zero
 // evidence rather than ASCII evidence: false. A mid-cut CJK fragment
 // decodes real multi-byte characters first: false.
-test('danglingTailWithAsciiPrefix classifies evidence', () => {
+test('whatwgDanglingTailWithAsciiPrefix classifies evidence', () => {
   const utf8 = whatwgLabelFor('utf-8')!;
-  expect(danglingTailWithAsciiPrefix(utf8, hex('6d616de1'))).toBe(true);
-  expect(danglingTailWithAsciiPrefix(utf8, hex('f09f98'))).toBe(false);
+  expect(whatwgDanglingTailWithAsciiPrefix(utf8, hex('6d616de1'))).toBe(true);
+  expect(whatwgDanglingTailWithAsciiPrefix(utf8, hex('f09f98'))).toBe(false);
   const cjk = _JA_SHIFT_JIS.subarray(0, _JA_SHIFT_JIS.length - 1);
-  expect(danglingTailWithAsciiPrefix(whatwgLabelFor('shift_jis_2004')!, cjk)).toBe(false);
+  expect(whatwgDanglingTailWithAsciiPrefix(whatwgLabelFor('shift_jis_2004')!, cjk)).toBe(false);
   // Complete input has no deferred tail, so it is not a dangling shape.
-  expect(danglingTailWithAsciiPrefix(utf8, new TextEncoder().encode('mama'))).toBe(false);
+  expect(whatwgDanglingTailWithAsciiPrefix(utf8, new TextEncoder().encode('mama'))).toBe(false);
 });
 
 // A rival must decode under the name the caller will actually use. Python
@@ -232,7 +232,7 @@ test('danglingTailWithAsciiPrefix classifies evidence', () => {
 // matters (see "bytes.decode() validity filtering" in docs/architecture.md).
 test('flip verifies the public name too', () => {
   const data = hex('68656c6c6f20a2af'); // b"hello \xa2\xaf"
-  expect(decodesCompletely(whatwgLabelFor('euc_jis_2004')!, data)).toBe(false);
+  expect(whatwgDecodesCompletely(whatwgLabelFor('euc_jis_2004')!, data)).toBe(false);
   expect(_decodesUnderPublicNames(data, 'euc_jis_2004')).toBe(false);
 });
 
@@ -297,7 +297,7 @@ test('streaming truncation flag resets', () => {
 test('truncated cjk chunk keeps its answer', () => {
   let chunk = repeatBytes(_JA_SHIFT_JIS, 8);
   const sjLabel = whatwgLabelFor('shift_jis_2004')!;
-  while (decodesCompletely(sjLabel, chunk)) {
+  while (whatwgDecodesCompletely(sjLabel, chunk)) {
     chunk = chunk.subarray(0, chunk.length - 1);
   }
   const result = detect(chunk, { encodingEra: EncodingEra.ALL });

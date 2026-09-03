@@ -232,7 +232,7 @@ var jschardet = (() => {
     }
     return decoder;
   }
-  function decodesWithoutError(label, data4) {
+  function whatwgDecodesWithoutError(label, data4) {
     const decoder = decoderForLabel(label);
     try {
       decoder.decode(data4, { stream: true });
@@ -246,7 +246,7 @@ var jschardet = (() => {
       }
     }
   }
-  function decodesCompletely(label, data4) {
+  function whatwgDecodesCompletely(label, data4) {
     const decoder = decoderForLabel(label);
     try {
       decoder.decode(data4);
@@ -256,7 +256,7 @@ var jschardet = (() => {
     }
   }
   var ASCII_ONLY_RE = /^[\x00-\x7F]*$/;
-  function danglingTailWithAsciiPrefix(label, data4) {
+  function whatwgDanglingTailWithAsciiPrefix(label, data4) {
     const decoder = decoderForLabel(label);
     let text;
     try {
@@ -1385,27 +1385,33 @@ var jschardet = (() => {
   }
 
   // src/pipeline/validity.ts
-  function decodesUnderValidity(encName, data4) {
+  function decodesWithoutError(encName, data4) {
     if (encName !== "ascii") {
       const singleByte = decodesAsSingleByte(encName, data4);
       if (singleByte !== null) return singleByte;
     }
     const label = whatwgLabelFor(encName);
     if (label === null) return true;
-    return decodesWithoutError(label, data4);
+    return whatwgDecodesWithoutError(label, data4);
   }
-  function decodesCompletelyUnderValidity(encName, data4) {
+  function decodesCompletely(encName, data4) {
     const singleByte = decodesAsSingleByte(encName, data4);
     if (singleByte !== null) return singleByte;
     const label = whatwgLabelFor(encName);
     if (label === null) return false;
-    return decodesCompletely(label, data4);
+    return whatwgDecodesCompletely(label, data4);
+  }
+  function danglingTailWithAsciiPrefix(encName, data4) {
+    if (byteDecodeTable(encName)?.singleByte) return false;
+    const label = whatwgLabelFor(encName);
+    if (label === null) return false;
+    return whatwgDanglingTailWithAsciiPrefix(label, data4);
   }
   function filterByValidity(data4, candidates) {
     if (data4.length === 0) return candidates;
     const valid = [];
     for (const enc of candidates) {
-      if (decodesUnderValidity(enc.name, data4)) {
+      if (decodesWithoutError(enc.name, data4)) {
         valid.push(enc);
       }
     }
@@ -1438,7 +1444,7 @@ var jschardet = (() => {
     if (enc === null) return result;
     const superset = PREFERRED_SUPERSET[enc];
     if (superset === void 0) return result;
-    if (data4 === void 0 || decodesUnderValidity(superset, data4)) {
+    if (data4 === void 0 || decodesWithoutError(superset, data4)) {
       result.encoding = superset;
     }
     return result;
@@ -3198,7 +3204,7 @@ var jschardet = (() => {
   function _validateBytes(data4, encoding) {
     const label = whatwgLabelFor(encoding);
     if (!label) return true;
-    return decodesWithoutError(label, data4.subarray(0, _SCAN_LIMIT));
+    return whatwgDecodesWithoutError(label, data4.subarray(0, _SCAN_LIMIT));
   }
   var _EBCDIC_TAG_RE = /<(?:meta|\?xml)[^>]*/gi;
   var _EBCDIC_DECL_RE = /(?:charset|encoding)\s*=\s*[^\sA-Za-z0-9._-]?\s*([A-Za-z][A-Za-z0-9._-]+)/gi;
@@ -3214,7 +3220,7 @@ var jschardet = (() => {
     for (const tag of decoded.matchAll(_EBCDIC_TAG_RE)) {
       for (const m of tag[0].matchAll(_EBCDIC_DECL_RE)) {
         const encoding = lookupEncoding(m[1].trim());
-        if (encoding !== null && (REGISTRY[encoding].era & EncodingEra.MAINFRAME) !== 0 && decodesUnderValidity(encoding, head)) {
+        if (encoding !== null && (REGISTRY[encoding].era & EncodingEra.MAINFRAME) !== 0 && decodesWithoutError(encoding, head)) {
           return {
             encoding,
             confidence: DETERMINISTIC_CONFIDENCE,
@@ -3287,7 +3293,7 @@ var jschardet = (() => {
     if (label === null) {
       return markupResult;
     }
-    if (!decodesWithoutError(label, data4)) {
+    if (!whatwgDecodesWithoutError(label, data4)) {
       return markupResult;
     }
     const head = data4.subarray(0, _SCAN_LIMIT);
@@ -4066,7 +4072,7 @@ var jschardet = (() => {
       if (top.confidence - r.confidence > _DEAD_HEAT_EPSILON) break;
       if (r.encoding === superset) {
         const label = whatwgLabelFor(superset);
-        if (label !== null && decodesWithoutError(label, data4)) {
+        if (label !== null && whatwgDecodesWithoutError(label, data4)) {
           return _promoteToTop(results, i);
         }
       }
@@ -4115,10 +4121,10 @@ var jschardet = (() => {
     return results;
   }
   function _decodesUnderPublicNames(data4, encoding) {
-    if (!decodesCompletelyUnderValidity(encoding, data4)) return false;
+    if (!decodesCompletely(encoding, data4)) return false;
     const display = _COMPAT_NAMES[encoding];
     if (display === void 0) return true;
-    return decodesCompletelyUnderValidity(lookupEncoding(display) ?? display, data4);
+    return decodesCompletely(lookupEncoding(display) ?? display, data4);
   }
   function _preferDecodableOnTie(data4, results, inputTruncated) {
     const top = results.length > 0 ? results[0] : null;
@@ -4133,10 +4139,7 @@ var jschardet = (() => {
       }
     }
     if (!highTail) return results;
-    const topLabel = whatwgLabelFor(top.encoding);
-    if (topLabel === null || !danglingTailWithAsciiPrefix(topLabel, data4)) {
-      return results;
-    }
+    if (!danglingTailWithAsciiPrefix(top.encoding, data4)) return results;
     for (let i = 1; i < results.length; i++) {
       const r = results[i];
       if (r.encoding === null || !_decodesUnderPublicNames(data4, r.encoding)) continue;
@@ -4442,7 +4445,7 @@ var jschardet = (() => {
     if (data4.length <= evidence.length) return results;
     for (let i = 0; i < results.length; i++) {
       const enc = results[i].encoding;
-      if (enc !== null && decodesUnderValidity(enc, data4)) {
+      if (enc !== null && decodesWithoutError(enc, data4)) {
         return i === 0 ? results : results.slice(i);
       }
     }

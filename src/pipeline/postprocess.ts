@@ -26,11 +26,10 @@ import { ART_LANGUAGE, RARE_LANGUAGES, getEncIndex } from '../models/index.js';
 import { REGISTRY, lookupEncoding } from '../registry.js';
 import { _COMPAT_NAMES } from '../output_names.js';
 import {
-  danglingTailWithAsciiPrefix,
-  decodesWithoutError,
+  whatwgDecodesWithoutError,
   whatwgLabelFor,
 } from '../text-decoder.js';
-import { decodesCompletelyUnderValidity } from './validity.js';
+import { danglingTailWithAsciiPrefix, decodesCompletely } from './validity.js';
 
 // Common Western Latin encodings that share the iso-8859-1 character repertoire
 // for the byte values where iso-8859-10 is indistinguishable. Used as swap
@@ -403,7 +402,7 @@ function _promoteSupersetOnDeadHeat(
     if (top.confidence - r.confidence > _DEAD_HEAT_EPSILON) break;
     if (r.encoding === superset) {
       const label = whatwgLabelFor(superset);
-      if (label !== null && decodesWithoutError(label, data)) {
+      if (label !== null && whatwgDecodesWithoutError(label, data)) {
         return _promoteToTop(results, i);
       }
     }
@@ -505,10 +504,10 @@ function _promoteMacOnCrLineEndings(
 // can remap to a strictly narrower codec (euc_jis_2004 is reported as
 // EUC-JP), so a rival must decode under both names to be promoted.
 function _decodesUnderPublicNames(data: Uint8Array, encoding: string): boolean {
-  if (!decodesCompletelyUnderValidity(encoding, data)) return false;
+  if (!decodesCompletely(encoding, data)) return false;
   const display = _COMPAT_NAMES[encoding];
   if (display === undefined) return true;
-  return decodesCompletelyUnderValidity(lookupEncoding(display) ?? display, data);
+  return decodesCompletely(lookupEncoding(display) ?? display, data);
 }
 
 // Promote a strictly decoding rival over a winner with no real evidence.
@@ -554,10 +553,7 @@ function _preferDecodableOnTie(
     }
   }
   if (!highTail) return results;
-  const topLabel = whatwgLabelFor(top.encoding);
-  if (topLabel === null || !danglingTailWithAsciiPrefix(topLabel, data)) {
-    return results;
-  }
+  if (!danglingTailWithAsciiPrefix(top.encoding, data)) return results;
   for (let i = 1; i < results.length; i++) {
     const r = results[i];
     if (r.encoding === null || !_decodesUnderPublicNames(data, r.encoding)) continue;

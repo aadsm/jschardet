@@ -2,7 +2,7 @@
 // remapping: superset preference and 5.x/6.x-compatible display names.
 
 import { DetectionResult } from './pipeline/index.js';
-import { decodesUnderValidity } from './pipeline/validity.js';
+import { decodesWithoutError } from './pipeline/validity.js';
 
 export const PREFERRED_SUPERSET: Readonly<Record<string, string>> = Object.freeze({
   "ascii":     "cp1252",
@@ -34,7 +34,7 @@ function _remapEncoding(result: DetectionResult, mapping: Readonly<Record<string
 // applies only if the superset decodes it; otherwise the detected name stands,
 // being the one that does. The decodability check goes through the validity
 // stage's predicate (SBCS undefined-byte table first, then TextDecoder), not
-// raw decodesWithoutError, or WHATWG's gap-filling cp1252 decoder would accept
+// raw whatwgDecodesWithoutError, or WHATWG's gap-filling cp1252 decoder would accept
 // the very C1 bytes Python's codec rejects.
 export function applyPreferredSuperset(
   result: DetectionResult,
@@ -44,7 +44,7 @@ export function applyPreferredSuperset(
   if (enc === null) return result;
   const superset = PREFERRED_SUPERSET[enc];
   if (superset === undefined) return result;
-  if (data === undefined || decodesUnderValidity(superset, data)) {
+  if (data === undefined || decodesWithoutError(superset, data)) {
     result.encoding = superset;
   }
   return result;
