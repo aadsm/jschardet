@@ -25,7 +25,7 @@ import {
 } from './structural.js';
 import { scanUtf8 } from './utf8.js';
 import { detectUtf1632Patterns } from './utf1632.js';
-import { decodesUnderValidity, filterByValidity } from './validity.js';
+import { decodesWithoutError, filterByValidity } from './validity.js';
 import { EncodingInfo, getCandidates } from '../registry.js';
 
 // Frozen because callers spread {..._BINARY_RESULT} before applyCompatNames
@@ -75,7 +75,7 @@ function _makeFallbackOrNone(
 // entry ahead of the first one that decodes the whole window, under the same
 // tolerant judgment the validity filter passes on the evidence slice (its own
 // predicate — SBCS undefined-byte table first, then TextDecoder — never raw
-// decodesWithoutError, or windows-1252's gap-filling decoder would pass the
+// whatwgDecodesWithoutError, or windows-1252's gap-filling decoder would pass the
 // 0x81/0x8D/0x9D bytes Python's codec rejects). Those entries are what validity
 // would have removed had it seen the bytes; the survivors keep their own ranks
 // and confidences. Costs nothing when the window fits inside the cap, which
@@ -91,7 +91,7 @@ function _holdValidityPastCap(
   if (data.length <= evidence.length) return results;
   for (let i = 0; i < results.length; i++) {
     const enc = results[i].encoding;
-    if (enc !== null && decodesUnderValidity(enc, data)) {
+    if (enc !== null && decodesWithoutError(enc, data)) {
       return i === 0 ? results : results.slice(i);
     }
   }

@@ -88,11 +88,14 @@ concatenated, so each per-encoding literal is the size of its high half.
 **Three call sites**, all through `byte-decode.ts`:
 
 - [`pipeline/validity.ts`](../src/pipeline/validity.ts) — the two predicates
-  that must reproduce Python's judgment, `decodesUnderValidity` (tolerant,
-  the `filter_by_validity` question) and `decodesCompletelyUnderValidity`
+  that must reproduce Python's judgment, `decodesWithoutError` (tolerant,
+  the `filter_by_validity` question) and `decodesCompletely`
   (strict/whole-input, for the decode-safety flip and the past-cap hold),
   answer every single-byte encoding from the table: a stateless codec decodes
-  data iff no undefined byte appears (`decodesAsSingleByte`). That closes gap
+  data iff no undefined byte appears (`decodesAsSingleByte`). Their sibling
+  `danglingTailWithAsciiPrefix` (chardet's `dangling_tail_with_ascii_prefix`)
+  answers a single-byte encoding as false before any decode, since it has no
+  multi-byte tail. That closes gap
   2 — windows-125x and the other SBCS with WHATWG labels match CPython
   instead of WHATWG's pass-through, and the pages TextDecoder lacks are
   checked rather than waved through. Only the multi-byte encodings reach
@@ -103,7 +106,7 @@ concatenated, so each per-encoding literal is the size of its high half.
   inside EBCDIC-encoded markup can't be read with any WHATWG decoder, so the
   head is decoded as cp037 from the table (`decodeSingleByteText`, chardet's
   `bytes.decode("cp037", errors="replace")`) and scanned; the declared
-  MAINFRAME-era name's own decode check is `decodesUnderValidity`. cp037 is
+  MAINFRAME-era name's own decode check is `decodesWithoutError`. cp037 is
   a registry alias of cp1140 (the two differ at one byte), so the generator
   emits its table explicitly, and the lookup resolves an exact codec name
   before falling back to the registry's alias resolution.

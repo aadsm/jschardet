@@ -241,7 +241,7 @@ describe('Bug regressions', () => {
   //
   // 0xFF is illegal in Big5, so Python's codec raises and filter_by_validity
   // drops the encoding. Node's TextDecoder does not raise: ICU substitutes
-  // U+F8F8 (Private Use Area) and reports success, which decodesWithoutError
+  // U+F8F8 (Private Use Area) and reports success, which whatwgDecodesWithoutError
   // cannot distinguish from a clean decode, so big5hkscs survives validity
   // filtering and wins. The fixture is 400 bytes of Big5 Chinese with two
   // 0xFF bytes spliced in at offset 120:
