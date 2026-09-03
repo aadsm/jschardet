@@ -86,3 +86,37 @@ describe('isBinary', () => {
     expect(isBinary(data)).toBe(true);
   });
 });
+
+describe('isBinary — EBCDIC shapes', () => {
+  test('all padding and tabs is text', () => {
+    const data = new Uint8Array(100);
+    data.fill(0x40, 0, 97);
+    data.fill(0x05, 97, 100);
+    expect(isBinary(data)).toBe(false);
+  });
+
+  test('EBCDIC-style whitespace in low-byte data is binary', () => {
+    const abc = Uint8Array.from('ABC'.repeat(30), c => c.charCodeAt(0));
+    const nl = new Uint8Array(3).fill(0x15);
+    const sp = new Uint8Array(10).fill(0x40);
+    const data = new Uint8Array(abc.length + 13);
+    data.set(abc); data.set(nl, abc.length); data.set(sp, abc.length + 3);
+    expect(isBinary(data)).toBe(true);
+  });
+
+  test('high bytes without word separators is binary', () => {
+    const data = new Uint8Array(100);
+    data.fill(0x81, 0, 97);
+    data.fill(0x15, 97, 99);
+    data[99] = 0x05;
+    expect(isBinary(data)).toBe(true);
+  });
+
+  test('high bytes with EBCDIC spaces and newlines is text', () => {
+    const data = new Uint8Array(100);
+    data.fill(0x81, 0, 90);
+    data.fill(0x40, 90, 98);
+    data.fill(0x15, 98, 100);
+    expect(isBinary(data)).toBe(false);
+  });
+});

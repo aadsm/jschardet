@@ -25,7 +25,7 @@ export { DETERMINISTIC_CONFIDENCE } from './pipeline/index.js';
 export type { DetectionResult } from './pipeline/index.js';
 export { UniversalDetector } from './detector.js';
 export { EncodingEra, LanguageFilter } from './enums.js';
-export { DEFAULT_MAX_BYTES, MINIMUM_THRESHOLD } from './utils.js';
+export { DEFAULT_MAX_BYTES, EVIDENCE_CAP_BYTES, MINIMUM_THRESHOLD } from './utils.js';
 
 export interface DetectOptions {
   shouldRenameLegacy?: boolean;
@@ -79,7 +79,7 @@ export function detect(byteStr: Uint8Array, options: DetectOptions = {}): Detect
   // returned objects (including the singleton _NONE_RESULT and _BINARY_RESULT)
   // aren't mutated.
   const result: DetectionResult = { ...results[0] };
-  if (preferSuperset) applyPreferredSuperset(result);
+  if (preferSuperset) applyPreferredSuperset(result, byteStr.subarray(0, maxBytes));
   if (compatNames) applyCompatNames(result);
   return result;
 }
@@ -124,8 +124,9 @@ export function detectAll(
     const filtered = dicts.filter(d => d.confidence > MINIMUM_THRESHOLD);
     if (filtered.length > 0) dicts = filtered;
   }
+  const window = byteStr.subarray(0, maxBytes);
   for (const d of dicts) {
-    if (preferSuperset) applyPreferredSuperset(d);
+    if (preferSuperset) applyPreferredSuperset(d, window);
     if (compatNames) applyCompatNames(d);
   }
   dicts.sort((a, b) => b.confidence - a.confidence);

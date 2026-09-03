@@ -219,3 +219,27 @@ describe('UniversalDetector equivalence with detect()', () => {
     },
   );
 });
+
+describe('feed after an exact fill', () => {
+  test('marks the buffer truncated (a cut, not an end)', () => {
+    // b"Hello \xc3\xa9 more text here"
+    const raw = Uint8Array.from('Hello \xc3\xa9 more text here', c => c.charCodeAt(0));
+    const exact = new UniversalDetector({ maxBytes: 7 });
+    exact.feed(raw.subarray(0, 7));
+    expect(exact.done).toBe(true);
+    exact.feed(raw.subarray(7));
+    const oneShot = new UniversalDetector({ maxBytes: 7 });
+    oneShot.feed(raw);
+    const exactResult = exact.close();
+    const oneShotResult = oneShot.close();
+    expect(exactResult).toEqual(oneShotResult);
+    expect(exactResult.encoding).toBe(detect(raw, { maxBytes: 7 }).encoding);
+  });
+
+  test('an empty feed after done is not a truncation', () => {
+    const detector = new UniversalDetector({ maxBytes: 5 });
+    detector.feed(new TextEncoder().encode('hello'));
+    detector.feed(new Uint8Array(0));
+    expect((detector as unknown as { _inputTruncated: boolean })._inputTruncated).toBe(false);
+  });
+});

@@ -2,6 +2,7 @@
 
 import {
   applyLegacyRename,
+  applyPreferredSuperset,
   _COMPAT_NAMES,
   PREFERRED_SUPERSET,
 } from '../src/output_names.js';
@@ -74,5 +75,22 @@ describe('_COMPAT_NAMES', () => {
       .filter(target => !(target in _COMPAT_NAMES))
       .sort();
     expect(leaked).toEqual([]);
+  });
+});
+
+describe('applyPreferredSuperset decode-safety (chardet #388)', () => {
+  test('keeps a name the superset cannot decode', () => {
+    // 0x81 is undefined in cp1252; ISO-8859-1 data holding it keeps its name.
+    const withGap = Uint8Array.from('caf\xe9 \x81', c => c.charCodeAt(0));
+    const r1: DetectionResult = { encoding: 'iso8859-1', confidence: 0.9, language: 'fr', mimeType: null };
+    expect(applyPreferredSuperset(r1, withGap).encoding).toBe('iso8859-1');
+    const clean = Uint8Array.from('caf\xe9', c => c.charCodeAt(0));
+    const r2: DetectionResult = { encoding: 'iso8859-1', confidence: 0.9, language: 'fr', mimeType: null };
+    expect(applyPreferredSuperset(r2, clean).encoding).toBe('cp1252');
+  });
+
+  test('without data the remap is unconditional (the caller opted in)', () => {
+    const r: DetectionResult = { encoding: 'iso8859-1', confidence: 0.9, language: 'fr', mimeType: null };
+    expect(applyPreferredSuperset(r).encoding).toBe('cp1252');
   });
 });

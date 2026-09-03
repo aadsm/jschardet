@@ -4,7 +4,7 @@ import {
   isCorrect,
   isLanguageEquivalent,
 } from '../src/evaluation.js';
-import { isEquivalentDetection } from './utils.js';
+import { isAcceptable, isEquivalentDetection } from './utils.js';
 import { _shutdown } from './helpers/codecs.js';
 
 // The equivalence fallback may spawn the Python codec oracle.
@@ -158,5 +158,37 @@ describe('isLanguageEquivalent', () => {
   test('unknown language codes return false', () => {
     expect(isLanguageEquivalent('xx', 'yy')).toBe(false);
     expect(isLanguageEquivalent('en', 'fr')).toBe(false);
+  });
+});
+
+describe('isAcceptable', () => {
+  test('a binary expectation is met only by a binary detection', async () => {
+    expect(await isAcceptable(new Uint8Array([0x00, 0x01]), null, null)).toBe(true);
+    expect(await isAcceptable(new Uint8Array([0x00, 0x01]), null, 'utf-8')).toBe(false);
+  });
+  test('a known superset is acceptable regardless of the bytes', async () => {
+    expect(await isAcceptable(new TextEncoder().encode('Hello'), 'ascii', 'utf-8')).toBe(true);
+  });
+  test('unrelated names are acceptable when the data decodes identically', async () => {
+    const data = new TextEncoder().encode('plain ascii text');
+    expect(isCorrect('cp1250', 'cp1252')).toBe(false);
+    expect(await isAcceptable(data, 'cp1250', 'cp1252')).toBe(true);
+  });
+  test('neither half accepts encodings that read the data differently', async () => {
+    // "Привет мир".encode("cp1251")
+    const data = new Uint8Array([0xcf,0xf0,0xe8,0xe2,0xe5,0xf2,0x20,0xec,0xe8,0xf0]);
+    expect(await isAcceptable(data, 'cp1251', 'cp1252')).toBe(false);
+  });
+});
+
+describe('isEquivalentDetection edge cases', () => {
+  test('identical and listed-equivalent chars', async () => {
+    // 0xA4 is currency in iso-8859-1, euro in iso-8859-15 (a listed pair).
+    const data = new Uint8Array([0x61, 0x62, 0xa4]);
+    expect(await isEquivalentDetection(data, 'iso-8859-1', 'iso-8859-15')).toBe(true);
+  });
+  test('decodes of different lengths are not equivalent', async () => {
+    const data = new TextEncoder().encode('é');
+    expect(await isEquivalentDetection(data, 'utf-8', 'iso-8859-1')).toBe(false);
   });
 });

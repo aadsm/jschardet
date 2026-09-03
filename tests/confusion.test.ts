@@ -394,3 +394,201 @@ test('confusionPairWinner reads distinguishing bytes', () => {
 test('confusionPairWinner without a map declines', () => {
   expect(confusionPairWinner(UKRAINIAN_KOI8U, 'utf-8', 'koi8-u')).toBeNull();
 });
+
+// ---------------------------------------------------------------------------
+// Distinguishing-byte arbitration and category tables (chardet PR #383).
+// ---------------------------------------------------------------------------
+
+import {
+  _CROSS_FAMILY_MIN_DIFFS,
+  _DECISIVE_MIN_EVENTS,
+  _DECISIVE_VOTE_MARGIN,
+  _IMPLAUSIBLE_LETTER_PREFERENCE,
+  _contextPreference,
+  _letterCaseTable,
+  _pairCategories,
+  _voteWithMargin,
+  arbitrateDistinguishingBytes,
+  differingHighBytes,
+} from '../src/pipeline/confusion.js';
+import { ART_LANGUAGE } from '../src/models/index.js';
+
+function b(s: string): Uint8Array {
+  return Uint8Array.from(s, c => c.charCodeAt(0));
+}
+function getPair(a: string, bEnc: string): { diffBytes: Set<number>; categories: Map<number, [string, string]> } {
+  const maps = loadConfusionMaps();
+  const key1 = `${a}\x00${bEnc}`;
+  const key2 = `${bEnc}\x00${a}`;
+  const entry = maps.get(key1) ?? maps.get(key2);
+  if (entry === undefined) throw new Error(`no pair ${a}/${bEnc}`);
+  return entry;
+}
+
+// One distinguishing occurrence of byte 0x48 between spaces, repeated. cp1026
+// reads 0x48 as punctuation, cp273 as a lowercase letter; with no letter
+// neighbours the cp273 letter reading is word-shape-implausible, so each
+// occurrence is a demotion event for cp1026 — three clear both gates.
+const DECISIVE_CP1026 = b(' \x48 '.repeat(3));
+// The mirror: 0x43 is a lowercase letter under cp1026, punctuation under cp273.
+const DECISIVE_CP273 = b(' \x43 '.repeat(3));
+
+// "Mae dŵr yn llifo drwy'r dref.".encode("iso8859-14")
+const WELSH_ISO8859_14 = new Uint8Array([
+  0x4d, 0x61, 0x65, 0x20, 0x64, 0xf0, 0x72, 0x20, 0x79, 0x6e, 0x20, 0x6c, 0x6c,
+  0x69, 0x66, 0x6f, 0x20, 0x64, 0x72, 0x77, 0x79, 0x27, 0x72, 0x20, 0x64, 0x72,
+  0x65, 0x66, 0x2e,
+]);
+// "Die Österreicher und die Ärzte in München.".encode("cp1252")
+const GERMAN_CP1252 = new Uint8Array([
+  0x44, 0x69, 0x65, 0x20, 0xd6, 0x73, 0x74, 0x65, 0x72, 0x72, 0x65, 0x69, 0x63,
+  0x68, 0x65, 0x72, 0x20, 0x75, 0x6e, 0x64, 0x20, 0x64, 0x69, 0x65, 0x20, 0xc4,
+  0x72, 0x7a, 0x74, 0x65, 0x20, 0x69, 0x6e, 0x20, 0x4d, 0xfc, 0x6e, 0x63, 0x68,
+  0x65, 0x6e, 0x2e,
+]);
+
+test('context preference: an isolated letter reads as quoted punctuation', () => {
+  const table = _letterCaseTable('cp1252');
+  expect(_contextPreference('Ll', 0x20, 0x20, table)).toBe(_IMPLAUSIBLE_LETTER_PREFERENCE);
+});
+
+test('context preference: lowercase before uppercase is no word', () => {
+  const table = _letterCaseTable('cp1252');
+  expect(_contextPreference('Ll', 0x78, 0x41, table)).toBe(_IMPLAUSIBLE_LETTER_PREFERENCE);
+});
+
+test("vote demotion counted for the first encoding", () => {
+  const { diffBytes, categories } = getPair('cp1026', 'cp273');
+  const v = _voteWithMargin(DECISIVE_CP1026, 'cp1026', 'cp273', diffBytes, categories);
+  expect(v.winner).toBe('cp1026');
+  expect(v.margin).toBeGreaterThan(0);
+  expect(v.demotionMargin).toBeGreaterThanOrEqual(_DECISIVE_VOTE_MARGIN);
+  expect(v.demotionEvents).toBeGreaterThanOrEqual(_DECISIVE_MIN_EVENTS);
+});
+
+test('vote demotion counted for the second encoding', () => {
+  const { diffBytes, categories } = getPair('cp1026', 'cp273');
+  const v = _voteWithMargin(DECISIVE_CP273, 'cp1026', 'cp273', diffBytes, categories);
+  expect(v.winner).toBe('cp273');
+  expect(v.demotionMargin).toBeGreaterThanOrEqual(_DECISIVE_VOTE_MARGIN);
+  expect(v.demotionEvents).toBeGreaterThanOrEqual(_DECISIVE_MIN_EVENTS);
+});
+
+test('a letter beating punctuation is not evidence', () => {
+  const { diffBytes, categories } = getPair('cp1026', 'cp273');
+  const v = _voteWithMargin(new Uint8Array([0x81, 0x48, 0x82]), 'cp1026', 'cp273', diffBytes, categories);
+  expect([v.winner, v.margin, v.demotionMargin, v.demotionEvents]).toEqual([null, 0, 0, 0]);
+});
+
+test('a decisive demotion vote answers without the bigram rescore', () => {
+  expect(confusionPairWinner(DECISIVE_CP273, 'cp1026', 'cp273')).toBe('cp273');
+});
+
+test('bigram rescore without distinguishing bigrams declines', () => {
+  expect(
+    resolveByBigramRescore(b('hello world'), 'cp1252', 'cp1250', new Set([0xFF]), new Set()),
+  ).toBeNull();
+});
+
+test('resolveConfusionGroups: an art-model top is not reviewed', () => {
+  const results: DetectionResult[] = [
+    { encoding: 'cp437', confidence: 0.30, language: ART_LANGUAGE, mimeType: null },
+    { encoding: 'cp850', confidence: 0.299, language: null, mimeType: null },
+  ];
+  expect(resolveConfusionGroups(b('anything'), results)).toEqual(results);
+});
+
+test('resolveConfusionGroups: in-band decisive vote promotes the sibling', () => {
+  const results: DetectionResult[] = [
+    { encoding: 'cp1026', confidence: 0.10, language: null, mimeType: null },
+    { encoding: 'cp273', confidence: 0.099, language: null, mimeType: null },
+  ];
+  const resolved = resolveConfusionGroups(DECISIVE_CP273, results);
+  expect(resolved[0].encoding).toBe('cp273');
+  expect(resolved[0].confidence).toBe(0.10);
+});
+
+test('resolveConfusionGroups: strict-tier decisive vote promotes king-of-the-hill', () => {
+  const results: DetectionResult[] = [
+    { encoding: 'cp1026', confidence: 0.10, language: null, mimeType: null },
+    { encoding: 'ascii', confidence: 0.09, language: null, mimeType: null },
+    { encoding: 'cp273', confidence: 0.06, language: null, mimeType: null },
+  ];
+  const resolved = resolveConfusionGroups(DECISIVE_CP273, results);
+  expect(resolved[0].encoding).toBe('cp273');
+  expect(resolved[0].confidence).toBe(0.10);
+  expect(resolved.slice(1).map(r => r.encoding)).toEqual(['cp1026', 'ascii']);
+});
+
+test('resolveConfusionGroups: strict-tier corroborated', () => {
+  const results: DetectionResult[] = [
+    { encoding: 'koi8-r', confidence: 0.10, language: 'ru', mimeType: null },
+    { encoding: 'ascii', confidence: 0.09, language: null, mimeType: null },
+    { encoding: 'koi8-u', confidence: 0.06, language: 'uk', mimeType: null },
+  ];
+  const resolved = resolveConfusionGroups(UKRAINIAN_KOI8U, results);
+  expect(resolved[0].encoding).toBe('koi8-u');
+  expect(resolved[0].confidence).toBe(0.10);
+});
+
+test('_pairCategories marks undecodable bytes unassigned', () => {
+  expect(_pairCategories('cp1252', 'hp-roman8', new Set([0x81])).get(0x81)).toEqual(['Cn', 'Cc']);
+});
+
+test('_pairCategories marks zero-char decodes unassigned', () => {
+  expect(_pairCategories('utf-7', 'ascii', new Set([0x2b])).get(0x2b)).toEqual(['Cn', 'Sm']);
+});
+
+test('arbitrateDistinguishingBytes lets the models decide', () => {
+  expect(
+    arbitrateDistinguishingBytes(
+      WELSH_ISO8859_14, 'iso8859-14', 'cp1252', new Set([0xF0]),
+      new Set(['cy']), new Set(['cy']),
+    ),
+  ).toBe('iso8859-14');
+  expect(
+    arbitrateDistinguishingBytes(
+      GERMAN_CP1252, 'hp-roman8', 'cp1252', new Set([0xC4, 0xD6]),
+      new Set(['de']), new Set(['de']),
+    ),
+  ).toBe('cp1252');
+});
+
+test('arbitrateDistinguishingBytes falls back to word shape', () => {
+  const kven = b('- Mie uskoma, ette se oon mah\xb9olista rakenttaat omaksi tuo m\xf6kki.');
+  expect(
+    arbitrateDistinguishingBytes(
+      kven, 'iso8859-10', 'cp1252', new Set([0xB9]),
+      new Set(['fi']), new Set(['fi']),
+    ),
+  ).toBe('iso8859-10');
+});
+
+test('arbitrateDistinguishingBytes declines without evidence', () => {
+  expect(
+    arbitrateDistinguishingBytes(
+      b('St\xd6rung? s\xf6mething.'), 'hp-roman8', 'cp1252', new Set([0xD6]),
+      new Set(['en']), new Set(['en']),
+    ),
+  ).toBeNull();
+  expect(
+    arbitrateDistinguishingBytes(
+      b('\xd6'), 'hp-roman8', 'cp1252', new Set([0xD6]), null, null,
+    ),
+  ).toBeNull();
+});
+
+test('differingHighBytes is the C1 range for latin-1 and cp1252', () => {
+  const expected = new Set<number>();
+  for (let x = 0x80; x < 0xA0; x++) expected.add(x);
+  expect(differingHighBytes('iso8859-1', 'cp1252')).toEqual(expected);
+});
+
+test('differingHighBytes counts undecodable bytes as differing', () => {
+  expect(differingHighBytes('cp1252', 'iso8859-1').has(0x81)).toBe(true);
+  expect(differingHighBytes('iso8859-1', 'cp1252').has(0x81)).toBe(true);
+});
+
+test('_CROSS_FAMILY_MIN_DIFFS is 52', () => {
+  expect(_CROSS_FAMILY_MIN_DIFFS).toBe(52);
+});

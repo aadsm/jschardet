@@ -1,0 +1,553 @@
+<!doctype html>
+<!--[if IE 6 ]> <html lang="en-US" class="no-js ie6"> <![endif]-->
+<!--[if IE 7 ]> <html lang="en-US" class="no-js ie7"> <![endif]-->
+<!--[if IE 8 ]> <html lang="en-US" class="no-js ie8"> <![endif]-->
+<!--[if IE 9 ]> <html lang="en-US" class="no-js ie9"> <![endif]-->
+<!--[if (gt IE 9)|!(IE)]><!--><html lang="en-US" class="no-js"> <!--<![endif]-->
+<head>
+		<!-- Charset -->
+	<meta charset="hp-roman8">
+	<!-- Mobile Specific Metas  -->
+	<meta name="viewport" content="initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
+	<!-- <meta name="viewport" content="width=1024" />-->
+		<title>gnu-media</title>
+		<!-- Google Fonts -->
+    <link href='http://fonts.googleapis.com/css?family=Droid+Serif:700,400,400italic,700italic' rel='stylesheet' type='text/css'>
+	<!-- Pingback Url -->
+	<link rel="pingback" href="http://www.gnu-media.org/xmlrpc.php">
+	<link rel="alternate" type="application/rss+xml" title="gnu-media &raquo; Feed" href="http://www.gnu-media.org/feed" />
+<link rel="alternate" type="application/rss+xml" title="gnu-media &raquo; Comments Feed" href="http://www.gnu-media.org/comments/feed" />
+
+            <script type="text/javascript">//<![CDATA[
+            // Google Analytics for WordPress by Yoast v4.3.3 | http://yoast.com/wordpress/google-analytics/
+            var _gaq = _gaq || [];
+            _gaq.push(['_setAccount', 'UA-6876499-2']);
+				            _gaq.push(['_trackPageview']);
+            (function () {
+                var ga = document.createElement('script');
+                ga.type = 'text/javascript';
+                ga.async = true;
+                ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+
+                var s = document.getElementsByTagName('script')[0];
+                s.parentNode.insertBefore(ga, s);
+            })();
+            //]]></script>
+			<link rel='stylesheet' id='jetpack-subscriptions-css'  href='http://www.gnu-media.org/wp-content/plugins/jetpack/modules/subscriptions/subscriptions.css?ver=3.8.29' type='text/css' media='all' />
+<link rel='stylesheet' id='jetpack-widgets-css'  href='http://www.gnu-media.org/wp-content/plugins/jetpack/modules/widgets/widgets.css?ver=20121003' type='text/css' media='all' />
+<link rel='stylesheet' id='sampression-style-css'  href='http://www.gnu-media.org/wp-content/themes/sampression-lite/style.css?ver=1.4' type='text/css' media='all' />
+<link rel='stylesheet' id='fontello-css'  href='http://www.gnu-media.org/wp-content/themes/sampression-lite/lib/css/fontello.css?ver=3.8.29' type='text/css' media='screen' />
+<!--[if IE 7]>
+<link rel='stylesheet' id='ie7-only-css'  href='http://www.gnu-media.org/wp-content/themes/sampression-lite/lib/css/fontello-ie7.css?ver=3.8.29' type='text/css' media='all' />
+<![endif]-->
+<link rel='stylesheet' id='sharedaddy-css'  href='http://www.gnu-media.org/wp-content/plugins/jetpack/modules/sharedaddy/sharing.css?ver=2.7.2' type='text/css' media='all' />
+<script type='text/javascript' src='http://www.gnu-media.org/wp-includes/js/jquery/jquery.js?ver=1.10.2'></script>
+<script type='text/javascript' src='http://www.gnu-media.org/wp-includes/js/jquery/jquery-migrate.min.js?ver=1.2.1'></script>
+<script type='text/javascript' src='http://www.gnu-media.org/wp-content/themes/sampression-lite/lib/js/modernizr.js?ver=2.6.1'></script>
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="http://www.gnu-media.org/xmlrpc.php?rsd" />
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="http://www.gnu-media.org/wp-includes/wlwmanifest.xml" /> 
+<link rel='shortlink' href='http://wp.me/3B1j8' />
+
+<!-- All in One SEO Pack 2.1.2 by Michael Torbert of Semper Fi Web Design[595,674] -->
+<meta name="description" content="Blog dedicado a procesos de creaci∆n con nuevos medios." />
+
+<meta name="keywords" content="processing, arduino, opencv, java, openframeworks, pcb, electronica, programacion, arte mediatico, arte digital, arte interactivo, arte electronico, net art, arte sonoro" />
+<link rel='next' href='http://www.gnu-media.org/page/2' />
+
+<link rel="canonical" href="http://www.gnu-media.org" />
+<!-- /all in one seo pack -->
+
+	
+</head>
+
+<body class="home blog top">
+<header id="header">
+  <div class="container">
+    <div class="columns nine">
+	
+						
+			<div class="logo-txt">
+			  <h1 class="site-title" id="site-title">
+			  <a href="http://www.gnu-media.org/" title="gnu-media" rel="home">
+			  gnu-media			  </a>
+			  </h1>
+			  <h2 id="site-description" class="site-description">Blog dedicado al software libre y la creaci∆n multimedia</h2>
+			</div>
+    </div>
+    <div class="columns seven">
+      <nav id="top-nav">
+        			<ul class="top-menu clearfix">
+				<li class="page_item page-item-36"><a href="http://www.gnu-media.org/acerca">Acerca de</a></li>
+<li class="page_item page-item-97"><a href="http://www.gnu-media.org/lifestream">Lifestream</a></li>
+			</ul>
+			      </nav>
+	  <div id="top-nav-mobile">
+		
+							
+	  </div> 
+      <!-- #top-nav -->
+      <div id="interaction-sec" class="clearfix socialzero">
+        <form method="get" id="searchform" class="clearfix" action="http://www.gnu-media.org/">
+    <label class="hidden" for="s">Search for:</label>
+    <input type="text" value="" name="s" id="s" class="text-field" placeholder="search by keyword" />
+    <input type="submit" id="searchsubmit" value="Search" />
+</form>     
+       <ul class="sm-top">
+        
+       </ul>
+        <!-- .sm-top --> 
+      </div>
+      <!-- #interaction-sec -->
+    </div>
+	  </div>
+</header>
+<!-- #header -->
+<!-- Filter the Post by Category: We are using Isotop (http://isotope.metafizzy.co/) for Filtering: An exquisite jQuery plugin for magical layouts -->
+<span id="primary-nav-scroll"></span>
+<nav id="primary-nav">
+  <div class="container">
+  <a href="#" id="btn-nav-opt">show/hide</a>
+  <div class="columns sixteen">
+    <div class="nav-label">Filter By:</div>
+	
+    <ul class="nav-listing clearfix">
+        <li><a href="#" data-filter="*" class="selected"><span></span>Show All</a></li>
+                <li><a href="javascript:void(0);" data-filter=".arduino-electronica" id="arduino-electronica" class="filter-data"><span></span>Arduino</a></li>
+                <li><a href="javascript:void(0);" data-filter=".audio" id="audio" class="filter-data"><span></span>Audio</a></li>
+                <li><a href="javascript:void(0);" data-filter=".electronica" id="electronica" class="filter-data"><span></span>Electr∆nica</a></li>
+                <li><a href="javascript:void(0);" data-filter=".gentoo" id="gentoo" class="filter-data"><span></span>Gentoo</a></li>
+                <li><a href="javascript:void(0);" data-filter=".openframeworks" id="openframeworks" class="filter-data"><span></span>Openframeworks</a></li>
+                <li><a href="javascript:void(0);" data-filter=".processing" id="processing" class="filter-data"><span></span>Processing</a></li>
+                <li><a href="javascript:void(0);" data-filter=".proyectos" id="proyectos" class="filter-data"><span></span>Proyectos</a></li>
+                <li><a href="javascript:void(0);" data-filter=".software" id="software" class="filter-data"><span></span>Software</a></li>
+                <li><a href="javascript:void(0);" data-filter=".trabajos" id="trabajos" class="filter-data"><span></span>Trabajos</a></li>
+                <li><a href="javascript:void(0);" data-filter=".video" id="video" class="filter-data"><span></span>Video</a></li>
+            </ul>
+    
+    <!-- Check Viewport: If the normal design couldn't fit with viewport, the Categories will appear via CSS with Select Menu form -->
+    <select name="get-cats" id="get-cats">
+        <option value="*">Show all</option>
+                <option value=".arduino-electronica">Arduino</option>
+                <option value=".audio">Audio</option>
+                <option value=".electronica">Electr∆nica</option>
+                <option value=".gentoo">Gentoo</option>
+                <option value=".openframeworks">Openframeworks</option>
+                <option value=".processing">Processing</option>
+                <option value=".proyectos">Proyectos</option>
+                <option value=".software">Software</option>
+                <option value=".trabajos">Trabajos</option>
+                <option value=".video">Video</option>
+            </select>
+    
+    </div>
+  </div>
+</nav>
+<!-- #primary-nav -->
+<div id="content-wrapper">
+<div class="container">
+<section id="content" class="clearfix">
+	
+    <div id="post-listing" class="clearfix">
+  
+	
+<article id="post-73" class="post columns four arduino-electronica electronica gentoo item ">
+
+      <h3 class="post-title"><a href="http://www.gnu-media.org/2010/02/arduino-017-en-linux-64-bits.html" title="Arduino 017 en linux 64 bits" rel="bookmark" >Arduino 017 en linux 64 bits</a></h3>
+      
+                  <span class="col count-comment">
+            <span class="pointer"></span>
+            <a href="http://www.gnu-media.org/2010/02/arduino-017-en-linux-64-bits.html#respond" title="Comment on Arduino 017 en linux 64 bits">0</a>            </span>
+           
+            <div class="entry clearfix">
+        <p>Actualizando mi instalaci∆n de arduino, arm≈ unas versiones para protoboard con la tarjeta ft232 que se consigue aqu’ en Colombia en Sigma Electr∆nica, (mƒs adelante postear≈ los esquemas e imƒgenes). Siguiendo con la actualizaci∆n baj≈ la «ltima versi∆n de arduino<span class="ellipsis">&hellip;</span> <span class="read-more"><a href="http://www.gnu-media.org/2010/02/arduino-017-en-linux-64-bits.html" >Read more &#8250;</a></span></p>
+              </div>
+      <!-- .entry -->
+
+      <div class="meta clearfix">
+			<div class="post-author col"><span class="ico hello">Author</span><a class="url fn n" href="http://www.gnu-media.org/author/admin" title="View all posts by Sergio Esteban">Sergio Esteban</a></div> <time class="col" datetime="2011-09-28"><span class="ico">Published on</span><a href="http://www.gnu-media.org/2010/02" title="11:12 pm" rel="bookmark">23 Feb 2010</a></time>       </div>
+      <div class="meta">
+        <div class="cats"><span class="ico">Categories</span><div class="overflow-hidden cat-listing"><a href="http://www.gnu-media.org/category/electronica/arduino-electronica" title="View all posts in Arduino" rel="category tag">Arduino</a>, <a href="http://www.gnu-media.org/category/electronica" title="View all posts in Electr∆nica" rel="category tag">Electr∆nica</a>, <a href="http://www.gnu-media.org/category/gentoo" title="View all posts in Gentoo" rel="category tag">Gentoo</a></div></div>
+      </div>
+            <div class="meta">
+        <div class="tags"><span class="ico">Tags</span><div class="overflow-hidden tag-listing"> <a href="http://www.gnu-media.org/tag/hardware" rel="tag">hardware</a><br /></div> </div>
+      </div>
+            
+               
+</article> 
+<article id="post-69" class="post columns four processing software item ">
+
+      <h3 class="post-title"><a href="http://www.gnu-media.org/2010/01/javaprocessing-con-opencv-en-64bits.html" title="Java/processing con OpenCV en 64bits" rel="bookmark" >Java/processing con OpenCV en 64bits</a></h3>
+      
+                  <span class="col count-comment">
+            <span class="pointer"></span>
+            <a href="http://www.gnu-media.org/2010/01/javaprocessing-con-opencv-en-64bits.html#comments" title="Comment on Java/processing con OpenCV en 64bits">13</a>            </span>
+           
+            <div class="entry clearfix">
+        <p>Seg«n la wikipedia &#8220;OpenCV es una biblioteca libre de visi∆n artificial originalmente desarrollada por Intel. Desde que apareci∆ su primera versi∆n alfa en el mes de enero de 1999, se ha utilizado en infinidad de aplicaciones. Desde sistemas de seguridad<span class="ellipsis">&hellip;</span> <span class="read-more"><a href="http://www.gnu-media.org/2010/01/javaprocessing-con-opencv-en-64bits.html" >Read more &#8250;</a></span></p>
+              </div>
+      <!-- .entry -->
+
+      <div class="meta clearfix">
+			<div class="post-author col"><span class="ico hello">Author</span><a class="url fn n" href="http://www.gnu-media.org/author/admin" title="View all posts by Sergio Esteban">Sergio Esteban</a></div> <time class="col" datetime="2011-09-28"><span class="ico">Published on</span><a href="http://www.gnu-media.org/2010/01" title="7:13 pm" rel="bookmark">23 Jan 2010</a></time>       </div>
+      <div class="meta">
+        <div class="cats"><span class="ico">Categories</span><div class="overflow-hidden cat-listing"><a href="http://www.gnu-media.org/category/processing" title="View all posts in Processing" rel="category tag">Processing</a>, <a href="http://www.gnu-media.org/category/software" title="View all posts in Software" rel="category tag">Software</a></div></div>
+      </div>
+            <div class="meta">
+        <div class="tags"><span class="ico">Tags</span><div class="overflow-hidden tag-listing"> <a href="http://www.gnu-media.org/tag/computer-vision" rel="tag">computer vision</a>, <a href="http://www.gnu-media.org/tag/opencv" rel="tag">openCV</a>, <a href="http://www.gnu-media.org/tag/tracking" rel="tag">tracking</a><br /></div> </div>
+      </div>
+            
+               
+</article> 
+<article id="post-49" class="post columns four gentoo processing software item ">
+
+      <h3 class="post-title"><a href="http://www.gnu-media.org/2009/12/processing-1-0-9-opengl-gsvideo-0-6-gnulinux-amd64.html" title="Processing 1.0.9 + OpenGL + GSVideo 0.6 + GNU/Linux AMD64" rel="bookmark" >Processing 1.0.9 + OpenGL + GSVideo 0.6 + GNU/Linux AMD64</a></h3>
+      
+                  <span class="col count-comment">
+            <span class="pointer"></span>
+            <a href="http://www.gnu-media.org/2009/12/processing-1-0-9-opengl-gsvideo-0-6-gnulinux-amd64.html#respond" title="Comment on Processing 1.0.9 + OpenGL + GSVideo 0.6 + GNU/Linux AMD64">0</a>            </span>
+           
+            <div class="entry clearfix">
+        <p>Holas, pues me arm≈ un nuevo computador!! Y aprovechando la nueva adquisici∆n, actualizo la informaci∆n sobre la instalaci∆n de Processing en distribuciones de 64bits, para el caso: Gentoo amd64 (aunque es vƒlido para otras distribuciones). Como recordarƒn para que funcionara<span class="ellipsis">&hellip;</span> <span class="read-more"><a href="http://www.gnu-media.org/2009/12/processing-1-0-9-opengl-gsvideo-0-6-gnulinux-amd64.html" >Read more &#8250;</a></span></p>
+              </div>
+      <!-- .entry -->
+
+      <div class="meta clearfix">
+			<div class="post-author col"><span class="ico hello">Author</span><a class="url fn n" href="http://www.gnu-media.org/author/admin" title="View all posts by Sergio Esteban">Sergio Esteban</a></div> <time class="col" datetime="2011-09-28"><span class="ico">Published on</span><a href="http://www.gnu-media.org/2009/12" title="3:38 pm" rel="bookmark">31 Dec 2009</a></time>       </div>
+      <div class="meta">
+        <div class="cats"><span class="ico">Categories</span><div class="overflow-hidden cat-listing"><a href="http://www.gnu-media.org/category/gentoo" title="View all posts in Gentoo" rel="category tag">Gentoo</a>, <a href="http://www.gnu-media.org/category/processing" title="View all posts in Processing" rel="category tag">Processing</a>, <a href="http://www.gnu-media.org/category/software" title="View all posts in Software" rel="category tag">Software</a></div></div>
+      </div>
+            <div class="meta">
+        <div class="tags"><span class="ico">Tags</span><div class="overflow-hidden tag-listing"> <a href="http://www.gnu-media.org/tag/computer-vision" rel="tag">computer vision</a>, <a href="http://www.gnu-media.org/tag/opengl" rel="tag">OpenGL</a><br /></div> </div>
+      </div>
+            
+               
+</article> 
+<article id="post-42" class="post columns four processing software item ">
+
+      <h3 class="post-title"><a href="http://www.gnu-media.org/2009/06/opengl-en-processing-64-bits.html" title="OpenGL en Processing 64 bits" rel="bookmark" >OpenGL en Processing 64 bits</a></h3>
+      
+                  <span class="col count-comment">
+            <span class="pointer"></span>
+            <a href="http://www.gnu-media.org/2009/06/opengl-en-processing-64-bits.html#comments" title="Comment on OpenGL en Processing 64 bits">2</a>            </span>
+           
+            <div class="entry clearfix">
+        <p>Como ya vimos, para correr processing en linux de 64 bits es necesario reemplazar el java que incluye por uno del sistema. Ahora, la soluci∆n a usar la librer’a OpenGL. Como te habrƒs fijado cuando se intenta usar esta librer’a<span class="ellipsis">&hellip;</span> <span class="read-more"><a href="http://www.gnu-media.org/2009/06/opengl-en-processing-64-bits.html" >Read more &#8250;</a></span></p>
+              </div>
+      <!-- .entry -->
+
+      <div class="meta clearfix">
+			<div class="post-author col"><span class="ico hello">Author</span><a class="url fn n" href="http://www.gnu-media.org/author/admin" title="View all posts by Sergio Esteban">Sergio Esteban</a></div> <time class="col" datetime="2011-09-28"><span class="ico">Published on</span><a href="http://www.gnu-media.org/2009/06" title="10:19 am" rel="bookmark">22 Jun 2009</a></time>       </div>
+      <div class="meta">
+        <div class="cats"><span class="ico">Categories</span><div class="overflow-hidden cat-listing"><a href="http://www.gnu-media.org/category/processing" title="View all posts in Processing" rel="category tag">Processing</a>, <a href="http://www.gnu-media.org/category/software" title="View all posts in Software" rel="category tag">Software</a></div></div>
+      </div>
+            <div class="meta">
+        <div class="tags"><span class="ico">Tags</span><div class="overflow-hidden tag-listing"> <a href="http://www.gnu-media.org/tag/opengl" rel="tag">OpenGL</a><br /></div> </div>
+      </div>
+            
+               
+</article> 
+<article id="post-53" class="post columns four processing trabajos item ">
+
+      <h3 class="post-title"><a href="http://www.gnu-media.org/2009/06/ecosistema-digital-interactivo-i.html" title="Ecosistema Digital Interactivo I" rel="bookmark" >Ecosistema Digital Interactivo I</a></h3>
+      
+                  <span class="col count-comment">
+            <span class="pointer"></span>
+            <a href="http://www.gnu-media.org/2009/06/ecosistema-digital-interactivo-i.html#respond" title="Comment on Ecosistema Digital Interactivo I">0</a>            </span>
+           
+            <div class="entry clearfix">
+        <p>Instalaci∆n audivisual interactiva, realizada en conjunto con Jenny Rojas, Javier Jimenez, Eduardo Montilla y yo, como prototipo trabajado en el Taller II de la Maestr’a en dise∑o Multimedia. Ecosistema Digital from Sergio Romero on Vimeo.</p>
+              </div>
+      <!-- .entry -->
+
+      <div class="meta clearfix">
+			<div class="post-author col"><span class="ico hello">Author</span><a class="url fn n" href="http://www.gnu-media.org/author/admin" title="View all posts by Sergio Esteban">Sergio Esteban</a></div> <time class="col" datetime="2011-09-28"><span class="ico">Published on</span><a href="http://www.gnu-media.org/2009/06" title="5:01 pm" rel="bookmark">12 Jun 2009</a></time>       </div>
+      <div class="meta">
+        <div class="cats"><span class="ico">Categories</span><div class="overflow-hidden cat-listing"><a href="http://www.gnu-media.org/category/processing" title="View all posts in Processing" rel="category tag">Processing</a>, <a href="http://www.gnu-media.org/category/trabajos" title="View all posts in Trabajos" rel="category tag">Trabajos</a></div></div>
+      </div>
+            <div class="meta">
+        <div class="tags"><span class="ico">Tags</span><div class="overflow-hidden tag-listing"> <a href="http://www.gnu-media.org/tag/arte-y-tecnologia" rel="tag">arte y tecnolog’a</a>, <a href="http://www.gnu-media.org/tag/bio-art" rel="tag">bio-art</a>, <a href="http://www.gnu-media.org/tag/interactivo" rel="tag">interactivo</a>, <a href="http://www.gnu-media.org/tag/tracking" rel="tag">tracking</a>, <a href="http://www.gnu-media.org/tag/video" rel="tag">Video</a><br /></div> </div>
+      </div>
+            
+               
+</article> 
+<article id="post-51" class="post columns four processing trabajos item ">
+
+      <h3 class="post-title"><a href="http://www.gnu-media.org/2009/03/ball-game-motion-tracking.html" title="Ball Game (motion tracking)" rel="bookmark" >Ball Game (motion tracking)</a></h3>
+      
+                  <span class="col count-comment">
+            <span class="pointer"></span>
+            <a href="http://www.gnu-media.org/2009/03/ball-game-motion-tracking.html#respond" title="Comment on Ball Game (motion tracking)">0</a>            </span>
+           
+            <div class="entry clearfix">
+        <p>Ball Game from Sergio Romero on Vimeo.</p>
+              </div>
+      <!-- .entry -->
+
+      <div class="meta clearfix">
+			<div class="post-author col"><span class="ico hello">Author</span><a class="url fn n" href="http://www.gnu-media.org/author/admin" title="View all posts by Sergio Esteban">Sergio Esteban</a></div> <time class="col" datetime="2011-09-28"><span class="ico">Published on</span><a href="http://www.gnu-media.org/2009/03" title="4:56 pm" rel="bookmark">20 Mar 2009</a></time>       </div>
+      <div class="meta">
+        <div class="cats"><span class="ico">Categories</span><div class="overflow-hidden cat-listing"><a href="http://www.gnu-media.org/category/processing" title="View all posts in Processing" rel="category tag">Processing</a>, <a href="http://www.gnu-media.org/category/trabajos" title="View all posts in Trabajos" rel="category tag">Trabajos</a></div></div>
+      </div>
+            <div class="meta">
+        <div class="tags"><span class="ico">Tags</span><div class="overflow-hidden tag-listing"> <a href="http://www.gnu-media.org/tag/interactivo" rel="tag">interactivo</a>, <a href="http://www.gnu-media.org/tag/tracking" rel="tag">tracking</a><br /></div> </div>
+      </div>
+            
+               
+</article> 
+<article id="post-35" class="post columns four processing software item ">
+
+      <h3 class="post-title"><a href="http://www.gnu-media.org/2009/01/processing-1-0-1-openjdk.html" title="Processing 1.0.1 + openJDK" rel="bookmark" >Processing 1.0.1 + openJDK</a></h3>
+      
+                  <span class="col count-comment">
+            <span class="pointer"></span>
+            <a href="http://www.gnu-media.org/2009/01/processing-1-0-1-openjdk.html#comments" title="Comment on Processing 1.0.1 + openJDK">5</a>            </span>
+           
+            <div class="entry clearfix">
+        <p>Processing funciona de manera nativa con el jdk de sun, y para poder trabajar en 64bits y/o de una manera mƒs &#8220;libre&#8221;, tendremos que instalar el openjdk. El jre no sirve, tiene que ser el entorno completo de desarrollo. Posteriormente<span class="ellipsis">&hellip;</span> <span class="read-more"><a href="http://www.gnu-media.org/2009/01/processing-1-0-1-openjdk.html" >Read more &#8250;</a></span></p>
+              </div>
+      <!-- .entry -->
+
+      <div class="meta clearfix">
+			<div class="post-author col"><span class="ico hello">Author</span><a class="url fn n" href="http://www.gnu-media.org/author/admin" title="View all posts by Sergio Esteban">Sergio Esteban</a></div> <time class="col" datetime="2011-09-28"><span class="ico">Published on</span><a href="http://www.gnu-media.org/2009/01" title="5:16 pm" rel="bookmark">07 Jan 2009</a></time>       </div>
+      <div class="meta">
+        <div class="cats"><span class="ico">Categories</span><div class="overflow-hidden cat-listing"><a href="http://www.gnu-media.org/category/processing" title="View all posts in Processing" rel="category tag">Processing</a>, <a href="http://www.gnu-media.org/category/software" title="View all posts in Software" rel="category tag">Software</a></div></div>
+      </div>
+            <div class="meta">
+        <div class="tags"><span class="ico">Tags</span><div class="overflow-hidden tag-listing"> <a href="http://www.gnu-media.org/tag/amd64" rel="tag">amd64</a>, <a href="http://www.gnu-media.org/tag/openjdk" rel="tag">OpenJDK</a><br /></div> </div>
+      </div>
+            
+               
+</article> 
+<article id="post-34" class="post columns four processing video item ">
+
+      <h3 class="post-title"><a href="http://www.gnu-media.org/2009/01/gsvideo-0-4-5.html" title="GSVideo 0.4.5" rel="bookmark" >GSVideo 0.4.5</a></h3>
+      
+                  <span class="col count-comment">
+            <span class="pointer"></span>
+            <a href="http://www.gnu-media.org/2009/01/gsvideo-0-4-5.html#comments" title="Comment on GSVideo 0.4.5">2</a>            </span>
+           
+            <div class="entry clearfix">
+        <p>La librer’a de video para Processing GSVideo public∆ una nueva versi∆n, la gsvideo 0.4.5. Como novedad trae la implementaci∆n del m≈todo GSCapture.list(), para listar los dispositivos de captura conectados. Este m≈todo asume que el elemento de fuente es v4l2src, pero<span class="ellipsis">&hellip;</span> <span class="read-more"><a href="http://www.gnu-media.org/2009/01/gsvideo-0-4-5.html" >Read more &#8250;</a></span></p>
+              </div>
+      <!-- .entry -->
+
+      <div class="meta clearfix">
+			<div class="post-author col"><span class="ico hello">Author</span><a class="url fn n" href="http://www.gnu-media.org/author/admin" title="View all posts by Sergio Esteban">Sergio Esteban</a></div> <time class="col" datetime="2011-09-28"><span class="ico">Published on</span><a href="http://www.gnu-media.org/2009/01" title="8:57 pm" rel="bookmark">06 Jan 2009</a></time>       </div>
+      <div class="meta">
+        <div class="cats"><span class="ico">Categories</span><div class="overflow-hidden cat-listing"><a href="http://www.gnu-media.org/category/processing" title="View all posts in Processing" rel="category tag">Processing</a>, <a href="http://www.gnu-media.org/category/video" title="View all posts in Video" rel="category tag">Video</a></div></div>
+      </div>
+            <div class="meta">
+        <div class="tags"><span class="ico">Tags</span><div class="overflow-hidden tag-listing"> <a href="http://www.gnu-media.org/tag/gsvideo" rel="tag">GSVideo</a>, <a href="http://www.gnu-media.org/tag/noticias" rel="tag">noticias</a><br /></div> </div>
+      </div>
+            
+               
+</article> 
+<article id="post-33" class="post columns four processing software item ">
+
+      <h3 class="post-title"><a href="http://www.gnu-media.org/2008/11/lanzado-processing-1-0.html" title="Lanzado Processing 1.0" rel="bookmark" >Lanzado Processing 1.0</a></h3>
+      
+                  <span class="col count-comment">
+            <span class="pointer"></span>
+            <a href="http://www.gnu-media.org/2008/11/lanzado-processing-1-0.html#comments" title="Comment on Lanzado Processing 1.0">4</a>            </span>
+           
+            <div class="entry clearfix">
+        <p>Este excelente software de producci∆n digital audiovisual lanza su primera versi∆n estable. Seg«n parece la descarga estuvo disponible desde el 24 de este mes, y hubo record de descargas a tal punto que se satur∆ varias veces el servidor, pero<span class="ellipsis">&hellip;</span> <span class="read-more"><a href="http://www.gnu-media.org/2008/11/lanzado-processing-1-0.html" >Read more &#8250;</a></span></p>
+              </div>
+      <!-- .entry -->
+
+      <div class="meta clearfix">
+			<div class="post-author col"><span class="ico hello">Author</span><a class="url fn n" href="http://www.gnu-media.org/author/admin" title="View all posts by Sergio Esteban">Sergio Esteban</a></div> <time class="col" datetime="2011-09-28"><span class="ico">Published on</span><a href="http://www.gnu-media.org/2008/11" title="12:28 am" rel="bookmark">27 Nov 2008</a></time>       </div>
+      <div class="meta">
+        <div class="cats"><span class="ico">Categories</span><div class="overflow-hidden cat-listing"><a href="http://www.gnu-media.org/category/processing" title="View all posts in Processing" rel="category tag">Processing</a>, <a href="http://www.gnu-media.org/category/software" title="View all posts in Software" rel="category tag">Software</a></div></div>
+      </div>
+            <div class="meta">
+        <div class="tags"><span class="ico">Tags</span><div class="overflow-hidden tag-listing"> <a href="http://www.gnu-media.org/tag/noticias" rel="tag">noticias</a><br /></div> </div>
+      </div>
+            
+               
+</article> 
+<article id="post-32" class="post columns four gentoo software item ">
+
+      <h3 class="post-title"><a href="http://www.gnu-media.org/2008/11/instalando-mysql-workbench-en-linux.html" title="Instalando MySQL-workbench en linux" rel="bookmark" >Instalando MySQL-workbench en linux</a></h3>
+      
+                  <span class="col count-comment">
+            <span class="pointer"></span>
+            <a href="http://www.gnu-media.org/2008/11/instalando-mysql-workbench-en-linux.html#comments" title="Comment on Instalando MySQL-workbench en linux">3</a>            </span>
+           
+            <div class="entry clearfix">
+        <p>Actualizaci∆n: La pƒgina de mysql developer ya ofrece los paquetes estables para varias plataformas como Fedora, Ubuntu, Suse, Red Hat, o en su defecto las fuentes para compilarlo, ya no es necesario descargar versiones alfa, y en la mayor’a de<span class="ellipsis">&hellip;</span> <span class="read-more"><a href="http://www.gnu-media.org/2008/11/instalando-mysql-workbench-en-linux.html" >Read more &#8250;</a></span></p>
+              </div>
+      <!-- .entry -->
+
+      <div class="meta clearfix">
+			<div class="post-author col"><span class="ico hello">Author</span><a class="url fn n" href="http://www.gnu-media.org/author/admin" title="View all posts by Sergio Esteban">Sergio Esteban</a></div> <time class="col" datetime="2011-09-28"><span class="ico">Published on</span><a href="http://www.gnu-media.org/2008/11" title="11:52 pm" rel="bookmark">26 Nov 2008</a></time>       </div>
+      <div class="meta">
+        <div class="cats"><span class="ico">Categories</span><div class="overflow-hidden cat-listing"><a href="http://www.gnu-media.org/category/gentoo" title="View all posts in Gentoo" rel="category tag">Gentoo</a>, <a href="http://www.gnu-media.org/category/software" title="View all posts in Software" rel="category tag">Software</a></div></div>
+      </div>
+            <div class="meta">
+        <div class="tags"><span class="ico">Tags</span><div class="overflow-hidden tag-listing"> <a href="http://www.gnu-media.org/tag/bases-de-datos" rel="tag">bases de datos</a><br /></div> </div>
+      </div>
+            
+               
+</article> 
+     </div>
+  <!-- #post-listing --> 
+  		<nav id="nav-below" class="post-navigation clearfix">
+        	                <div class="nav-previous alignleft"><a href="http://www.gnu-media.org/page/2" ><span class="meta-nav">&larr;</span> Older posts</a></div>
+                <div class="nav-next alignright"></div>
+            		</nav>
+	
+  
+</section>
+<!-- #content -->
+<aside id="sidebar" class="clearfix" role="complementary">
+	<section id="search-3" class="column one-third widget widget_search"><header class="widget-title">Buscar</header><form method="get" id="searchform" class="clearfix" action="http://www.gnu-media.org/">
+    <label class="hidden" for="s">Search for:</label>
+    <input type="text" value="" name="s" id="s" class="text-field" placeholder="search by keyword" />
+    <input type="submit" id="searchsubmit" value="Search" />
+</form></section><section id="blog_subscription-2" class="column one-third widget jetpack_subscription_widget"><header class="widget-title"><label for="subscribe-field">Suscr’base al  Blog</label></header>
+		<form action="" method="post" accept-charset="utf-8" id="subscribe-blog-blog_subscription-2">
+			<p id="subscribe-text"></p>
+			<p id="subscribe-email"><input type="text" name="email" value="Email Address" id="subscribe-field" onclick="if ( this.value == 'Email Address' ) { this.value = ''; }" onblur="if ( this.value == '' ) { this.value = 'Email Address'; }" /></p>
+
+			<p id="subscribe-submit">
+				<input type="hidden" name="action" value="subscribe" />
+				<input type="hidden" name="source" value="http://www.gnu-media.org/" />
+				<input type="hidden" name="sub-type" value="widget" />
+				<input type="hidden" name="redirect_fragment" value="blog_subscription-2" />
+								<input type="submit" value="Subscribir" name="jetpack_subscriptions_widget" />
+			</p>
+		</form>
+
+		
+</section><section id="categories-3" class="column one-third widget widget_categories"><header class="widget-title">Categor’as</header>		<ul>
+	<li class="cat-item cat-item-5"><a href="http://www.gnu-media.org/category/audio" title="View all posts filed under Audio">Audio</a>
+</li>
+	<li class="cat-item cat-item-9"><a href="http://www.gnu-media.org/category/electronica" title="View all posts filed under Electr∆nica">Electr∆nica</a>
+<ul class='children'>
+	<li class="cat-item cat-item-34"><a href="http://www.gnu-media.org/category/electronica/arduino-electronica" title="View all posts filed under Arduino">Arduino</a>
+</li>
+</ul>
+</li>
+	<li class="cat-item cat-item-10"><a href="http://www.gnu-media.org/category/gentoo" title="View all posts filed under Gentoo">Gentoo</a>
+</li>
+	<li class="cat-item cat-item-11"><a href="http://www.gnu-media.org/category/openframeworks" title="View all posts filed under Openframeworks">Openframeworks</a>
+</li>
+	<li class="cat-item cat-item-12"><a href="http://www.gnu-media.org/category/processing" title="View all posts filed under Processing">Processing</a>
+</li>
+	<li class="cat-item cat-item-1"><a href="http://www.gnu-media.org/category/proyectos" title="View all posts filed under Proyectos">Proyectos</a>
+</li>
+	<li class="cat-item cat-item-14"><a href="http://www.gnu-media.org/category/software" title="View all posts filed under Software">Software</a>
+</li>
+	<li class="cat-item cat-item-15"><a href="http://www.gnu-media.org/category/trabajos" title="View all posts filed under Trabajos">Trabajos</a>
+</li>
+	<li class="cat-item cat-item-4"><a href="http://www.gnu-media.org/category/video" title="View all posts filed under Video">Video</a>
+</li>
+		</ul>
+</section><section id="tag_cloud-3" class="column one-third widget widget_tag_cloud"><header class="widget-title">Tags</header><div class="tagcloud"><a href='http://www.gnu-media.org/tag/amd64' class='tag-link-29' title='1 topic' style='font-size: 8pt;'>amd64</a>
+<a href='http://www.gnu-media.org/tag/arte-y-tecnologia' class='tag-link-19' title='2 topics' style='font-size: 14.3pt;'>arte y tecnolog’a</a>
+<a href='http://www.gnu-media.org/tag/bases-de-datos' class='tag-link-32' title='1 topic' style='font-size: 8pt;'>bases de datos</a>
+<a href='http://www.gnu-media.org/tag/bio-art' class='tag-link-20' title='1 topic' style='font-size: 8pt;'>bio-art</a>
+<a href='http://www.gnu-media.org/tag/computer-vision' class='tag-link-26' title='2 topics' style='font-size: 14.3pt;'>computer vision</a>
+<a href='http://www.gnu-media.org/tag/generativo' class='tag-link-21' title='2 topics' style='font-size: 14.3pt;'>generativo</a>
+<a href='http://www.gnu-media.org/tag/gsvideo' class='tag-link-30' title='4 topics' style='font-size: 22pt;'>GSVideo</a>
+<a href='http://www.gnu-media.org/tag/hardware' class='tag-link-24' title='2 topics' style='font-size: 14.3pt;'>hardware</a>
+<a href='http://www.gnu-media.org/tag/interactivo' class='tag-link-18' title='3 topics' style='font-size: 18.5pt;'>interactivo</a>
+<a href='http://www.gnu-media.org/tag/noticias' class='tag-link-31' title='4 topics' style='font-size: 22pt;'>noticias</a>
+<a href='http://www.gnu-media.org/tag/opencv' class='tag-link-25' title='1 topic' style='font-size: 8pt;'>openCV</a>
+<a href='http://www.gnu-media.org/tag/opengl' class='tag-link-27' title='2 topics' style='font-size: 14.3pt;'>OpenGL</a>
+<a href='http://www.gnu-media.org/tag/openjdk' class='tag-link-28' title='1 topic' style='font-size: 8pt;'>OpenJDK</a>
+<a href='http://www.gnu-media.org/tag/pcb' class='tag-link-33' title='1 topic' style='font-size: 8pt;'>PCB</a>
+<a href='http://www.gnu-media.org/tag/tracking' class='tag-link-17' title='4 topics' style='font-size: 22pt;'>tracking</a>
+<a href='http://www.gnu-media.org/tag/video' class='tag-link-4' title='4 topics' style='font-size: 22pt;'>Video</a>
+<a href='http://www.gnu-media.org/tag/video-arte' class='tag-link-22' title='2 topics' style='font-size: 14.3pt;'>video-arte</a></div>
+</section>    <section class="column one-third widget">
+    <header class="widget-title">Recent Comments</header>
+    <div class="widget-entry">
+    <ul class="widget-commentlist">
+	<li class="clearfix"><a href="http://www.gnu-media.org/2008/11/instalando-mysql-workbench-en-linux.html#comment-119" title="Sergio Esteban | Instalando MySQL-workbench en linux"><img alt='' src='http://0.gravatar.com/avatar/20b7358d454a03d43c9c06d7d8c0bbf9?s=25&amp;d=http%3A%2F%2F0.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D25&amp;r=G' class='avatar avatar-25 photo' height='25' width='25' /></a><div class="cmt-txt">By Sergio Esteban: <a href="http://www.gnu-media.org/2008/11/instalando-mysql-workbench-en-linux.html#comment-119" title="Sergio Esteban | Instalando MySQL-workbench en linux">actualizada!! 
+gracias por informame PICCORO...</a></div></li><li class="clearfix"><a href="http://www.gnu-media.org/2010/01/javaprocessing-con-opencv-en-64bits.html#comment-118" title="Sergio Esteban | Java/processing con OpenCV en 64bits"><img alt='' src='http://0.gravatar.com/avatar/20b7358d454a03d43c9c06d7d8c0bbf9?s=25&amp;d=http%3A%2F%2F0.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D25&amp;r=G' class='avatar avatar-25 photo' height='25' width='25' /></a><div class="cmt-txt">By Sergio Esteban: <a href="http://www.gnu-media.org/2010/01/javaprocessing-con-opencv-en-64bits.html#comment-118" title="Sergio Esteban | Java/processing con OpenCV en 64bits">no conozco jCreator, pero supongo que es lo mismo que para eclipse, y la cosa se...</a></div></li><li class="clearfix"><a href="http://www.gnu-media.org/2010/01/javaprocessing-con-opencv-en-64bits.html#comment-117" title="Marisol | Java/processing con OpenCV en 64bits"><img alt='' src='http://0.gravatar.com/avatar/c9229a61b9aebeeb232d8760a25b1d3a?s=25&amp;d=http%3A%2F%2F0.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D25&amp;r=G' class='avatar avatar-25 photo' height='25' width='25' /></a><div class="cmt-txt">By Marisol: <a href="http://www.gnu-media.org/2010/01/javaprocessing-con-opencv-en-64bits.html#comment-117" title="Marisol | Java/processing con OpenCV en 64bits">Hola, tengo un problema. Estoy intentando usar la librer’a OpenCV en java (util...</a></div></li>    </ul>
+   <!-- .widget-list-comments -->
+    </div>
+    
+    </section>
+    	 
+            <!--<section class="column one-third widget">
+            
+                <header class="widget-title">About me</header>
+                <div class="widget-entry">
+				This is your Third Bottom Widget box (Bottom Widget 3). To edit please go to Appearance > Widgets and choose 3rd widget from the top in area second called Bottom Widget 3. Title is also manageable from widgets as well.				</div> -->
+            
+			</section>
+			<!-- end of .widget-wrapper -->
+			    
+    </aside>
+
+ </div>
+</div>
+<!-- #content -->
+
+<footer id="footer">
+<div class="container">
+<div class="columns fourteen">
+<div class="alignleft copyright">Copyright &copy; 2019 "gnu-media".</div>
+<div class="alignleft powered-wp">
+Proudly powered by: <a href="http://wordpress.org/" title="WordPress" target="_blank" >WordPress</a>
+</div>
+
+<div class="alignright credit">
+	Theme by: <a href="http://sampression.com/" target="_blank" title="Sampression">Sampression</a>
+</div>
+</div>
+
+<div class="columns two footer-right">
+<div id="btn-top-wrapper">
+<a href="javascript:pageScroll('.top');" class="btn-top">Goto Top</a>
+</div>
+</div>
+
+</div>
+</footer>
+
+	<!-- Enables advanced css selectors in IE, must be used with a JavaScript library (jQuery Enabled in functions.php) -->
+	<!--[if lt IE 9]>
+		<script src="http://www.gnu-media.org/wp-content/themes/sampression-lite/lib/js/selectivizr.js"></script>
+	<![endif]-->
+	<!--[if lt IE 7 ]>
+		<script src="//ajax.googleapis.com/ajax/libs/chrome-frame/1.0.3/CFInstall.min.js"></script>
+		<script>window.attachEvent("onload",function(){CFInstall.check({mode:"overlay"})})</script>
+	<![endif]-->
+		
+  
+	<div style="display:none">
+	<div class="grofile-hash-map-20b7358d454a03d43c9c06d7d8c0bbf9">
+	</div>
+	<div class="grofile-hash-map-c9229a61b9aebeeb232d8760a25b1d3a">
+	</div>
+	</div>
+<script type='text/javascript' src='http://s0.wp.com/wp-content/js/devicepx-jetpack.js?ver=201933'></script>
+<script type='text/javascript' src='http://s.gravatar.com/js/gprofiles.js?ver=2019Augaa'></script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var WPGroHo = {"my_hash":""};
+/* ]]> */
+</script>
+<script type='text/javascript' src='http://www.gnu-media.org/wp-content/plugins/jetpack/modules/wpgroho.js?ver=3.8.29'></script>
+<script type='text/javascript' src='http://www.gnu-media.org/wp-content/themes/sampression-lite/lib/js/jquery.isotope.min.js?ver=1.5.19'></script>
+<script type='text/javascript' src='http://www.gnu-media.org/wp-content/themes/sampression-lite/lib/js/scripts.js?ver=1.1'></script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var MyAjax = {"ajaxurl":"http:\/\/www.gnu-media.org\/wp-admin\/admin-ajax.php"};
+/* ]]> */
+</script>
+<script type='text/javascript' src='http://www.gnu-media.org/wp-content/themes/sampression-lite/lib/js/load_content.js?ver=1.1'></script>
+
+	<script src="http://stats.wordpress.com/e-201933.js" type="text/javascript"></script>
+	<script type="text/javascript">
+	st_go({v:'ext',j:'1:2.7.2',blog:'53152174',post:'0',tz:'-5'});
+	var load_cmc = function(){linktracker_init(53152174,0,2);};
+	if ( typeof addLoadEvent != 'undefined' ) addLoadEvent(load_cmc);
+	else load_cmc();
+	</script></body>
+</html>
+

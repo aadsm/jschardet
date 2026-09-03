@@ -43,13 +43,39 @@ Covered by `tests/truncated_input.test.ts` (port of Python's `test_truncated_inp
 
 **TypeScript:** the branch is not ported. WHATWG collapses each promotion pair onto a single decoder — its `shift_jis` *is* cp932 and its `euc-kr` *is* cp949 — so the reported codec decodes whenever the superset does and the trigger condition can never hold. The failure mode the branch guards against also cannot happen for `TextDecoder` callers: decoding CP932-extended bytes with the label `shift_jis` succeeds. Only the structural-score promotion path is ported.
 
-Consequences: `compare-with-chardet.js` / `tests/compare-detect` flag a DIFF wherever Python promotes on decode-safety alone (the corpus case is `cp932-ja/y-moto.com.xml`: SHIFT_JIS here, CP932 in Python), and that file stays in the known-failure lists in `tests/accuracy.test.ts`. Covered by the divergence test in `tests/markup.test.ts` ("NEC-extension bytes do not promote"); Python's `test_promote_when_reported_codec_cannot_decode` is intentionally not ported (see `docs/missing-python-tests.md`).
+Consequences: `compare-with-chardet.js` / `tests/compare-detect` flag a DIFF wherever Python promotes on decode-safety alone. Three corpus files do, one per collapsed pair: `cp932-ja/y-moto.com.xml` and `cp932-ja/hardsoft.at.webry.info.xml` (SHIFT_JIS here, CP932 in Python), and `cp949-ko/ricanet.com.xml` (EUC-KR here, CP949 in Python) — the same not-ported branch on the `euc_kr`/`cp949` side. All three still pass the accuracy gate: it detects with `prefer_superset: true`, which remaps the port's subset name to the same superset Python promotes to, so only the cp932 pair (whose promotion the accuracy gate reads through `isCorrect`'s superset set) needs listing in `tests/accuracy.test.ts`'s divergent-failures. Covered by the divergence test in `tests/markup.test.ts` ("NEC-extension bytes do not promote"); Python's `test_promote_when_reported_codec_cannot_decode` is intentionally not ported (see `docs/missing-python-tests.md`).
 
 ## Statistical-scoring rowmax pruning (not ported)
 
 **Python:** statistical scoring can prune candidates with a per-model upper bound on the achievable score (`rowmax.bin`, `_score_pruned` in `pipeline/statistical.py`) — a pure performance fast path, guaranteed to return the same results as scoring every candidate. `full_ranking=True` bypasses it and scores everything.
 
 **TypeScript:** the pruning machinery is not ported; the port always scores every candidate, matching the `full_ranking=True` path. Results are identical by construction, so there is no behavioural consequence — this is also why `scripts/generate-model-bins.js` converts three of upstream's four `.bin` files (`rowmax.bin` has no consumer here). Revisit if statistical-scoring cost ever becomes a problem; the pruning tests to bring along are listed in [missing-python-tests.md](missing-python-tests.md).
+
+## UTF-8 validation mechanism
+
+**chardet:** `scan_utf8` in `pipeline/utf8.py` validates UTF-8 by feeding the
+input to CPython's strict incremental decoder in chunks and discarding the
+decoded text, with `final=False` for the truncated-tail tolerance. Upstream
+rewrote it from an earlier hand-rolled per-byte loop for C-level speed (its
+`utf8.py` docstring gives the rationale), and holds the two bit-identical with
+a differential suite (`test_utf8_equivalence.py` against `utf8_oracle.py`).
+
+**TypeScript:** `scanUtf8` in `src/pipeline/utf8.ts` keeps the hand-rolled
+per-byte loop. The two implementations now check the same rules by different
+mechanisms — the loop enforces exactly the overlong, surrogate, and
+above-U+10FFFF rejections CPython's decoder does, and stops at a truncated
+final sequence the same way. The port keeps the loop deliberately: it *is* the
+validator upstream tested its C decoder against, it is already the fast path
+under a JIT, and a `TextDecoder`-based rewrite would have to reintroduce the
+tolerated-tail reconstruction (locating the incomplete final sequence to
+exclude it from the multi-byte counts) for no change in result. The C-speed
+rationale in `utf8.py`'s docstring does not carry over: `TextDecoder` validity
+is already native speed, so the loop's cost is not the bottleneck the rewrite
+addressed upstream.
+
+The differential suite (`test_utf8_equivalence.py` + `utf8_oracle.py`) is not
+ported — it pins two Python implementations against each other, and the port
+never left the one the oracle *is*. See `docs/missing-python-tests.md`.
 
 ## `bytes.find()` → `findBytes` helper
 

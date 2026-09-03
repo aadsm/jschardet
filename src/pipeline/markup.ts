@@ -228,14 +228,20 @@ export function promoteMarkupSuperset(
   if (!decodesWithoutError(label, data)) {
     return markupResult;
   }
-  // Compare structural scores
+  // Compare structural scores on the head only. Multi-byte structure is
+  // uniform enough that the ranking converges long before _SCAN_LIMIT, and
+  // this is the expensive half: two full-buffer passes on every declared page,
+  // where _validateBytes caps the same kind of scan at _SCAN_LIMIT. The decode
+  // check above stays whole-input — what a caller can .decode() is a fact about
+  // their entire input.
+  const head = data.subarray(0, _SCAN_LIMIT);
   const ctx = new PipelineContext();
   const baseInfo = REGISTRY[markupResult.encoding as keyof typeof REGISTRY];
   if (baseInfo === undefined) {
     return markupResult;
   }
-  const baseScore = computeStructuralScore(data, baseInfo, ctx);
-  const supersetScore = computeStructuralScore(data, supersetInfo, ctx);
+  const baseScore = _internal.computeStructuralScore(head, baseInfo, ctx);
+  const supersetScore = _internal.computeStructuralScore(head, supersetInfo, ctx);
   if (supersetScore > baseScore) {
     return {
       encoding: supersetName,
@@ -246,5 +252,10 @@ export function promoteMarkupSuperset(
   }
   return markupResult;
 }
+
+// Test-spy seam: the structural-promotion test patches the scorer to force
+// the one regime the mutually-decodable corpus inputs never reach. See
+// orchestrator.ts's _internal for the pattern.
+export const _internal = { computeStructuralScore };
 
 export { _MARKUP_SUPERSET_PROMOTIONS };

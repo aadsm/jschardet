@@ -1,7 +1,7 @@
 // Pipeline orchestrator — runs all detection stages in sequence.
 // Port of chardet/src/chardet/pipeline/orchestrator.py.
 
-import { DEFAULT_MAX_BYTES } from '../utils.js';
+import { DEFAULT_MAX_BYTES, EVIDENCE_CAP_BYTES } from '../utils.js';
 import { ART_LANGUAGE } from '../models/index.js';
 import {
   _NONE_RESULT,
@@ -23,9 +23,9 @@ import {
   computeMultibyteByteCoverage,
   computeStructuralScore,
 } from './structural.js';
-import { detectUtf8 } from './utf8.js';
+import { scanUtf8 } from './utf8.js';
 import { detectUtf1632Patterns } from './utf1632.js';
-import { filterByValidity } from './validity.js';
+import { decodesUnderValidity, filterByValidity } from './validity.js';
 import { EncodingInfo, getCandidates } from '../registry.js';
 
 // Frozen because callers spread {..._BINARY_RESULT} before applyCompatNames
@@ -63,6 +63,39 @@ function _makeFallbackOrNone(
     return [{ ..._NONE_RESULT }];
   }
   return [{ encoding, confidence: 0.10, language: null, mimeType: null }];
+}
+
+// Keep the validity contract for the part of the window past the evidence cap.
+//
+// Byte-validity filtering converges on the first EVIDENCE_CAP_BYTES of the
+// window (ADR-0006), so on a longer window a candidate that cannot decode the
+// rest can still reach the top. What callers rely on is that the answer decodes
+// the window chardet examined: they pass maxBytes precisely to say how much of
+// the input the verdict is about. So walk the corrected ranking and drop every
+// entry ahead of the first one that decodes the whole window, under the same
+// tolerant judgment the validity filter passes on the evidence slice (its own
+// predicate — SBCS undefined-byte table first, then TextDecoder — never raw
+// decodesWithoutError, or windows-1252's gap-filling decoder would pass the
+// 0x81/0x8D/0x9D bytes Python's codec rejects). Those entries are what validity
+// would have removed had it seen the bytes; the survivors keep their own ranks
+// and confidences. Costs nothing when the window fits inside the cap, which
+// every default call does. When no listed entry decodes, the answer is the
+// no-match fallback, as it is when validity leaves nothing.
+function _holdValidityPastCap(
+  data: Uint8Array,
+  evidence: Uint8Array,
+  results: DetectionResult[],
+  allowed: ReadonlySet<string>,
+  noMatchEncoding: string,
+): DetectionResult[] {
+  if (data.length <= evidence.length) return results;
+  for (let i = 0; i < results.length; i++) {
+    const enc = results[i].encoding;
+    if (enc !== null && decodesUnderValidity(enc, data)) {
+      return i === 0 ? results : results.slice(i);
+    }
+  }
+  return _makeFallbackOrNone(noMatchEncoding, allowed, 'no_match_encoding');
 }
 
 // Minimum structural score (valid multi-byte sequences / lead bytes) required
@@ -267,7 +300,7 @@ function _runPipelineCore(
   // that would otherwise exceed the binary threshold. We compute the result now
   // but return it at the normal pipeline position (after markup) so that
   // explicit charset declarations still take precedence.
-  const utf8Precheck = detectUtf8(data);
+  const [utf8Valid, utf8Precheck] = scanUtf8(data);
 
   // Pre-check ASCII to prevent false binary classification. ASCII text with
   // null byte separators (e.g. find -print0 output) would exceed the binary
@@ -324,8 +357,29 @@ function _runPipelineCore(
     return [utf8Precheck];
   }
 
+  // The filtering, gating, and probing stages below converge on bounded
+  // evidence (ADR-0006). One slice, taken here, feeds them all: the structural
+  // analysis cache is keyed by encoding name only, so every consumer must see
+  // the same view of the data. For the decode-safety flip in postprocess, a
+  // window that outruns the cap counts as truncation — the slice's tail is a
+  // chardet-made cut, not the end of what the caller will decode.
+  const evidence = data.subarray(0, EVIDENCE_CAP_BYTES);
+  const evidenceTruncated = inputTruncated || data.length > evidence.length;
+
   // Stage 2a: Byte validity filtering
-  let validCandidates = _internal.filterByValidity(data, candidates);
+  let validCandidates = _internal.filterByValidity(evidence, candidates);
+
+  // The exhaustive UTF-8 check saw the whole window; when it *rejected* the
+  // data but the window extends past the evidence cap, the slice alone may
+  // still look like valid UTF-8 to the statistical path. Honor the proof:
+  // chardet never calls data UTF-8 that is not valid UTF-8 throughout the
+  // window. A missing precheck result is not a rejection — valid UTF-8 with no
+  // multi-byte evidence also returns null, and ruling utf-8 out for those would
+  // be wrong. (Within the cap the slice is the window, so validity already
+  // agrees and this never fires.)
+  if (!utf8Valid && data.length > evidence.length) {
+    validCandidates = validCandidates.filter(e => e.name !== 'utf-8');
+  }
 
   if (validCandidates.length === 0) {
     return _makeFallbackOrNone(noMatchEncoding, allowed, 'no_match_encoding');
@@ -333,7 +387,7 @@ function _runPipelineCore(
 
   // Gate: eliminate CJK multi-byte candidates that lack genuine multi-byte
   // structure. Cache structural scores for Stage 2b.
-  validCandidates = _internal._gateCjkCandidates(data, validCandidates, ctx);
+  validCandidates = _internal._gateCjkCandidates(evidence, validCandidates, ctx);
 
   if (validCandidates.length === 0) {
     return _makeFallbackOrNone(noMatchEncoding, allowed, 'no_match_encoding');
@@ -346,7 +400,7 @@ function _runPipelineCore(
     if (enc.isMultibyte) {
       let score = ctx.mbScores.get(enc.name);
       if (score === undefined) {
-        score = computeStructuralScore(data, enc, ctx);
+        score = computeStructuralScore(evidence, enc, ctx);
       }
       if (score > 0.0) {
         structuralScores.push([enc.name, score]);
@@ -360,14 +414,17 @@ function _runPipelineCore(
     structuralScores.sort((a, b) => b[1] - a[1]);
     const bestScore = structuralScores[0][1];
     if (bestScore >= _STRUCTURAL_CONFIDENCE_THRESHOLD) {
-      const results = _scoreStructuralCandidates(
-        data,
+      let results = _scoreStructuralCandidates(
+        evidence,
         structuralScores,
         validCandidates,
         ctx,
       );
       if (results.length > 0) {
-        return _internal.postprocessResults(data, results, { inputTruncated });
+        results = _internal.postprocessResults(evidence, results, {
+          inputTruncated: evidenceTruncated,
+        });
+        return _holdValidityPastCap(data, evidence, results, allowed, noMatchEncoding);
       }
     }
   }
@@ -375,13 +432,18 @@ function _runPipelineCore(
   // Stage 3: Statistical scoring for all remaining candidates. Bigram models
   // converge quickly and don't benefit from scanning beyond 16 KB — cap the
   // data to avoid unnecessary work on large files.
-  const statData = data.subarray(0, _STAT_SCORE_MAX_BYTES);
-  const results = scoreCandidates(statData, validCandidates);
+  const statData = evidence.subarray(0, _STAT_SCORE_MAX_BYTES);
+  let results = scoreCandidates(statData, validCandidates);
   if (results.length === 0) {
     return _makeFallbackOrNone(noMatchEncoding, allowed, 'no_match_encoding');
   }
 
-  return _internal.postprocessResults(data, results, { inputTruncated });
+  // Rank corrections reason about the same evidence window the ranking came
+  // from, which also bounds their byte-presence scans.
+  results = _internal.postprocessResults(evidence, results, {
+    inputTruncated: evidenceTruncated,
+  });
+  return _holdValidityPastCap(data, evidence, results, allowed, noMatchEncoding);
 }
 
 export function runPipeline(
@@ -405,7 +467,10 @@ export function runPipeline(
     emptyInputEncoding,
     options?.inputTruncated ?? false,
   );
-  results = _internal.fillLanguages(data, results);
+  // Same cap the core ran on: maxBytes is the caller's limit on what chardet
+  // may look at, and language fill is not exempt from it just because it
+  // applies a smaller cap of its own.
+  results = _internal.fillLanguages(data.subarray(0, maxBytes), results);
   // The ANSI-art model is keyed under the "zxx" pseudo-language (ISO 639
   // for "no linguistic content"). Kept internal so language fill does not
   // overwrite it; callers see language=null.
@@ -447,6 +512,7 @@ export const _internal = {
 export {
   _BINARY_RESULT,
   _gateCjkCandidates,
+  _holdValidityPastCap,
   _makeFallbackOrNone,
   _runPipelineCore,
   _scoreStructuralCandidates,

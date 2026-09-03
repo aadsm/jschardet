@@ -992,3 +992,23 @@ describe('markup declaration vs genuine UTF-8', () => {
     expect(result.encoding).toBe('ISO-8859-1');
   });
 });
+
+describe('prefer_superset decode safety (chardet #388)', () => {
+  test('never hands back a name the superset cannot decode', () => {
+    // ("café au lait, déjà vu. " * 40).encode("latin-1") + b"\x81 fin."
+    const body = bytes('caf\xe9 au lait, d\xe9j\xe0 vu. '.repeat(40));
+    const data = concat(body, bytes('\x81 fin.'));
+    const opts = { includeEncodings: ['iso8859-1', 'cp1252'], preferSuperset: true };
+    // With the undefined-in-cp1252 byte 0x81, the remap stands down.
+    expect(detect(data, opts).encoding).toBe('ISO-8859-1');
+    // detectAll's every entry is a name that decodes the data (no cp1252 here).
+    for (const entry of detectAll(data, opts)) {
+      expect(entry.encoding).not.toBe('Windows-1252');
+    }
+    const detector = new UniversalDetector(opts);
+    detector.feed(data);
+    expect(detector.close().encoding).toBe('ISO-8859-1');
+    // Without the 0x81 tail the remap applies as before.
+    expect(detect(data.subarray(0, data.length - 6), opts).encoding).toBe('Windows-1252');
+  });
+});

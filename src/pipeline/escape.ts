@@ -1,15 +1,22 @@
-import { findBytes } from '../utils.js';
+import { EVIDENCE_CAP_BYTES, findBytes } from '../utils.js';
 import { DETERMINISTIC_CONFIDENCE, DetectionResult } from './index.js';
 import { utf7DecodesWithoutError } from './to-utf8.js';
 
-function _hasValidHzRegions(data: Uint8Array): boolean {
+// Check that at least one ~{...~} region contains valid GB2312 byte pairs.
+//
+// maxStart bounds where a region may open and maxEnd where it may close.
+// Keeping them separate is what lets a region that opens inside the evidence
+// window close beyond it: bounding both at the same offset would cut a
+// straddling region and hide the only escape evidence a document has
+// (ADR-0006).
+function _hasValidHzRegions(data: Uint8Array, maxStart: number, maxEnd: number): boolean {
   const begin_marker = new Uint8Array([0x7e, 0x7b]); // "~{"
   const end_marker   = new Uint8Array([0x7e, 0x7d]); // "~}"
   let start = 0;
   while (true) {
     const begin = findBytes(data, begin_marker, start);
-    if (begin === -1) return false;
-    const end = findBytes(data, end_marker, begin + 2);
+    if (begin === -1 || begin >= maxStart) return false;
+    const end = findBytes(data, end_marker, begin + 2, maxEnd);
     if (end === -1) return false;
     const region = data.subarray(begin + 2, end);
     if (
@@ -75,23 +82,44 @@ export function _isValidUtf7B64(b64Bytes: Uint8Array): boolean {
 
 const _B64_WITH_PAD = new Set([..._UTF7_BASE64, 0x3d]); // includes '='
 
-function _isEmbeddedInBase64(data: Uint8Array, pos: number): boolean {
+// Consecutive base64 characters before a '+' that mark it as part of a base64
+// stream rather than a UTF-7 shift.
+const _EMBEDDED_B64_RUN = 4;
+
+export function _isEmbeddedInBase64(data: Uint8Array, pos: number): boolean {
+  // The walk stops at the fourth character rather than running to the start of
+  // the run. Only the >= 4 verdict is used, and newlines are skipped rather
+  // than ending the walk, so without the early exit a line-wrapped base64 blob
+  // — a PEM file, a MIME attachment, exactly what this guard exists to
+  // recognize — makes each '+' rescan everything before it, and the caller
+  // quadratic in the size of the blob.
   let count = 0;
   let i = pos - 1;
   while (i >= 0) {
     const b = data[i];
     if (b === 0x0a || b === 0x0d) { i--; continue; }
-    if (_B64_WITH_PAD.has(b)) { count++; i--; }
+    if (_B64_WITH_PAD.has(b)) {
+      count++;
+      if (count >= _EMBEDDED_B64_RUN) return true;
+      i--;
+    }
     else break;
   }
-  return count >= 4;
+  return false;
 }
 
-function _hasValidUtf7Sequences(data: Uint8Array): boolean {
+// maxStart bounds where a shift may occur and maxEnd how far its base64 run may
+// reach, so a run that begins inside the evidence window can finish beyond it
+// (ADR-0006). A run that outruns maxEnd is skipped rather than judged on the
+// part that fits: the padding and surrogate checks read a cut run as a
+// different run, and accepting on evidence we did not see is the one direction
+// this must never fail in.
+export function _hasValidUtf7Sequences(data: Uint8Array, maxStart: number, maxEnd: number): boolean {
   let start = 0;
+  const limit = Math.min(data.length, maxEnd);
   while (true) {
     const shiftPos = data.indexOf(0x2b, start); // '+'
-    if (shiftPos === -1) return false;
+    if (shiftPos === -1 || shiftPos >= maxStart) return false;
     let pos = shiftPos + 1;
     // +- is a literal plus, not a shifted sequence
     if (pos < data.length && data[pos] === 0x2d) { start = pos + 1; continue; }
@@ -103,9 +131,14 @@ function _hasValidUtf7Sequences(data: Uint8Array): boolean {
     }
     // Guard B: '+' embedded in a base64 stream (PEM, email attachment)
     if (_isEmbeddedInBase64(data, shiftPos)) { start = pos; continue; }
-    // Collect consecutive Base64 characters
+    // Collect consecutive Base64 characters, up to the end bound
     let i = pos;
-    while (i < data.length && _UTF7_BASE64.has(data[i])) i++;
+    while (i < limit && _UTF7_BASE64.has(data[i])) i++;
+    if (i === limit && limit < data.length && _UTF7_BASE64.has(data[i])) {
+      // The run outruns the bound — skip it (see the function comment).
+      start = i;
+      continue;
+    }
     const b64Len  = i - pos;
     const b64Data = data.subarray(pos, i);
     // Guard C: reject base64 blocks with no uppercase letters
@@ -205,6 +238,18 @@ export function detectEscapeEncoding(data: Uint8Array): DetectionResult | null {
     }
   }
 
+  // Bounds for the deep validators below. They walk candidate sites in loops
+  // whose pathological case is *rejection* — a large tilde- or plus-heavy file
+  // that is neither HZ nor UTF-7 — so where a sequence may *begin* converges
+  // on the evidence cap (ADR-0006). Where it may *end* is a separate bound,
+  // one further window on, so a sequence that opens just inside the evidence
+  // window is judged whole rather than cut by the boundary and read as
+  // malformed. Nothing plausible sits between the two: a single escape run a
+  // quarter of a megabyte long is not text. Gates that decide whether an
+  // answer is *true* stay exhaustive over the window.
+  const maxStart = Math.min(data.length, EVIDENCE_CAP_BYTES);
+  const maxEnd = Math.min(data.length, 2 * EVIDENCE_CAP_BYTES);
+
   // HZ-GB-2312
   const tilde_open  = new Uint8Array([0x7e, 0x7b]); // "~{"
   const tilde_close = new Uint8Array([0x7e, 0x7d]); // "~}"
@@ -212,26 +257,35 @@ export function detectEscapeEncoding(data: Uint8Array): DetectionResult | null {
     hasTilde &&
     findBytes(data, tilde_open)  !== -1 &&
     findBytes(data, tilde_close) !== -1 &&
-    _hasValidHzRegions(data)
+    _hasValidHzRegions(data, maxStart, maxEnd)
   ) {
     return { encoding: 'hz', confidence: DETERMINISTIC_CONFIDENCE, language: 'zh', mimeType: null };
   }
 
   // UTF-7: plus-sign shifts into Base64-encoded Unicode. UTF-7 is a 7-bit
-  // encoding (RFC 2152): every byte must be in 0x00–0x7F. The whole buffer
-  // must also *decode* as UTF-7: tabular ASCII like "|16847+|" contains
-  // "+|", which is illegal (a shift must be followed by base64 or "-"), so
-  // the decode gate kills the delimited-data false-positive class outright
-  // while genuine UTF-7 — which real encoders emit as valid streams —
-  // always passes. The decoder fails fast on the first bad sequence.
+  // encoding (RFC 2152): every byte must be in 0x00–0x7F, checked over the
+  // whole window. The buffer must also *decode* as UTF-7: tabular ASCII like
+  // "|16847+|" contains "+|", which is illegal (a shift must be followed by
+  // base64 or "-"), so the decode gate kills the delimited-data false-positive
+  // class outright while genuine UTF-7 — which real encoders emit as valid
+  // streams — always passes.
+  //
+  // The decode gate keeps the *whole* window: it is what makes a utf-7 answer
+  // true, and this stage returns it at deterministic confidence. Capping it
+  // would let an illegal shift past the cap pass as utf-7 that the caller's own
+  // decode then rejects. It runs *after* the bounded sequence validator, the
+  // reverse of the obvious order: plain ASCII is valid UTF-7, so on the common
+  // case (a large ASCII file containing a '+' anywhere) the decode gate
+  // succeeds over every byte, while the validator settles the same files from
+  // bounded evidence. Both are pure predicates, so the order changes only cost.
   if (hasPlus) {
     // Spread into Math.max is unsafe on large Uint8Arrays; loop instead
     let maxByte = 0;
     for (const b of data) { if (b > maxByte) maxByte = b; }
     if (
       maxByte < 0x80 &&
-      utf7DecodesWithoutError(data) &&
-      _hasValidUtf7Sequences(data)
+      _hasValidUtf7Sequences(data, maxStart, maxEnd) &&
+      utf7DecodesWithoutError(data)
     ) {
       return { encoding: 'utf-7', confidence: DETERMINISTIC_CONFIDENCE, language: null, mimeType: null };
     }

@@ -1,5 +1,13 @@
 export const DEFAULT_MAX_BYTES = 200_000;
 
+// Evidence cap: how much of the examination window the candidate-filtering,
+// validation, and probing stages consume before their answer is considered
+// converged (ADR-0006). Exhaustive checks (BOM, magic, UTF-8, ASCII, binary,
+// escape presence) take no cap. Must stay >= DEFAULT_MAX_BYTES so every call
+// using the default window is provably unaffected; a test asserts the
+// invariant.
+export const EVIDENCE_CAP_BYTES = 256 * 1024;
+
 export const _DEFAULT_CHUNK_SIZE = 65_536;
 
 // Python emits DeprecationWarning; JS uses console.warn with a "DEPRECATION:"
@@ -30,9 +38,13 @@ export function _resolvePreferSuperset(
   return preferSuperset;
 }
 
-// Replaces Python bytes.find(needle, start) — Uint8Array has no multi-byte subsequence search
-export function findBytes(haystack: Uint8Array, needle: Uint8Array, start = 0): number {
-  outer: for (let i = start; i <= haystack.length - needle.length; i++) {
+// Replaces Python bytes.find(needle, start, end) — Uint8Array has no multi-byte
+// subsequence search. When end is given the match must lie fully within
+// [start, end), matching bytes.find's end argument (used by the evidence-cap
+// bound on where an escape region may close).
+export function findBytes(haystack: Uint8Array, needle: Uint8Array, start = 0, end?: number): number {
+  const hi = end === undefined ? haystack.length : Math.min(haystack.length, end);
+  outer: for (let i = start; i <= hi - needle.length; i++) {
     for (let j = 0; j < needle.length; j++) {
       if (haystack[i + j] !== needle[j]) continue outer;
     }

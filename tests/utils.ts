@@ -4,6 +4,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
 import * as iconv from 'iconv-lite';
+import { isCorrect } from '../src/evaluation.js';
 import { lookupEncoding } from '../src/registry.js';
 import { ISO_TO_LANGUAGE } from '../src/utils.js';
 import {
@@ -132,4 +133,21 @@ export async function isEquivalentDetection(
     if (!_charsEquivalent(textExp[i], textDet[i])) return false;
   }
   return true;
+}
+
+/**
+ * Port of Python's chardet.evaluation.is_acceptable — the composed predicate
+ * every accuracy consumer wants: name-level acceptance (isCorrect — exact
+ * match, byte-order group, or known superset) or byte-level equivalence on
+ * this particular input (isEquivalentDetection). It lives here rather than in
+ * src/evaluation.ts because the real isEquivalentDetection does (upstream's is
+ * the async iconv-lite/Python oracle); composing it with the browser stub in
+ * src/evaluation.ts would answer wrongly.
+ */
+export async function isAcceptable(
+  data: Uint8Array,
+  expected: string | null,
+  detected: string | null,
+): Promise<boolean> {
+  return isCorrect(expected, detected) || (await isEquivalentDetection(data, expected, detected));
 }
