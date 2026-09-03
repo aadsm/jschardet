@@ -12,16 +12,25 @@
 // sequence to the best rival that can decode the caller's complete input.
 
 import { DetectionResult } from './index.js';
-import { confusionPairWinner, resolveConfusionGroups } from './confusion.js';
+import {
+  CONFUSION_BAND,
+  CONFUSION_FLOOR_RATIO,
+  STRICT_TIER_MAX_CONF,
+  _comparableLanguages,
+  arbitrateDistinguishingBytes,
+  confusionPairWinner,
+  differingHighBytes,
+  resolveConfusionGroups,
+} from './confusion.js';
 import { ART_LANGUAGE, RARE_LANGUAGES, getEncIndex } from '../models/index.js';
 import { REGISTRY, lookupEncoding } from '../registry.js';
 import { _COMPAT_NAMES } from '../output_names.js';
 import {
   danglingTailWithAsciiPrefix,
-  decodesCompletely,
   decodesWithoutError,
   whatwgLabelFor,
 } from '../text-decoder.js';
+import { decodesCompletelyUnderValidity } from './validity.js';
 
 // Common Western Latin encodings that share the iso-8859-1 character repertoire
 // for the byte values where iso-8859-10 is indistinguishable. Used as swap
@@ -95,49 +104,126 @@ const _KOI8_T_DISTINGUISHING: ReadonlySet<number> = new Set([
   0x80, 0x81, 0x83, 0x8A, 0x8C, 0x8D, 0x8E, 0x90, 0xA1, 0xA2, 0xA5, 0xB5,
 ]);
 
-function _shouldDemote(encoding: string, data: Uint8Array): boolean {
+// Confidence gap within which two results count as a statistical dead heat.
+const _DEAD_HEAT_EPSILON = 1e-4;
+
+// Return True if top, a demotion candidate, has no byte evidence over target.
+//
+// Callers guarantee top.encoding is in _DEMOTION_CANDIDATES. Two questions,
+// cheapest first. Does data contain any byte the candidate decodes differently
+// from ISO-8859-1? If not, the data is equally valid under both encodings,
+// nothing at the byte level favors the candidate, and it is demoted.
+//
+// If such bytes are present, do they favor the candidate? Presence alone is
+// symmetric evidence: a Windows-1252 file whose only non-ASCII letter is an Ö
+// carries 0xD6, which HP-Roman8 reads as ø, so both candidates "contain" the
+// byte and the question is which reading holds up. That is a confusion-style
+// arbitration between the candidate and its swap target on the distinguishing
+// bytes alone, each side scored under the variant that actually won its slot.
+// The models decide when they can; when they are silent, word shape decides; a
+// byte that decides nothing either way goes to the more prevalent encoding.
+//
+// The arbitration is only asked when the candidate's lead over the swap target
+// is within CONFUSION_BAND. A win by more than the band was decided on the full
+// statistics, and re-litigating it on a handful of bytes is neither sound nor
+// free.
+function _shouldDemote(
+  data: Uint8Array,
+  top: DetectionResult,
+  target: DetectionResult,
+): boolean {
+  const encoding = top.encoding ?? '';
   const distinguishing = _DEMOTION_CANDIDATES.get(encoding);
-  if (distinguishing === undefined) {
-    return false;
-  }
+  if (distinguishing === undefined) return false;
+  let present = false;
   for (let i = 0; i < data.length; i++) {
     const b = data[i];
-    if (b > 0x7F && distinguishing.has(b)) {
-      return false;
-    }
+    if (b > 0x7F && distinguishing.has(b)) { present = true; break; }
   }
-  return true;
+  if (!present) return true;
+  if (top.confidence - target.confidence > CONFUSION_BAND) return false;
+  const winner = arbitrateDistinguishingBytes(
+    data,
+    encoding,
+    target.encoding ?? '',
+    new Set(distinguishing),
+    top.language === null ? null : new Set([top.language]),
+    target.language === null ? null : new Set([target.language]),
+  );
+  return winner !== encoding;
 }
 
+// Pick the common Latin candidate that replaces a demoted top.
+//
+// Among the candidates within _DEAD_HEAT_EPSILON of the highest-scoring one,
+// era prevalence chooses (windows-1252 over iso-8859-1): inside that band the
+// confidence order is noise, the very premise of the demotion. A candidate
+// trailing the best common Latin by more than the epsilon lost to it on real
+// evidence and stays put. Equal era ranks (iso-8859-1 against iso-8859-15,
+// both legacy ISO) keep confidence order, since the first of equals wins and
+// the candidates arrive ranked.
+function _swapTarget(candidates: DetectionResult[]): DetectionResult {
+  let leadConf = candidates[0].confidence;
+  for (const r of candidates) if (r.confidence > leadConf) leadConf = r.confidence;
+  let best: DetectionResult | null = null;
+  let bestRank = 0;
+  for (const r of candidates) {
+    if (leadConf - r.confidence > _DEAD_HEAT_EPSILON) continue;
+    const rank = _eraRank(r.encoding ?? '');
+    if (best === null || rank < bestRank) {
+      best = r;
+      bestRank = rank;
+    }
+  }
+  // candidates is non-empty and the lead itself is always in band.
+  return best as DetectionResult;
+}
+
+// Demote a niche Latin top that its distinguishing bytes do not support.
+//
+// Some bigram models (iso-8859-10, iso-8859-14, windows-1254, hp-roman8) can
+// win on data that contains only bytes shared with the common Western Latin
+// encodings, or on a lone shared byte the models cannot arbitrate. When
+// _shouldDemote finds no byte-level evidence for the winning encoding, promote
+// the swap target _swapTarget picks among the common Latin candidates and push
+// the demoted encoding to last.
+//
+// The demoted entries take the confidence of the candidate they now sit
+// behind. Rank position alone does not survive the trip out to callers:
+// detectAll re-sorts by confidence, and a stable sort hands an entry that kept
+// the top score its old place back.
 function _demoteNicheLatin(
   data: Uint8Array,
   results: DetectionResult[],
 ): DetectionResult[] {
-  if (
-    results.length > 1
-    && results[0].encoding !== null
-    && _shouldDemote(results[0].encoding, data)
-  ) {
-    const demotedEncoding = results[0].encoding;
-    const topConf = results[0].confidence;
-    for (let i = 1; i < results.length; i++) {
-      const r = results[i];
-      if (r.encoding !== null && _COMMON_LATIN_ENCODINGS.has(r.encoding)) {
-        const promoted: DetectionResult = {
-          encoding: r.encoding,
-          confidence: topConf,
-          language: r.language,
-          mimeType: r.mimeType,
-        };
-        const others = results.filter(
-          x => x.encoding !== demotedEncoding && x !== r,
-        );
-        const demotedEntries = results.filter(x => x.encoding === demotedEncoding);
-        return [promoted, ...others, ...demotedEntries];
-      }
-    }
+  if (results.length < 2 || !_DEMOTION_CANDIDATES.has(results[0].encoding ?? '')) {
+    return results;
   }
-  return results;
+  const candidates = results
+    .slice(1)
+    .filter(r => r.encoding !== null && _COMMON_LATIN_ENCODINGS.has(r.encoding));
+  if (candidates.length === 0) return results;
+  const target = _swapTarget(candidates);
+  if (!_shouldDemote(data, results[0], target)) return results;
+  const demotedEncoding = results[0].encoding;
+  const topConf = results[0].confidence;
+  const promoted: DetectionResult = {
+    encoding: target.encoding,
+    confidence: topConf,
+    language: target.language,
+    mimeType: target.mimeType,
+  };
+  const others = results.filter(x => x.encoding !== demotedEncoding && x !== target);
+  const tailConf = others.length > 0 ? others[others.length - 1].confidence : topConf;
+  const demotedEntries = results
+    .filter(x => x.encoding === demotedEncoding)
+    .map(x => ({
+      encoding: x.encoding,
+      confidence: Math.min(x.confidence, tailConf),
+      language: x.language,
+      mimeType: x.mimeType,
+    }));
+  return [promoted, ...others, ...demotedEntries];
 }
 
 function _promoteKoi8t(
@@ -154,31 +240,14 @@ function _promoteKoi8t(
     return results;
   }
   // Check for Tajik-specific bytes
-  let hasDistinguishing = false;
   for (let i = 0; i < data.length; i++) {
     const b = data[i];
     if (b > 0x7F && _KOI8_T_DISTINGUISHING.has(b)) {
-      hasDistinguishing = true;
-      break;
+      return _promoteToTop(results, koi8tIdx);
     }
-  }
-  if (hasDistinguishing) {
-    const koi8tResult = results[koi8tIdx];
-    const topConf = results[0].confidence;
-    const promoted: DetectionResult = {
-      encoding: koi8tResult.encoding,
-      confidence: topConf,
-      language: koi8tResult.language,
-      mimeType: koi8tResult.mimeType,
-    };
-    const others = results.filter((_, i) => i !== koi8tIdx);
-    return [promoted, ...others];
   }
   return results;
 }
-
-// Confidence gap within which two results count as a statistical dead heat.
-const _DEAD_HEAT_EPSILON = 1e-4;
 
 // On a dead heat between an encoding and its Windows superset, prefer the
 // superset: it decodes everything the base encoding does, so it is never a
@@ -192,8 +261,10 @@ const _DEAD_HEAT_SUPERSETS: Readonly<Record<string, string>> = Object.freeze({
 
 // Confidence band for the classic-Mac line-ending promotion. Wider than the
 // dead-heat epsilon because bare-\r line endings are decisive platform
-// evidence, not just a prior. Matches confusion._CONFUSION_BAND.
-const _CR_MAC_BAND = 0.005;
+// evidence, not just a prior. Structurally the confusion band: retuning
+// CONFUSION_BAND carries this promotion's reach with it, keeping the band
+// inside _CORRECTION_REACH so pruning always scores what it scans.
+const _CR_MAC_BAND = CONFUSION_BAND;
 
 // Minimum number of \r line endings before the classic-Mac promotion fires.
 const _CR_MAC_MIN_LINES = 3;
@@ -250,21 +321,28 @@ function _hasHighByteEvidence(
 
 // Break statistical dead heats in favour of the more prevalent era.
 //
-// When several encodings score within _DEAD_HEAT_EPSILON of the top result
-// and the top result's models carry no weight for any high-byte bigram in
-// the data, the ranking is an artifact of ASCII-bigram noise. Promote the
-// candidate from the most prevalent era (modern web > legacy ISO > Mac >
+// When several encodings score within _DEAD_HEAT_EPSILON of the top result,
+// the ranking among them is mostly an artifact of ASCII-bigram noise. Promote
+// the candidate from the most prevalent era (modern web > legacy ISO > Mac >
 // regional > DOS > mainframe) so evidence-free dead heats resolve to the
-// likeliest real-world answer. A top result whose models do weight
-// observed high-byte bigrams won on real evidence and is kept, however
-// small its margin.
+// likeliest real-world answer.
+//
+// A top result whose models carry no weight for any high-byte bigram in the
+// data has no evidence at all and yields outright. One whose models do weight
+// an observed bigram is not thereby safe: an English file with one capital É
+// ranks MacRoman first because the MacRoman model reads 0xC9 as the ellipsis
+// English text is full of. Such a top is arbitrated against the prevalent
+// candidate on the bytes the two read differently, under the languages the two
+// can be compared in. The prevalent candidate is promoted only when it wins
+// outright; a tie keeps the top. Genuine MacRoman text never reaches the
+// arbitration, since its hundreds of distinguishing bytes put Windows-1252 far
+// outside the band.
 function _preferPrevalentOnDeadHeat(
   data: Uint8Array,
   results: DetectionResult[],
 ): DetectionResult[] {
   const top = results.length > 0 ? results[0] : null;
   if (top === null || top.encoding === null || results.length < 2) return results;
-  if (_hasHighByteEvidence(data, top.encoding, top.language)) return results;
   let bestIdx = 0;
   let bestRank = _eraRank(top.encoding);
   for (let i = 1; i < results.length; i++) {
@@ -278,7 +356,24 @@ function _preferPrevalentOnDeadHeat(
     }
   }
   if (bestIdx === 0) return results;
-  return _promoteToTop(results, bestIdx);
+  if (!_hasHighByteEvidence(data, top.encoding, top.language)) {
+    return _promoteToTop(results, bestIdx);
+  }
+  const rival = results[bestIdx].encoding ?? '';
+  const langs = new Set<string>();
+  if (top.language !== null) langs.add(top.language);
+  if (results[bestIdx].language !== null) langs.add(results[bestIdx].language!);
+  const comparable = _comparableLanguages(top.encoding, rival, langs);
+  const winner = arbitrateDistinguishingBytes(
+    data,
+    top.encoding,
+    rival,
+    differingHighBytes(top.encoding, rival),
+    comparable,
+    comparable,
+  );
+  if (winner === rival) return _promoteToTop(results, bestIdx);
+  return results;
 }
 
 // Move results[i] to the top, carrying the current top confidence.
@@ -390,7 +485,7 @@ function _promoteMacOnCrLineEndings(
       const langs = new Set<string>();
       if (top.language !== null) langs.add(top.language);
       if (r.language !== null) langs.add(r.language);
-      if (confusionPairWinner(data, top.encoding, r.encoding, langs) === top.encoding) {
+      if (_internal.confusionPairWinner(data, top.encoding, r.encoding, langs) === top.encoding) {
         // Byte-level evidence says the top beats the best-ranked Mac
         // candidate: stop entirely rather than letting a lower-ranked
         // sibling take the promotion just because it has no
@@ -410,12 +505,10 @@ function _promoteMacOnCrLineEndings(
 // can remap to a strictly narrower codec (euc_jis_2004 is reported as
 // EUC-JP), so a rival must decode under both names to be promoted.
 function _decodesUnderPublicNames(data: Uint8Array, encoding: string): boolean {
-  const label = whatwgLabelFor(encoding);
-  if (label === null || !decodesCompletely(label, data)) return false;
+  if (!decodesCompletelyUnderValidity(encoding, data)) return false;
   const display = _COMPAT_NAMES[encoding];
   if (display === undefined) return true;
-  const displayLabel = whatwgLabelFor(lookupEncoding(display) ?? display);
-  return displayLabel !== null && decodesCompletely(displayLabel, data);
+  return decodesCompletelyUnderValidity(lookupEncoding(display) ?? display, data);
 }
 
 // Promote a strictly decoding rival over a winner with no real evidence.
@@ -427,17 +520,15 @@ function _decodesUnderPublicNames(data: Uint8Array, encoding: string): boolean {
 // very next decode will reject — a four-byte iso-8859-1 word ending in
 // 0xE1 detected as utf-8 (chardet issue #380).
 //
-// Fires only when the input was not truncated by chardet itself (the
-// orchestrator's maxBytes slice or UniversalDetector's buffer cap —
-// either way these bytes are not the whole story and the caller was told
-// so by inputTruncated), the tail can actually hold a dangling sequence
-// (a high byte in the final four), and the winner's tolerant decode is
-// non-empty pure ASCII — its only multi-byte evidence is the dangling
-// tail itself. The best-ranked rival that decodes the input completely
-// under both its internal and public names then takes the top slot,
-// regardless of the confidence gap: an all-ASCII-evidence winner detected
-// nothing the rival did not also detect. If no listed rival decodes, the
-// winner stands.
+// Fires only when data is the whole of what the caller handed over
+// (inputTruncated is false — the maxBytes slice, the evidence-cap slice, or
+// UniversalDetector's buffer cap all set it, and any of them means these
+// bytes are not the whole story), the tail can actually hold a dangling
+// sequence (a high byte in the final four), and the winner's tolerant decode
+// is non-empty pure ASCII — its only multi-byte evidence is the dangling
+// tail itself. The best-ranked rival that decodes the input completely under
+// both its internal and public names then takes the top slot, regardless of
+// the confidence gap. If no listed rival decodes, the winner stands.
 //
 // The pure-ASCII condition is what makes the unconditional flip safe: a
 // short mid-character CJK cut has a correct answer that cannot decode the
@@ -475,36 +566,102 @@ function _preferDecodableOnTie(
   return results;
 }
 
+// ---------------------------------------------------------------------------
+// The pruning contract: what statistical pruning must score exactly
+// ---------------------------------------------------------------------------
+//
+// The port always scores every candidate (no rowmax pruning — see
+// "Statistical-scoring rowmax pruning" in docs/port-notes.md), so nothing here
+// gates the port's own scoring. These two functions are kept to mirror
+// chardet's postprocess.py exactly: they are the contract statistical pruning
+// consumes upstream, and porting them keeps the mirror honest and lets the
+// contract tests come across.
+
+// How far below the running second-best score a candidate can sit and still be
+// examined by a rank correction: rare-language arbitration reads margins up to
+// _RARE_ARBITRATION_MARGIN from the top, and confusion resolution examines the
+// band, kept with a 2x cushion for float noise.
+const _CORRECTION_REACH = _RARE_ARBITRATION_MARGIN + 2 * CONFUSION_BAND;
+
+// Return the score below which the rank corrections cannot examine a candidate.
+//
+// Given the running top two encoding scores, every candidate at or above this
+// floor must carry its exact full-ranking score. The floor trails the
+// second-best score by the corrections' reach; while the top is low enough for
+// confusion resolution's strict tier to open, it extends down to that tier's
+// floor, because a strict-tier promotion may raise any candidate above the tier
+// floor into position 0 before the other corrections evaluate their triggers.
+export function scoringFloor(top1: number, top2: number): number {
+  let floor = top2 - _CORRECTION_REACH;
+  if (top1 < STRICT_TIER_MAX_CONF) {
+    floor = Math.min(floor, top1 * CONFUSION_FLOOR_RATIO);
+  }
+  return floor;
+}
+
+// Return the encodings the corrections look up by name, given the near-top set.
+//
+// postprocessResults inspects some encodings wherever they rank (the common
+// Western Latin trio for niche Latin demotion, KOI8-T for the KOI8-R
+// promotion), so pruning must score every variant of these whenever a trigger
+// encoding sits at or above the scoringFloor.
+export function forcedEncodings(nearTop: string[]): string[] {
+  const forced: string[] = [];
+  if (nearTop.some(e => _DEMOTION_CANDIDATES.has(e))) {
+    forced.push(..._COMMON_LATIN_ENCODINGS);
+  }
+  if (nearTop.includes('koi8-r')) forced.push('koi8-t');
+  return forced;
+}
+
 // Apply rank corrections to the statistically scored results.
 //
-// Steps run in sequence, weakest evidence first: dead-heat priors
-// (superset preference, era prevalence), rare-language arbitration, then
-// confusion-group resolution, niche Latin demotion, and KOI8-T promotion
-// (byte-level evidence), and finally the classic-Mac line-ending promotion
-// (platform evidence that should override the priors). The decode-safety
-// tiebreak runs last of all: whatever the ranking settled on, a winner
-// that cannot decode the caller's complete input, and whose own evidence
-// is nothing but the undecodable tail, yields to the best-ranked rival
-// that can decode it.
+// Steps run in sequence, weakest evidence first: dead-heat priors (superset
+// preference, era prevalence), rare-language arbitration, then confusion-group
+// resolution, niche Latin demotion, and KOI8-T promotion (byte-level
+// evidence), and finally the classic-Mac line-ending promotion (platform
+// evidence that should override the priors). The decode-safety tiebreak runs
+// last of all: whatever the ranking settled on, a winner that cannot decode the
+// caller's complete input, and whose own evidence is nothing but the
+// undecodable tail, yields to the best-ranked rival that can decode it.
 //
-// inputTruncated is true when the caller's input was longer than maxBytes,
-// i.e. data is a chardet-made slice rather than the caller's whole input.
+// inputTruncated is true when data is a chardet-made slice rather than the
+// caller's whole input — the maxBytes slice, the evidence-cap slice, or
+// UniversalDetector's buffer cap. Any of them means the bytes here are not the
+// whole story, so the decode-safety tiebreak stands down.
 export function postprocessResults(
   data: Uint8Array,
   results: DetectionResult[],
   { inputTruncated = false }: { inputTruncated?: boolean } = {},
 ): DetectionResult[] {
-  results = _promoteSupersetOnDeadHeat(data, results);
-  results = _preferPrevalentOnDeadHeat(data, results);
-  results = _arbitrateRareLanguage(results);
-  results = resolveConfusionGroups(data, results);
-  results = _demoteNicheLatin(data, results);
-  results = _promoteKoi8t(data, results);
-  results = _promoteMacOnCrLineEndings(data, results);
-  return _preferDecodableOnTie(data, results, inputTruncated);
+  results = _internal._promoteSupersetOnDeadHeat(data, results);
+  results = _internal._preferPrevalentOnDeadHeat(data, results);
+  results = _internal._arbitrateRareLanguage(results);
+  results = _internal.resolveConfusionGroups(data, results);
+  results = _internal._demoteNicheLatin(data, results);
+  results = _internal._promoteKoi8t(data, results);
+  results = _internal._promoteMacOnCrLineEndings(data, results);
+  return _internal._preferDecodableOnTie(data, results, inputTruncated);
 }
 
+// Test-spy seam. Mirrors Python's monkeypatch of each correction in
+// postprocess.py by routing the chain (and the classic-Mac veto's
+// confusionPairWinner) through this object so vi.spyOn(_internal, name)
+// intercepts them. See orchestrator.ts's _internal for the same pattern.
+export const _internal = {
+  _promoteSupersetOnDeadHeat,
+  _preferPrevalentOnDeadHeat,
+  _arbitrateRareLanguage,
+  resolveConfusionGroups,
+  _demoteNicheLatin,
+  _promoteKoi8t,
+  _promoteMacOnCrLineEndings,
+  _preferDecodableOnTie,
+  confusionPairWinner,
+};
+
 export {
+  ART_LANGUAGE,
   _COMMON_LATIN_ENCODINGS,
   _DEMOTION_CANDIDATES,
   _HP_ROMAN8_DISTINGUISHING,
@@ -515,11 +672,14 @@ export {
   _arbitrateRareLanguage,
   _decodesUnderPublicNames,
   _demoteNicheLatin,
+  _eraRank,
   _hasHighByteEvidence,
   _preferDecodableOnTie,
   _preferPrevalentOnDeadHeat,
   _promoteKoi8t,
   _promoteMacOnCrLineEndings,
   _promoteSupersetOnDeadHeat,
+  _promoteToTop,
   _shouldDemote,
+  _swapTarget,
 };

@@ -2,6 +2,7 @@
 // remapping: superset preference and 5.x/6.x-compatible display names.
 
 import { DetectionResult } from './pipeline/index.js';
+import { decodesUnderValidity } from './pipeline/validity.js';
 
 export const PREFERRED_SUPERSET: Readonly<Record<string, string>> = Object.freeze({
   "ascii":     "cp1252",
@@ -25,8 +26,28 @@ function _remapEncoding(result: DetectionResult, mapping: Readonly<Record<string
   return result;
 }
 
-export function applyPreferredSuperset(result: DetectionResult): DetectionResult {
-  return _remapEncoding(result, PREFERRED_SUPERSET);
+// Replace the encoding name with its preferred Windows/CP superset.
+//
+// The Windows code pages leave a few C1 positions undefined that their ISO
+// subsets map (0x81, 0x8D, 0x8F, 0x90, 0x9D under cp1252), so the remap is
+// decode-safe only for data that avoids them. When data is given, the remap
+// applies only if the superset decodes it; otherwise the detected name stands,
+// being the one that does. The decodability check goes through the validity
+// stage's predicate (SBCS undefined-byte table first, then TextDecoder), not
+// raw decodesWithoutError, or WHATWG's gap-filling cp1252 decoder would accept
+// the very C1 bytes Python's codec rejects.
+export function applyPreferredSuperset(
+  result: DetectionResult,
+  data?: Uint8Array,
+): DetectionResult {
+  const enc = result.encoding;
+  if (enc === null) return result;
+  const superset = PREFERRED_SUPERSET[enc];
+  if (superset === undefined) return result;
+  if (data === undefined || decodesUnderValidity(superset, data)) {
+    result.encoding = superset;
+  }
+  return result;
 }
 
 // Deprecated alias — kept for external consumers.

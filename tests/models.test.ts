@@ -4,9 +4,9 @@ import {
   scoreBestLanguage,
   scoreWithProfile,
   BigramProfile,
-  _parseModelsBin,
   _buildEncIndex,
 } from '../src/models/index.js';
+import { parseModelsBin } from '../src/models/_format.js';
 
 // ---------------------------------------------------------------------------
 // Helpers for building synthetic models.bin payloads. Mirrors Python's
@@ -204,7 +204,7 @@ describe('scoreWithProfile', () => {
 });
 
 // ---------------------------------------------------------------------------
-// _parseModelsBin — error paths and a synthetic happy path
+// parseModelsBin — error paths and a synthetic happy path
 // ---------------------------------------------------------------------------
 
 // Tests deferred from chardet/tests/test_models.py because they require module
@@ -223,32 +223,32 @@ describe('deferred — Step 9 corpus dependency', () => {
   test.todo('test_all_test_data_pairs_have_models — every test-data pair has a model');
 });
 
-describe('_parseModelsBin', () => {
+describe('parseModelsBin', () => {
   test('missing CMD2 magic → throws', () => {
     const data = packU32(1); // 4 bytes that are not "CMD2"
-    expect(() => _parseModelsBin(data)).toThrow(/missing CMD2 magic/);
+    expect(() => parseModelsBin(data)).toThrow(/missing CMD2 magic/);
   });
 
   test('num_models > 10000 → throws', () => {
     const data = concat(CMD2, packU32(10001));
-    expect(() => _parseModelsBin(data)).toThrow(/num_models=10001 exceeds limit/);
+    expect(() => parseModelsBin(data)).toThrow(/num_models=10001 exceeds limit/);
   });
 
   test('name_len > 256 → throws', () => {
     const data = concat(CMD2, packU32(1), packU32(300));
-    expect(() => _parseModelsBin(data)).toThrow(/name_len=300 exceeds 256/);
+    expect(() => parseModelsBin(data)).toThrow(/name_len=300 exceeds 256/);
   });
 
   test('truncated header → throws', () => {
     // CMD2 + num_models=1 but no name/norm bytes.
     const data = concat(CMD2, packU32(1));
-    expect(() => _parseModelsBin(data)).toThrow(/corrupt models\.bin/);
+    expect(() => parseModelsBin(data)).toThrow(/corrupt models\.bin/);
   });
 
   test('invalid UTF-8 in model name → throws', () => {
     const invalidName = new Uint8Array([0xFF, 0xFE]);
     const data = concat(CMD2, packU32(1), packU32(invalidName.length), invalidName);
-    expect(() => _parseModelsBin(data)).toThrow(/corrupt models\.bin/);
+    expect(() => parseModelsBin(data)).toThrow(/corrupt models\.bin/);
   });
 
   test('blob size mismatch → throws', () => {
@@ -262,10 +262,10 @@ describe('_parseModelsBin', () => {
     );
     const blob = new Uint8Array(65536); // only 1 model
     const data = concat(header, blob);
-    expect(() => _parseModelsBin(data)).toThrow(/blob size .* expected decompressed size/);
+    expect(() => parseModelsBin(data)).toThrow(/blob size .* expected decompressed size/);
   });
 
-  // Phase 2 (Step 10): port test_load_models_v2_corrupt_zlib once _parseModelsBin
+  // Phase 2 (Step 10): port test_load_models_v2_corrupt_zlib once parseModelsBin
   // calls inflate() on the trailing blob. Phase 1 ships raw bytes so corrupt-zlib
   // has no equivalent here.
   test.todo('Phase 2: corrupt zlib data → throws');
@@ -283,7 +283,7 @@ describe('_parseModelsBin', () => {
       packU32(name.length), name, packF64(norm),
       table,
     );
-    const { models, norms } = _parseModelsBin(data);
+    const { models, norms } = parseModelsBin(data);
     expect(models.has('fr/cp1252')).toBe(true);
     expect(models.get('fr/cp1252')![(0xE9 << 8) | 0x20]).toBe(200);
     expect(models.get('fr/cp1252')![(0x6C << 8) | 0x65]).toBe(50);

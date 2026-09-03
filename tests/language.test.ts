@@ -1,17 +1,59 @@
 // Port of chardet/tests/test_language.py.
 
+import { vi } from 'vitest';
 import { DetectionResult } from '../src/pipeline/index.js';
-import { _toUtf8, fillLanguages } from '../src/pipeline/language.js';
+import { _internal as languageInternal, _toUtf8, fillLanguages } from '../src/pipeline/language.js';
 import { detect, detectAll } from '../src/chardet.js';
 import { RARE_LANGUAGES, scoreBestLanguage } from '../src/models/index.js';
 
+// Plain French, ASCII-safe apart from the accents cp1252 carries. Long enough
+// to score decisively, so the tier tests turn on which tier ran.
+// ("Le chat noir de mon voisin traverse la cour chaque matin pour aller "
+//  "chercher un peu de lait chez la boulangère du village.").encode("cp1252")
+const FRENCH_CP1252 = new Uint8Array([0x4c,0x65,0x20,0x63,0x68,0x61,0x74,0x20,0x6e,0x6f,0x69,0x72,0x20,0x64,0x65,0x20,0x6d,0x6f,0x6e,0x20,0x76,0x6f,0x69,0x73,0x69,0x6e,0x20,0x74,0x72,0x61,0x76,0x65,0x72,0x73,0x65,0x20,0x6c,0x61,0x20,0x63,0x6f,0x75,0x72,0x20,0x63,0x68,0x61,0x71,0x75,0x65,0x20,0x6d,0x61,0x74,0x69,0x6e,0x20,0x70,0x6f,0x75,0x72,0x20,0x61,0x6c,0x6c,0x65,0x72,0x20,0x63,0x68,0x65,0x72,0x63,0x68,0x65,0x72,0x20,0x75,0x6e,0x20,0x70,0x65,0x75,0x20,0x64,0x65,0x20,0x6c,0x61,0x69,0x74,0x20,0x63,0x68,0x65,0x7a,0x20,0x6c,0x61,0x20,0x62,0x6f,0x75,0x6c,0x61,0x6e,0x67,0xe8,0x72,0x65,0x20,0x64,0x75,0x20,0x76,0x69,0x6c,0x6c,0x61,0x67,0x65,0x2e]);
+
 describe('fillLanguages', () => {
-  test('populates language for single-language encoding', () => {
-    const results: DetectionResult[] = [
+  test('tier 1 fills a single-language encoding on its own', () => {
+    // Model scoring off, so only the hardcoded map can supply the answer.
+    const spy = vi.spyOn(languageInternal, 'hasModelVariants').mockReturnValue(false);
+    const filled = fillLanguages(new TextEncoder().encode('test data'), [
       { encoding: 'koi8-r', confidence: 0.90, language: null, mimeType: null },
-    ];
-    const filled = fillLanguages(new TextEncoder().encode('test data'), results);
-    expect(filled[0].language).not.toBeNull();
+    ]);
+    spy.mockRestore();
+    expect(filled[0].language).toBe('ru');
+  });
+
+  test('tier 2 labels a multi-language encoding without the utf-8 fallback', () => {
+    const spy = vi.spyOn(languageInternal, 'hasModelVariants').mockImplementation(enc => enc !== 'utf-8');
+    const filled = fillLanguages(FRENCH_CP1252, [
+      { encoding: 'cp1252', confidence: 0.90, language: null, mimeType: null },
+    ]);
+    spy.mockRestore();
+    expect(filled[0].language).toBe('fr');
+  });
+
+  test('tier 3 falls back to the utf-8 models', () => {
+    const spy = vi.spyOn(languageInternal, 'hasModelVariants').mockImplementation(enc => enc === 'utf-8');
+    const filled = fillLanguages(FRENCH_CP1252, [
+      { encoding: 'cp1252', confidence: 0.90, language: null, mimeType: null },
+    ]);
+    spy.mockRestore();
+    expect(filled[0].language).toBe('fr');
+  });
+
+  test('leaves language unset when no tier applies', () => {
+    const spy = vi.spyOn(languageInternal, 'hasModelVariants').mockReturnValue(false);
+    const filled = fillLanguages(FRENCH_CP1252, [
+      { encoding: 'cp1252', confidence: 0.90, language: null, mimeType: null },
+    ]);
+    spy.mockRestore();
+    expect(filled[0].language).toBeNull();
+  });
+
+  test('a thin rare label survives when no tier can score', () => {
+    const rare = [...RARE_LANGUAGES].sort()[0];
+    const result: DetectionResult = { encoding: 'not-a-codec', confidence: 0.5, language: rare, mimeType: 'text/plain' };
+    expect(fillLanguages(new TextEncoder().encode('ab'), [result])).toEqual([result]);
   });
 
   test('passes through existing language', () => {

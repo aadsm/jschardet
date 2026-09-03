@@ -5,8 +5,7 @@
 
 import { detect } from '../src/chardet.js';
 import { EncodingEra } from '../src/enums.js';
-import { isCorrect } from '../src/evaluation.js';
-import { isEquivalentDetection } from './utils.js';
+import { isAcceptable } from './utils.js';
 import { _shutdown } from './helpers/codecs.js';
 import * as iconv from 'iconv-lite';
 
@@ -25,7 +24,7 @@ function concat(...arrs: Uint8Array[]): Uint8Array {
 async function assertDetection(data: Uint8Array, expected: string, era = EncodingEra.ALL): Promise<void> {
   const result = detect(data, { encodingEra: era, preferSuperset: true });
   const detected = result.encoding;
-  if (!isCorrect(expected, detected) && !(await isEquivalentDetection(data, expected, detected))) {
+  if (!(await isAcceptable(data, expected, detected))) {
     throw new Error(`expected=${expected}, got=${detected} (confidence=${result.confidence.toFixed(2)})`);
   }
 }

@@ -1,16 +1,16 @@
 // Port of chardet/src/chardet/models/__init__.py — bigram model loading and scoring.
 //
-// `models.bin.js` already exposes the per-model bigram blob as raw,
-// uncompressed bytes (the wrapper handles the zlib step before returning from
-// readBytes()), so the parser here simply skips Python's
-// _parse_models_bin call to zlib.decompress and otherwise mirrors it
-// line-for-line.
+// The models.bin format parser lives in ./_format.ts (chardet's
+// models/_format.py), which owns both directions of the format upstream; the
+// port takes only the read side. `models.bin.js` already exposes the per-model
+// bigram blob as raw, uncompressed bytes (the wrapper handles the zlib step
+// before returning from readBytes()), so parseModelsBin skips Python's
+// zlib.decompress and otherwise mirrors it line-for-line.
 
 import { REGISTRY, lookupEncoding } from '../registry.js';
+import { MODELS_MAGIC, ParsedModels, parseModelsBin } from './_format.js';
 import { readBytes as readModelsBin } from './models.bin.js';
 import { readBytes as readIdfBin } from './idf.bin.js';
-
-const V2_MAGIC = new Uint8Array([0x43, 0x4D, 0x44, 0x32]); // "CMD2"
 
 const SINGLE_LANG_MAP: Record<string, string> = {};
 for (const enc of Object.values(REGISTRY)) {
@@ -21,77 +21,9 @@ for (const enc of Object.values(REGISTRY)) {
 
 export type ModelVariant = readonly [string | null, Uint8Array, string];
 
-interface ParsedModels {
-  models: Map<string, Uint8Array>;
-  norms: Map<string, number>;
-}
-
-const utf8Decoder = new TextDecoder('utf-8', { fatal: true });
-
-// Exported with underscore prefix as an internal helper for the test suite.
-// Mirrors Python's _parse_models_bin; production callers go through
-// loadModels()/getEncIndex() which handle caching and the empty-buffer path.
-export function _parseModelsBin(data: Uint8Array): ParsedModels {
-  if (data.length < 4 ||
-      data[0] !== V2_MAGIC[0] || data[1] !== V2_MAGIC[1] ||
-      data[2] !== V2_MAGIC[2] || data[3] !== V2_MAGIC[3]) {
-    throw new Error('corrupt models.bin: missing CMD2 magic');
-  }
-  const view = new DataView(data.buffer, data.byteOffset, data.byteLength);
-  let offset = 4;
-
-  try {
-    const numModels = view.getUint32(offset, false);
-    offset += 4;
-    if (numModels > 10_000) {
-      throw new Error(`corrupt models.bin: num_models=${numModels} exceeds limit`);
-    }
-
-    const names: string[] = [];
-    const norms = new Map<string, number>();
-    for (let i = 0; i < numModels; i++) {
-      const nameLen = view.getUint32(offset, false);
-      offset += 4;
-      if (nameLen > 256) {
-        throw new Error(`corrupt models.bin: name_len=${nameLen} exceeds 256`);
-      }
-      let name: string;
-      try {
-        name = utf8Decoder.decode(data.subarray(offset, offset + nameLen));
-      } catch (e) {
-        throw new Error(`corrupt models.bin: ${(e as Error).message}`);
-      }
-      offset += nameLen;
-      const norm = view.getFloat64(offset, false);
-      offset += 8;
-      names.push(name);
-      norms.set(name, norm);
-    }
-
-    // The blob arrives raw — the wrapper has already inflated the trailing
-    // bigram payload, so we slice from `offset` directly without an extra
-    // zlib step (Python does zlib.decompress here on still-compressed data).
-    const blob = data.subarray(offset);
-    const expectedSize = numModels * 65536;
-    if (blob.length !== expectedSize) {
-      throw new Error(
-        `corrupt models.bin: blob size ${blob.length} != expected decompressed size ${expectedSize}`,
-      );
-    }
-
-    const models = new Map<string, Uint8Array>();
-    for (let i = 0; i < names.length; i++) {
-      const start = i * 65536;
-      models.set(names[i], blob.subarray(start, start + 65536));
-    }
-    return { models, norms };
-  } catch (e) {
-    if (e instanceof RangeError) {
-      throw new Error(`corrupt models.bin: ${e.message}`);
-    }
-    throw e;
-  }
-}
+// Re-exported so the parser tests and any consumer can reach the format owner
+// through the models package, matching chardet's re-export of parse_models_bin.
+export { MODELS_MAGIC, parseModelsBin };
 
 let modelDataCache: ParsedModels | null = null;
 
@@ -106,7 +38,7 @@ function loadModelData(): ParsedModels {
     modelDataCache = { models: new Map(), norms: new Map() };
     return modelDataCache;
   }
-  modelDataCache = _parseModelsBin(data);
+  modelDataCache = parseModelsBin(data);
   return modelDataCache;
 }
 

@@ -329,3 +329,87 @@ describe('jschardet CLI — in-process', () => {
     expect(c.stdout()).toContain('Encoding era filter');
   });
 });
+
+describe('jschardet CLI — --mime-type', () => {
+  test('--mime-type includes the MIME type and confidence', async () => {
+    const f = writeBytes('test.txt', 'Hello world');
+    const c = captured();
+    expect(await main(['--mime-type', f], c.opts)).toBe(0);
+    expect(c.stdout()).toContain('text/plain');
+    expect(c.stdout()).toContain('with confidence');
+  });
+
+  test('-m is the short form of --mime-type', async () => {
+    const f = writeBytes('test.txt', 'Hello world');
+    const c = captured();
+    expect(await main(['-m', f], c.opts)).toBe(0);
+    expect(c.stdout()).toContain('text/plain');
+  });
+
+  test('--mime-type on a PNG reports image/png from magic numbers', async () => {
+    const png = concatBytes(
+      Uint8Array.from('\x89PNG\r\n\x1a\n', ch => ch.charCodeAt(0)),
+      new Uint8Array(32),
+    );
+    const f = writeBytes('test.png', png);
+    const c = captured();
+    expect(await main(['--mime-type', f], c.opts)).toBe(0);
+    expect(c.stdout()).toContain('image/png');
+  });
+
+  test('--minimal --mime-type prints encoding and MIME type', async () => {
+    const f = writeBytes('test.txt', 'Hello world');
+    const c = captured();
+    expect(await main(['--minimal', '--mime-type', f], c.opts)).toBe(0);
+    expect(c.stdout().trim()).toBe('ascii text/plain');
+  });
+
+  test('--minimal -l -m prints encoding, language code, and MIME type', async () => {
+    const f = writeBytes('test.txt', new TextEncoder().encode('Héllo wörld café résumé naïve'));
+    const c = captured();
+    expect(await main(['--minimal', '-l', '-m', f], c.opts)).toBe(0);
+    const parts = c.stdout().trim().split(/\s+/);
+    expect(parts.length).toBe(3);
+    expect(parts[2]).toBe('text/plain');
+  });
+
+  test('-l -m shows language and MIME type before the confidence', async () => {
+    const f = writeBytes('test.txt', new TextEncoder().encode('Héllo wörld café résumé naïve'));
+    const c = captured();
+    expect(await main(['-l', '-m', f], c.opts)).toBe(0);
+    expect(c.stdout()).toContain('(');
+    expect(c.stdout()).toContain('text/plain with confidence');
+  });
+
+  test('--mime-type on stdin includes the MIME type', async () => {
+    const c = captured({ stdin: new TextEncoder().encode('Hello world') });
+    expect(await main(['--mime-type'], c.opts)).toBe(0);
+    expect(c.stdout()).toContain('text/plain');
+    expect(c.stdout()).toContain('with confidence');
+  });
+
+  test('a null MIME type shows application/octet-stream', async () => {
+    const f = writeBytes('test.txt', 'Hello world');
+    const c = captured({
+      detectFn: () => ({ encoding: 'ascii', confidence: 1.0, language: null, mimeType: null }),
+    });
+    expect(await main(['--minimal', '--mime-type', f], c.opts)).toBe(0);
+    expect(c.stdout().trim()).toBe('ascii application/octet-stream');
+  });
+
+  test('without --mime-type the MIME type is absent', async () => {
+    const f = writeBytes('test.txt', 'Hello world');
+    const c = captured();
+    expect(await main([f], c.opts)).toBe(0);
+    expect(c.stdout()).toContain('with confidence');
+    expect(c.stdout()).not.toContain('text/plain');
+  });
+});
+
+function concatBytes(...arrs: Uint8Array[]): Uint8Array {
+  const total = arrs.reduce((n, a) => n + a.length, 0);
+  const out = new Uint8Array(total);
+  let off = 0;
+  for (const a of arrs) { out.set(a, off); off += a.length; }
+  return out;
+}

@@ -56,6 +56,10 @@ export class UniversalDetector {
   private _done = false;
   private _closed = false;
   private _detection: DetectionResult | null = null;
+  // The examined window, concatenated at close(). Kept so the result getter
+  // can hand applyPreferredSuperset the bytes the verdict is about (its
+  // decode-safety check needs them). Python passes bytes(self._buffer).
+  private _buffer: Uint8Array | null = null;
 
   constructor(options: UniversalDetectorOptions = {}) {
     const langFilter = options.langFilter ?? LanguageFilter.ALL;
@@ -91,7 +95,13 @@ export class UniversalDetector {
     if (this._closed) {
       throw new Error('feed() called after close() without reset()');
     }
-    if (this._done) return;
+    if (this._done) {
+      // The buffer already holds maxBytes exactly, which the pipeline cannot
+      // tell apart from an input that was maxBytes long; only this flag says
+      // these bytes were cut off it. An empty feed cuts nothing.
+      if (byteStr.length > 0) this._inputTruncated = true;
+      return;
+    }
     const remaining = this._maxBytes - this._bufferLength;
     if (remaining > 0) {
       const take = Math.min(byteStr.length, remaining);
@@ -119,6 +129,7 @@ export class UniversalDetector {
         data.set(chunk, offset);
         offset += chunk.length;
       }
+      this._buffer = data;
       const results = runPipeline(data, this._encodingEra, {
         maxBytes: this._maxBytes,
         inputTruncated: this._inputTruncated,
@@ -140,6 +151,7 @@ export class UniversalDetector {
     this._done = false;
     this._closed = false;
     this._detection = null;
+    this._buffer = null;
   }
 
   get done(): boolean {
@@ -155,7 +167,7 @@ export class UniversalDetector {
     // DetectionResult is a frozen dataclass and to_dict() always allocates a
     // new dict, sidestepping this.
     const d: DetectionResult = { ...this._detection };
-    if (this._preferSuperset) applyPreferredSuperset(d);
+    if (this._preferSuperset) applyPreferredSuperset(d, this._buffer ?? undefined);
     if (this._compatNames) applyCompatNames(d);
     return d;
   }

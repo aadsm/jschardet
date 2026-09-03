@@ -349,3 +349,46 @@ test('utf7DecodesWithoutError matches the CPython oracle', () => {
   }
   expect(failures).toEqual([]);
 });
+
+// ---------------------------------------------------------------------------
+// Evidence-cap bounds on the deep validators (ADR-0006, chardet PR #388).
+// ---------------------------------------------------------------------------
+
+import { _hasValidUtf7Sequences, _isEmbeddedInBase64 } from '../src/pipeline/escape.js';
+
+function rawBytes(s: string): Uint8Array {
+  return Uint8Array.from(s, c => c.charCodeAt(0));
+}
+
+test('the embedded-base64 guard fires at four preceding characters, not three', () => {
+  expect(_isEmbeddedInBase64(rawBytes('abc+rest'), 3)).toBe(false);
+  expect(_isEmbeddedInBase64(rawBytes('abcd+rest'), 4)).toBe(true);
+  // Newlines are skipped rather than ending the walk.
+  expect(_isEmbeddedInBase64(rawBytes('ab\ncd\n+rest'), 6)).toBe(true);
+  // A non-base64, non-newline byte ends the walk.
+  expect(_isEmbeddedInBase64(rawBytes('ab cd+rest'), 5)).toBe(false);
+});
+
+test('the UTF-7 validator is linear in line-wrapped base64 blobs', () => {
+  // Without the early exit at the fourth character every '+' rescans
+  // everything before it; at 128 KiB that grew as the square. The bound is
+  // generous (~1000x the fixed cost) but still catches a quadratic relapse.
+  const unit = rawBytes('+abc123def456ghi789jkl012mno345pqr678stu901vwx234yz\n');
+  const parts: Uint8Array[] = [];
+  let total = 0;
+  while (total < 131072) { parts.push(unit); total += unit.length; }
+  const blob = new Uint8Array(total).map((_, i) => 0);
+  let off = 0;
+  for (const p of parts) { blob.set(p, off); off += p.length; }
+  const trimmed = blob.subarray(0, 131072);
+  const start = performance.now();
+  _hasValidUtf7Sequences(trimmed, trimmed.length, trimmed.length);
+  expect(performance.now() - start).toBeLessThan(2000);
+});
+
+test('a UTF-7 base64 run outrunning the bound is skipped', () => {
+  const data = new Uint8Array(1 + 40);
+  data[0] = 0x2b; // '+'
+  for (let i = 1; i < data.length; i++) data[i] = 0x41; // 'A'
+  expect(_hasValidUtf7Sequences(data, 10, 5)).toBe(false);
+});

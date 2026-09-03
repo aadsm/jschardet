@@ -14,7 +14,7 @@ import {
 import { DetectionResult } from './index.js';
 import { lookupEncoding } from '../registry.js';
 import { readBytes as readConfusionBin } from '../models/confusion.bin.js';
-import { CONFUSION_CASE_TABLES } from './_confusion-case-tables.js';
+import { BYTE_DECODE_TABLES, ByteDecodeTable } from './_byte-decode-tables.js';
 
 interface DiffEntry {
   diffBytes: Set<number>;
@@ -133,7 +133,7 @@ const _CATEGORY_PREFERENCE: Record<string, number> = {
 
 // Preference assigned to a letter reading whose context makes it an
 // implausible word member — below every punctuation and symbol category.
-const _IMPLAUSIBLE_LETTER_PREFERENCE = 2;
+export const _IMPLAUSIBLE_LETTER_PREFERENCE = 2;
 
 // Vote margin at which category voting overrides the bigram rescore. Two
 // context-decisive occurrences (letter-vs-punctuation with the word-shape
@@ -141,14 +141,14 @@ const _IMPLAUSIBLE_LETTER_PREFERENCE = 2;
 // reading (margin 1) never does. Raising this threshold is not safe: the
 // EBCDIC record suite depends on a decisive margin of 12 (three
 // occurrences) to hold off the rescore's max-over-variants bias.
-const _DECISIVE_VOTE_MARGIN = 8;
+export const _DECISIVE_VOTE_MARGIN = 8;
 
 // Minimum number of distinct demotion-earning occurrences for a vote to be
 // decisive. A single occurrence can reach margin 8 on its own (a
 // plausible-letter reading at preference 10 against an implausible-letter
 // reading demoted to 2), and one byte of context must never outrank the
 // rescore's model evidence.
-const _DECISIVE_MIN_EVENTS = 2;
+export const _DECISIVE_MIN_EVENTS = 2;
 
 // Cap on distinguishing-byte occurrences examined per pair. Sparse by
 // nature; the cap only bounds pathological inputs.
@@ -161,38 +161,43 @@ const _MAX_VOTE_OCCURRENCES = 256;
 // seam mirroring Python's patch.object(confusion_mod, "_DENSE_HIT_DIVISOR").
 export const _testHooks = { denseHitDivisor: 4 };
 
-// chardet's confusion._letter_case_table builds these at runtime from
-// Python's codecs + unicodedata; several pair encodings (the EBCDIC pages) have no
-// WHATWG decoder, so the port precomputes them at build time — see
-// scripts/generate-confusion-case-tables.js. 0 = non-letter, 1 = uppercase
-// letter, 2 = other letter; combining marks count as letters (in decomposed
-// text a base letter's neighbor is its diacritic, which is word-internal,
-// not a word boundary). Whitespace deliberately counts as a plain
-// non-letter: exempting space-adjacent letters from the isolated-letter
+// chardet's confusion._letter_case_table classifies each byte at runtime from
+// Python's codecs + unicodedata: 0 = non-letter, 1 = uppercase letter, 2 =
+// other letter (combining marks count as letters, since in decomposed text a
+// base letter's neighbor is its diacritic — word-internal, not a boundary).
+// That verdict is a pure function of the byte's Unicode general category, so
+// the port derives it from the per-byte categories in _byte-decode-tables.ts
+// (generate-byte-tables.js verifies the derivation matches chardet's own
+// table byte-for-byte before emitting). Whitespace deliberately counts as a
+// plain non-letter: exempting space-adjacent letters from the isolated-letter
 // demotion was tried upstream and falsified by the accuracy suite.
 const _EMPTY_CASE_TABLE = new Uint8Array(256);
 const _caseTableCache = new Map<string, Uint8Array>();
-let _caseTablesByCanonical: Map<string, string> | null = null;
 
-function _letterCaseTable(encoding: string): Uint8Array {
+// Category index (into _INT_TO_CATEGORY) -> letter kind. Lu -> 1; the other
+// letter categories (Ll/Lt/Lm/Lo) and the combining marks (Mn/Mc/Me) -> 2;
+// everything else -> 0.
+const _CASE_FROM_CAT: Uint8Array = (() => {
+  const t = new Uint8Array(_INT_TO_CATEGORY.length);
+  _INT_TO_CATEGORY.forEach((cat, i) => {
+    t[i] = cat === 'Lu' ? 1 : cat[0] === 'L' || cat[0] === 'M' ? 2 : 0;
+  });
+  return t;
+})();
+
+export function _letterCaseTable(encoding: string): Uint8Array {
   let table = _caseTableCache.get(encoding);
   if (table !== undefined) return table;
-  if (_caseTablesByCanonical === null) {
-    _caseTablesByCanonical = new Map();
-    for (const [name, digits] of Object.entries(CONFUSION_CASE_TABLES)) {
-      _caseTablesByCanonical.set(lookupEncoding(name) ?? name, digits);
-    }
-  }
-  // Python resolves aliases through the codec registry; mirror with
-  // lookupEncoding so e.g. "latin-1" finds the iso8859-1 table.
-  const digits = _caseTablesByCanonical.get(lookupEncoding(encoding) ?? encoding);
-  if (digits === undefined) {
-    // No generated table (an encoding outside confusion.bin's pairs);
-    // all-zero means every reading counts as a non-letter.
+  const decode = _byteDecodeTable(encoding);
+  if (decode === null) {
+    // No generated table (an encoding outside the registry); all-zero means
+    // every reading counts as a non-letter.
     table = _EMPTY_CASE_TABLE;
   } else {
     table = new Uint8Array(256);
-    for (let i = 0; i < 256; i++) table[i] = digits.charCodeAt(i) - 0x30;
+    for (let i = 0; i < 256; i++) {
+      table[i] = _CASE_FROM_CAT[decode.cats.charCodeAt(i)] ?? 0;
+    }
   }
   _caseTableCache.set(encoding, table);
   return table;
@@ -204,7 +209,7 @@ function _letterCaseTable(encoding: string): Uint8Array {
 // neighbors is quoted/isolated punctuation in disguise, and a lowercase
 // letter immediately followed by an uppercase one is not a word shape any
 // of the supported languages produce.
-function _contextPreference(
+export function _contextPreference(
   cat: string,
   left: number,
   right: number,
@@ -254,7 +259,7 @@ interface VoteResult {
 // letters-beat-symbols preference. demotionEvents counts how many distinct
 // occurrences contributed to it, so callers can tell repeated evidence from
 // one loud byte.
-function _voteWithMargin(
+export function _voteWithMargin(
   data: Uint8Array,
   encA: string,
   encB: string,
@@ -475,10 +480,34 @@ export function resolveByBigramRescore(
   diffBytes: Set<number>,
   languages: ReadonlySet<string> = new Set(),
 ): string | null {
+  const profile = buildFocusedProfile(data, diffBytes);
+  if (profile === null) return null;
+
+  const comparable = _comparableLanguages(encA, encB, languages);
+  const bestA = _bestVariantScore(profile, encA, comparable);
+  const bestB = _bestVariantScore(profile, encB, comparable);
+
+  if (bestA > bestB) return encA;
+  if (bestB > bestA) return encB;
+  return null;
+}
+
+// Build the bigram profile of data restricted to diffBytes context, or null.
+//
+// The profile holds only bigrams where at least one byte is in diffBytes,
+// weighted by IDF like the full-input profile, so scoring a model against it
+// asks how well that model explains the bytes two encodings read differently,
+// and nothing else. Returns null when data cannot form a bigram or contains no
+// distinguishing byte. Shared by resolveByBigramRescore and the
+// distinguishing-byte arbitration so both score against the exact same profile.
+export function buildFocusedProfile(
+  data: Uint8Array,
+  diffBytes: Set<number>,
+): BigramProfile | null {
   if (data.length < 2) return null;
 
   // Prefilter: if no distinguishing byte occurs anywhere, the focused
-  // profile below would be empty — skip the per-byte loop.
+  // profile would be empty — skip the per-byte loop.
   const isDiff = _isDiffTable(diffBytes);
   let hits = 0;
   const present = new Set<number>();
@@ -490,8 +519,6 @@ export function resolveByBigramRescore(
     }
   }
   if (hits === 0) return null;
-
-  const comparable = _comparableLanguages(encA, encB, languages);
 
   const idf = getIdfWeights();
   const freq = new Map<number, number>();
@@ -526,14 +553,105 @@ export function resolveByBigramRescore(
   }
 
   if (freq.size === 0) return null;
+  return BigramProfile.fromWeightedFreq(freq);
+}
 
-  const profile = BigramProfile.fromWeightedFreq(freq);
-  const bestA = _bestVariantScore(profile, encA, comparable);
-  const bestB = _bestVariantScore(profile, encB, comparable);
+// Byte -> decode-table lookup, keyed by canonical codec name (chardet resolves
+// aliases through the codec registry; mirror with lookupEncoding).
+let _decodeTablesByCanonical: Map<string, ByteDecodeTable> | null = null;
+function _byteDecodeTable(encoding: string): ByteDecodeTable | null {
+  if (_decodeTablesByCanonical === null) {
+    _decodeTablesByCanonical = new Map();
+    for (const [name, table] of Object.entries(BYTE_DECODE_TABLES)) {
+      _decodeTablesByCanonical.set(lookupEncoding(name) ?? name, table);
+    }
+  }
+  return _decodeTablesByCanonical.get(lookupEncoding(encoding) ?? encoding) ?? null;
+}
 
-  if (bestA > bestB) return encA;
-  if (bestB > bestA) return encB;
-  return null;
+// Sentinel code point for a byte that raised on decode; distinct from the
+// 0xFFFE "decoded to zero or more than one char" sentinel, so both compare by
+// value in differingHighBytes (undecodable != empty, matching Python's
+// None != "").
+const _UNDECODABLE_CP = 0xFFFF;
+
+const _differingHighBytesCache = new Map<string, Set<number>>();
+
+// Byte values >= 0x80 that encA and encB decode to different text.
+//
+// The distinguishing set for a pair the confusion maps do not cover, read from
+// the build-time decode tables (chardet computes it from the codecs
+// themselves). A byte only one side can decode counts as differing. Bytes
+// below 0x80 are left out: the callers ask about high-byte evidence, and every
+// single-byte Latin family agrees on ASCII anyway.
+export function differingHighBytes(encA: string, encB: string): Set<number> {
+  const key = pairKey(encA, encB);
+  const cached = _differingHighBytesCache.get(key);
+  if (cached !== undefined) return cached;
+  const ta = _byteDecodeTable(encA);
+  const tb = _byteDecodeTable(encB);
+  const out = new Set<number>();
+  for (let b = 0x80; b < 0x100; b++) {
+    const cpA = ta === null ? _UNDECODABLE_CP : ta.cps.charCodeAt(b - 0x80);
+    const cpB = tb === null ? _UNDECODABLE_CP : tb.cps.charCodeAt(b - 0x80);
+    if (cpA !== cpB) out.add(b);
+  }
+  _differingHighBytesCache.set(key, out);
+  return out;
+}
+
+// Unicode general categories of each distinguishing byte under both encodings.
+//
+// The confusion maps carry this table for their own pairs; callers that
+// arbitrate a pair the maps do not cover (the niche-Latin demotion's candidate
+// against its swap target) build it from the decode tables. A byte one side
+// cannot decode, or that decodes to zero or several characters, reads as
+// unassigned (Cn), which the vote treats as the least plausible reading of all.
+export function _pairCategories(
+  encA: string,
+  encB: string,
+  diffBytes: Set<number>,
+): Map<number, [string, string]> {
+  const ta = _byteDecodeTable(encA);
+  const tb = _byteDecodeTable(encB);
+  const table = new Map<number, [string, string]>();
+  for (const b of diffBytes) {
+    const catA = ta === null ? 'Cn' : (_INT_TO_CATEGORY[ta.cats.charCodeAt(b)] ?? 'Cn');
+    const catB = tb === null ? 'Cn' : (_INT_TO_CATEGORY[tb.cats.charCodeAt(b)] ?? 'Cn');
+    table.set(b, [catA, catB]);
+  }
+  return table;
+}
+
+// Decide a pair on its distinguishing bytes: model rescore, then context.
+//
+// The in-band rule of resolveConfusionGroups for a pair the confusion maps do
+// not cover, with one difference: each side is scored under the languages the
+// caller names for it rather than the shared set. The bigram rescore decides
+// when the models have an opinion; when they score the distinguishing bigrams
+// equally (usually both at zero, a byte neither model has seen in that
+// context), the category vote reads word shape instead, so a letter between
+// letters still beats a superscript between letters. Returns null when neither
+// step can tell the two apart.
+export function arbitrateDistinguishingBytes(
+  data: Uint8Array,
+  encA: string,
+  encB: string,
+  diffBytes: Set<number>,
+  languagesA: ReadonlySet<string> | null,
+  languagesB: ReadonlySet<string> | null,
+): string | null {
+  const profile = buildFocusedProfile(data, diffBytes);
+  if (profile !== null) {
+    const bestA = _bestVariantScore(profile, encA, languagesA);
+    const bestB = _bestVariantScore(profile, encB, languagesB);
+    if (bestA > bestB) return encA;
+    if (bestB > bestA) return encB;
+  }
+  const { winner } = _voteWithMargin(
+    data, encA, encB, diffBytes, _pairCategories(encA, encB, diffBytes),
+  );
+  return winner;
 }
 
 function _findPairKey(
@@ -553,11 +671,13 @@ function _findPairKey(
 // is a coin flip whenever the distinguishing evidence in the data is
 // sparse — so these pairs require vote/rescore corroboration even for
 // in-band near-ties.
-const _CROSS_FAMILY_MIN_DIFFS = 52;
+export const _CROSS_FAMILY_MIN_DIFFS = 52;
 
 // Maximum confidence gap from the top result for candidates beyond
-// position 1 to participate in confusion resolution.
-const _CONFUSION_BAND = 0.005;
+// position 1 to participate in confusion resolution. Public because it is a
+// contract fact: the pruning contract in postprocess.ts composes it into the
+// floor that statistical pruning must score exactly.
+export const CONFUSION_BAND = 0.005;
 
 // Minimum confidence, as a fraction of the top result's, for out-of-band
 // candidates to participate in the strict tier of confusion resolution.
@@ -565,8 +685,8 @@ const _CONFUSION_BAND = 0.005;
 // statistical ranking among them is still noise (EBCDIC record data), so
 // the strict tier extends beyond the band — but only for challengers with
 // corroborated evidence (vote and bigram agreement, or a decisive
-// demotion-driven vote).
-const _CONFUSION_FLOOR_RATIO = 0.5;
+// demotion-driven vote). Public: a contract fact, see CONFUSION_BAND.
+export const CONFUSION_FLOOR_RATIO = 0.5;
 
 // The strict tier only opens when the top confidence is below this value.
 // A low absolute confidence means no model explains the data, so the
@@ -574,8 +694,8 @@ const _CONFUSION_FLOOR_RATIO = 0.5;
 // evidence may overturn it. A confident top means the statistics are
 // working; overriding them from far down the ranking does more harm than
 // good (correlated vote/rescore errors across the many near-scoring Latin
-// encodings).
-const _STRICT_TIER_MAX_CONF = 0.2;
+// encodings). Public: a contract fact, see CONFUSION_BAND.
+export const STRICT_TIER_MAX_CONF = 0.2;
 
 // Resolve confusion between similar encodings in the top results.
 //
@@ -602,7 +722,7 @@ export function resolveConfusionGroups(
 
   const maps = loadConfusionMaps();
   const topConf = top.confidence;
-  const floor = topConf * _CONFUSION_FLOOR_RATIO;
+  const floor = topConf * CONFUSION_FLOOR_RATIO;
 
   let championIdx = 0;
   let champion = top;
@@ -612,8 +732,8 @@ export function resolveConfusionGroups(
     if (candidate.encoding === null) continue;
     // Position 1 and band members use the original in-band rules;
     // candidates between the band and the floor enter the strict tier.
-    const inBand = i === 1 || topConf - candidate.confidence <= _CONFUSION_BAND;
-    if (!inBand && (topConf >= _STRICT_TIER_MAX_CONF || candidate.confidence < floor)) {
+    const inBand = i === 1 || topConf - candidate.confidence <= CONFUSION_BAND;
+    if (!inBand && (topConf >= STRICT_TIER_MAX_CONF || candidate.confidence < floor)) {
       break;
     }
 

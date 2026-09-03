@@ -36,6 +36,7 @@ interface CliOption {
 const OPTIONS: readonly CliOption[] = [
   { name: 'minimal', type: 'boolean', help: 'Output only the encoding name' },
   { name: 'language', short: 'l', type: 'boolean', help: 'Include detected language in output' },
+  { name: 'mime-type', short: 'm', type: 'boolean', help: 'Include detected MIME type in output' },
   { name: 'encoding-era', short: 'e', type: 'string', metavar: 'ERA', choices: ERA_NAMES, help: 'Encoding era filter' },
   { name: 'include-encodings', short: 'i', type: 'string', metavar: 'LIST', help: 'Comma-separated list of encodings to consider' },
   { name: 'exclude-encodings', short: 'x', type: 'string', metavar: 'LIST', help: 'Comma-separated list of encodings to exclude' },
@@ -56,6 +57,7 @@ const PARSE_ARGS_OPTIONS = Object.fromEntries(
 interface CliValues {
   minimal?: boolean;
   language?: boolean;
+  'mime-type'?: boolean;
   'encoding-era'?: string;
   'include-encodings'?: string;
   'exclude-encodings'?: string;
@@ -91,21 +93,22 @@ function printResult(
   label: string,
   minimal: boolean,
   language: boolean,
+  mimeType: boolean,
   write: (s: string) => void,
 ): void {
+  let desc = String(result.encoding);
   if (minimal) {
+    if (language) desc += ` ${result.language ?? 'und'}`;
+    if (mimeType) desc += ` ${result.mimeType ?? 'application/octet-stream'}`;
+    write(`${desc}\n`);
+  } else {
     if (language) {
       const iso = result.language ?? 'und';
-      write(`${result.encoding} ${iso}\n`);
-    } else {
-      write(`${result.encoding}\n`);
+      const name = titleCase(ISO_TO_LANGUAGE[iso] ?? iso);
+      desc += ` ${iso} (${name})`;
     }
-  } else if (language) {
-    const iso = result.language ?? 'und';
-    const name = titleCase(ISO_TO_LANGUAGE[iso] ?? iso);
-    write(`${label}: ${result.encoding} ${iso} (${name}) with confidence ${result.confidence}\n`);
-  } else {
-    write(`${label}: ${result.encoding} with confidence ${result.confidence}\n`);
+    if (mimeType) desc += ` ${result.mimeType ?? 'application/octet-stream'}`;
+    write(`${label}: ${desc} with confidence ${result.confidence}\n`);
   }
 }
 
@@ -142,6 +145,7 @@ export async function main(argv: string[], opts: MainOptions = {}): Promise<numb
 
   const minimal = values.minimal ?? false;
   const language = values.language ?? false;
+  const mimeType = values['mime-type'] ?? false;
   const eraName = values['encoding-era'];
   const era = eraName
     ? EncodingEra[eraName.toUpperCase() as keyof typeof EncodingEra] ?? EncodingEra.ALL
@@ -184,7 +188,7 @@ export async function main(argv: string[], opts: MainOptions = {}): Promise<numb
         errors += 1;
         continue;
       }
-      printResult(result, filepath, minimal, language, write);
+      printResult(result, filepath, minimal, language, mimeType, write);
     }
     return errors === files.length ? 1 : 0;
   }
@@ -212,7 +216,7 @@ export async function main(argv: string[], opts: MainOptions = {}): Promise<numb
     writeErr(`jschardet: stdin: detection failed: ${msg}\n`);
     return 1;
   }
-  printResult(result, 'stdin', minimal, language, write);
+  printResult(result, 'stdin', minimal, language, mimeType, write);
   return 0;
 }
 

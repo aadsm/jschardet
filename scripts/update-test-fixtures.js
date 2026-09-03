@@ -38,6 +38,17 @@ const FIXTURES = [
   { src: 'macroman-de/culturax_mC4_83756.txt',
     dst: 'cjk_gating/macroman_de.txt' },
 
+  // postprocess.test.ts — niche-Latin demotion stands down on sparse but
+  // real distinguishing-byte evidence (chardet's _SPARSE_EVIDENCE_CASES).
+  { src: 'iso-8859-14-cy/culturax_mC4_78730.txt',
+    dst: 'sparse_evidence/welsh_iso8859_14.txt' },
+  { src: 'hp-roman8-fr/historic_c8503b2f176c.txt',
+    dst: 'sparse_evidence/french_hproman8.txt' },
+  { src: 'hp-roman8-en/historic_090eae0374e5.txt',
+    dst: 'sparse_evidence/english_hproman8.txt' },
+  { src: 'iso-8859-10-fi/culturax_00002.txt',
+    dst: 'sparse_evidence/kven_iso8859_10.txt' },
+
   // mime_type.test.ts — magic-number samples from None-None/
   { src: 'None-None/sample-1.gif',  dst: 'mime_type/sample-1.gif' },
   { src: 'None-None/sample-1.jpg',  dst: 'mime_type/sample-1.jpg' },

@@ -8,12 +8,9 @@ import * as path from 'path';
 import { detect } from '../src/chardet.js';
 import { UniversalDetector } from '../src/detector.js';
 import { EncodingEra } from '../src/enums.js';
-import {
-  isCorrect,
-  isLanguageEquivalent,
-} from '../src/evaluation.js';
+import { isLanguageEquivalent } from '../src/evaluation.js';
 import { REGISTRY, lookupEncoding } from '../src/registry.js';
-import { collectTestFiles, getDataDir, isEquivalentDetection, normalizeLanguage } from './utils.js';
+import { collectTestFiles, getDataDir, isAcceptable, normalizeLanguage } from './utils.js';
 import { _shutdown } from './helpers/codecs.js';
 
 // ---------------------------------------------------------------------------
@@ -24,10 +21,13 @@ import { _shutdown } from './helpers/codecs.js';
 // documented behavioral divergence, never an inherited one — keep the
 // inherited blocks below identical to chardet's test_accuracy.py.
 const _DIVERGENT_FAILURES: readonly string[] = [
-  // Python resolves this via the markup decode-safety promotion, which cannot
+  // Python resolves these via the markup decode-safety promotion, which cannot
   // fire under WHATWG (its shift_jis decoder already accepts CP932
   // extensions) — see _MARKUP_SUPERSET_PROMOTIONS in src/pipeline/orchestrator.ts.
+  // Both are declared-Shift_JIS pages using CP932-only bytes: Python promotes
+  // to CP932, the port keeps SHIFT_JIS (a decode-equivalent name under WHATWG).
   'cp932-ja/y-moto.com.xml',
+  'cp932-ja/hardsoft.at.webry.info.xml',
 ];
 
 const _KNOWN_FAILURES: ReadonlySet<string> = new Set([
@@ -98,10 +98,7 @@ describe('detect', () => {
       if (enc === null) {
         expect(detected).toBeNull();
       } else {
-        expect(
-          isCorrect(enc, detected) ||
-            (await isEquivalentDetection(data, enc, detected)),
-        ).toBe(true);
+        expect(await isAcceptable(data, enc, detected)).toBe(true);
       }
     };
 
@@ -147,10 +144,7 @@ describe('detect_era_filtered', () => {
       if (enc === null) {
         expect(detected).toBeNull();
       } else {
-        expect(
-          isCorrect(enc, detected) ||
-            (await isEquivalentDetection(data, enc, detected)),
-        ).toBe(true);
+        expect(await isAcceptable(data, enc, detected)).toBe(true);
       }
     };
 

@@ -69,7 +69,7 @@ export function fillLanguages(
     // exists; only the scored tiers can justify a demotion)
     let lang = recheck ? null : inferLanguage(encoding);
     // Tier 2: statistical scoring for multi-language encodings
-    if (lang === null && data.length > 0 && hasModelVariants(encoding)) {
+    if (lang === null && data.length > 0 && _internal.hasModelVariants(encoding)) {
       if (profile === null) profile = new BigramProfile(data);
       const [, l] = scoreBestLanguage(data, encoding, profile, { demoteThinRare: thin });
       lang = l;
@@ -81,7 +81,7 @@ export function fillLanguages(
     // Their verdict is only accepted as a demotion; a rare verdict leaves
     // the Tier-2 label in place.
     const escalate = thin && lang !== null && RARE_LANGUAGES.has(lang);
-    if ((lang === null || escalate) && data.length > 0 && hasModelVariants('utf-8')) {
+    if ((lang === null || escalate) && data.length > 0 && _internal.hasModelVariants('utf-8')) {
       const utf8Data = _toUtf8(data, encoding);
       if (utf8Data !== null && utf8Data.length > 0) {
         if (!_bytesEqual(utf8Data, utf8ProfileSrc)) {
@@ -114,5 +114,11 @@ export function fillLanguages(
   }
   return filled;
 }
+
+// Test-spy seam. The Python tier tests monkeypatch language.has_model_variants
+// to force each tier; routing the two gate calls through this object lets
+// vi.spyOn(_internal, 'hasModelVariants') do the same. See orchestrator.ts's
+// _internal for the pattern.
+export const _internal = { hasModelVariants };
 
 export { _LANG_SCORE_MAX_BYTES, _toUtf8 };
