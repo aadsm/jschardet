@@ -84,8 +84,8 @@ test('rejects windows-125x SBCS on undefined C1 bytes (matches Python, not WHATW
   // through to U+0081 etc. under fatal: true. The validity filter used to
   // route windows-125x through TextDecoder, so files with undefined C1 bytes
   // (e.g. johab-encoded Korean) kept cp1250 as a candidate and outscored
-  // their true encoding statistically. SBCS_UNDEFINED_BYTES is now consulted
-  // first and matches Python's strict behaviour.
+  // their true encoding statistically. The byte tables' undefined positions
+  // are consulted first and match Python's strict behaviour.
   const data = new Uint8Array([0x48, 0x69, 0x81]); // "Hi" + cp1250 undefined byte
   const candidates = getCandidates(EncodingEra.ALL).filter(e => e.name === 'cp1250');
   expect(candidates.length).toBe(1);

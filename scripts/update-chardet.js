@@ -5,7 +5,6 @@ import { dirname, join } from 'node:path';
 import { TEST_DATA_REPO } from './lib/test-data.js';
 import { generate as generateWhatwgMap } from './generate-encodings-whatwg-map.js';
 import { generate as generateModelBins } from './generate-model-bins.js';
-import { generate as generateSbcsUndefinedBytes } from './generate-sbcs-undefined-bytes.js';
 import { generate as generateByteTables } from './generate-byte-tables.js';
 import { listChardetTags } from './chardet-version.js';
 
@@ -75,7 +74,6 @@ async function updateSubmodule(ref) {
   execSync(`git checkout ${ref}`, { cwd: chardetDir, stdio: 'inherit' });
   console.log(`Done. chardet pinned to ${ref}.`);
   generateWhatwgMap();
-  generateSbcsUndefinedBytes();
   generateByteTables();
   await generateModelBins();
   if (sha) {

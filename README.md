@@ -18,7 +18,7 @@ The API is `detect()` and `detectAll()`, returning `encoding`, `confidence`, `la
 | Speed | **568 files/s** | 125 files/s | 212 files/s |
 | Language detection | **93.3%** | — | 93.3% |
 | Peak memory | **89.9 MiB** | 829.1 MiB | 37.4 MiB |
-| Bundle size (min / gzip) | **1,146 / 692 KiB** | 334 / 119 KiB | — |
+| Bundle size (min / gzip) | **1,141 / 691 KiB** | 334 / 119 KiB | — |
 | Cold start (import + first detect) | **107.9 ms** | 27.8 ms | 99.7 ms |
 | Runs in browsers | **yes** | yes | — |
 | MIME type detection | **yes** | no | yes |
