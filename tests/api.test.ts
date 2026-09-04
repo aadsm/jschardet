@@ -7,6 +7,7 @@
 
 import { vi } from 'vitest';
 import { detect, detectAll } from '../src/chardet.js';
+import { _setDebug } from '../src/debug.js';
 import { UniversalDetector } from '../src/detector.js';
 import { EncodingEra, LanguageFilter } from '../src/enums.js';
 import { getCandidates, normalizeEncodings } from '../src/registry.js';
@@ -361,25 +362,40 @@ describe('should_rename_legacy', () => {
     expect(result.encoding).toBe('EUC-JP');
   });
 
-  test('emits DeprecationWarning when should_rename_legacy=true', () => {
+  test('emits DeprecationWarning when should_rename_legacy=true and debug is on', () => {
     const { calls, restore } = captureWarnings();
+    _setDebug(true);
     try {
       detect(HELLO_WORLD, { shouldRenameLegacy: true });
       const dep = calls.filter(c => c.startsWith('DEPRECATION:'));
       expect(dep.length).toBe(1);
       expect(dep[0]).toMatch(/should_rename_legacy/);
     } finally {
+      _setDebug(false);
       restore();
     }
   });
 
-  test('detector emits DeprecationWarning when should_rename_legacy=true', () => {
+  test('detector emits DeprecationWarning when should_rename_legacy=true and debug is on', () => {
     const { calls, restore } = captureWarnings();
+    _setDebug(true);
     try {
       new UniversalDetector({ shouldRenameLegacy: true });
       const dep = calls.filter(c => c.startsWith('DEPRECATION:'));
       expect(dep.length).toBe(1);
       expect(dep[0]).toMatch(/should_rename_legacy/);
+    } finally {
+      _setDebug(false);
+      restore();
+    }
+  });
+
+  test('stays silent when should_rename_legacy=true and debug is off', () => {
+    const { calls, restore } = captureWarnings();
+    try {
+      // The remap still happens; only the deprecation notice is gated.
+      expect(detect(HELLO_WORLD, { shouldRenameLegacy: true }).encoding).toBe('Windows-1252');
+      expect(calls.filter(c => c.startsWith('DEPRECATION:')).length).toBe(0);
     } finally {
       restore();
     }
@@ -451,13 +467,26 @@ describe('ignore_threshold', () => {
 });
 
 describe('lang_filter deprecation', () => {
-  test('non-ALL emits DeprecationWarning', () => {
+  test('non-ALL emits DeprecationWarning when debug is on', () => {
     const { calls, restore } = captureWarnings();
+    _setDebug(true);
     try {
       new UniversalDetector({ langFilter: LanguageFilter.CJK });
       const dep = calls.filter(c => c.startsWith('DEPRECATION:'));
       expect(dep.length).toBe(1);
       expect(dep[0]).toMatch(/lang_filter/);
+    } finally {
+      _setDebug(false);
+      restore();
+    }
+  });
+
+  test('non-ALL stays silent when debug is off', () => {
+    const { calls, restore } = captureWarnings();
+    try {
+      new UniversalDetector({ langFilter: LanguageFilter.CJK });
+      const dep = calls.filter(c => c.startsWith('DEPRECATION:'));
+      expect(dep.length).toBe(0);
     } finally {
       restore();
     }
@@ -465,11 +494,13 @@ describe('lang_filter deprecation', () => {
 
   test('ALL does not warn', () => {
     const { calls, restore } = captureWarnings();
+    _setDebug(true);
     try {
       new UniversalDetector({ langFilter: LanguageFilter.ALL });
       const dep = calls.filter(c => c.startsWith('DEPRECATION:'));
       expect(dep.length).toBe(0);
     } finally {
+      _setDebug(false);
       restore();
     }
   });
@@ -494,13 +525,26 @@ describe('max_bytes validation', () => {
 });
 
 describe('chunk_size deprecation', () => {
-  test('non-default emits DeprecationWarning', () => {
+  test('non-default emits DeprecationWarning when debug is on', () => {
     const { calls, restore } = captureWarnings();
+    _setDebug(true);
     try {
       detect(HELLO_WORLD, { chunkSize: 1024 });
       const dep = calls.filter(c => c.startsWith('DEPRECATION:'));
       expect(dep.length).toBe(1);
       expect(dep[0]).toMatch(/chunk_size/);
+    } finally {
+      _setDebug(false);
+      restore();
+    }
+  });
+
+  test('non-default stays silent when debug is off', () => {
+    const { calls, restore } = captureWarnings();
+    try {
+      detect(HELLO_WORLD, { chunkSize: 1024 });
+      const dep = calls.filter(c => c.startsWith('DEPRECATION:'));
+      expect(dep.length).toBe(0);
     } finally {
       restore();
     }
@@ -508,11 +552,13 @@ describe('chunk_size deprecation', () => {
 
   test('default does not warn', () => {
     const { calls, restore } = captureWarnings();
+    _setDebug(true);
     try {
       detect(HELLO_WORLD);
       const dep = calls.filter(c => c.startsWith('DEPRECATION:'));
       expect(dep.length).toBe(0);
     } finally {
+      _setDebug(false);
       restore();
     }
   });

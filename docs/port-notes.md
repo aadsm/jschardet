@@ -89,6 +89,17 @@ never left the one the oracle *is*. See `docs/missing-python-tests.md`.
 
 **TypeScript:** `Uint8Array` has no `.startsWith()` method. A shared helper `startsWith(data, prefix)` is added to `src/utils.ts`. Used by `bom.ts` and `magic.ts`.
 
+## Python warnings → console output
+
+**Python:** chardet raises warnings through `warnings.warn`, and Python's default warnings filter (in the `warnings` stdlib module, so not implementation-specific) treats the categories differently: it **hides `DeprecationWarning`** outside `__main__` but **shows `UserWarning` and `RuntimeWarning`** — and a caller can retune any of it (`-W`, `PYTHONWARNINGS`, `filterwarnings`).
+
+**TypeScript:** JS has no warnings filter — `console.warn` always prints, once per call, un-silenceable short of monkeypatching. So map each category to the JS behaviour that matches Python's *default*, not a blanket `console.warn`:
+
+- `DeprecationWarning` → `warnDeprecated()` in `src/debug.ts`, gated behind `enableDebug()`. Silent by default like Python, opt-in through the same flag that turns on candidate logging — `enableDebug()` is the port's stand-in for the warnings filter. The condition stays at the call site; `warnDeprecated` owns only how the notice surfaces (the gate plus the `DEPRECATION:` prefix the suite filters on).
+- `UserWarning` and `RuntimeWarning` → unconditional `console.warn` at the call site, matching Python's default.
+
+Two divergences no gate restores: JS does not de-duplicate (Python shows each warning once per site), and there is no per-warning filter — `enableDebug()` is all-or-nothing.
+
 ## Dataclasses without methods → interfaces
 
 **Python:** dataclasses used purely as data containers, with no methods.

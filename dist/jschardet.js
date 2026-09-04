@@ -45,13 +45,25 @@ var jschardet = (() => {
     detectAll: () => detectAll
   });
 
+  // src/debug.ts
+  var _debug = false;
+  function isDebug() {
+    return _debug;
+  }
+  function enableDebug() {
+    _debug = true;
+  }
+  function warnDeprecated(message) {
+    if (_debug) console.warn(`DEPRECATION: ${message}`);
+  }
+
   // src/utils.ts
   var DEFAULT_MAX_BYTES = 2e5;
   var EVIDENCE_CAP_BYTES = 256 * 1024;
   var _DEFAULT_CHUNK_SIZE = 65536;
   function _warnDeprecatedChunkSize(chunkSize) {
     if (chunkSize !== _DEFAULT_CHUNK_SIZE) {
-      console.warn("DEPRECATION: chunk_size is not used in this version of chardet and will be ignored");
+      warnDeprecated("chunk_size is not used in this version of chardet and will be ignored");
     }
   }
   function _validateMaxBytes(maxBytes) {
@@ -61,7 +73,7 @@ var jschardet = (() => {
   }
   function _resolvePreferSuperset(shouldRenameLegacy, preferSuperset) {
     if (shouldRenameLegacy) {
-      console.warn("DEPRECATION: should_rename_legacy is deprecated, use prefer_superset instead");
+      warnDeprecated("should_rename_legacy is deprecated, use prefer_superset instead");
       return true;
     }
     return preferSuperset;
@@ -4702,9 +4714,7 @@ var jschardet = (() => {
       const noMatchEncoding = options.noMatchEncoding ?? "cp1252";
       const emptyInputEncoding = options.emptyInputEncoding ?? "utf-8";
       if (langFilter !== LanguageFilter.ALL) {
-        console.warn(
-          "DEPRECATION: lang_filter is not implemented in this version of chardet and will be ignored"
-        );
+        warnDeprecated("lang_filter is not implemented in this version of chardet and will be ignored");
       }
       this._preferSuperset = _resolvePreferSuperset(shouldRenameLegacy, preferSuperset);
       this._compatNames = compatNames;
@@ -4863,10 +4873,6 @@ var jschardet = (() => {
   var VERSION = "4.0.0-rc.3";
 
   // src/index.ts
-  var _debug = false;
-  function enableDebug() {
-    _debug = true;
-  }
   function toBytes(input) {
     if (typeof input === "string") {
       const bytes = new Uint8Array(input.length);
@@ -4883,7 +4889,7 @@ var jschardet = (() => {
       includeEncodings: options.detectEncodings ?? null,
       excludeEncodings: options.excludeEncodings ?? null
     };
-    if (_debug) {
+    if (isDebug()) {
       const all = detectAll(bytes, { ...chardetOptions, ignoreThreshold: true });
       console.log("[jschardet] detect candidates:", all);
       return all[0];
@@ -4898,9 +4904,9 @@ var jschardet = (() => {
     };
     const hasCustomThreshold = options.minimumThreshold !== void 0;
     const threshold = options.minimumThreshold ?? MINIMUM_THRESHOLD;
-    const ignoreThreshold = _debug || hasCustomThreshold;
+    const ignoreThreshold = isDebug() || hasCustomThreshold;
     const all = detectAll(bytes, { ...chardetOptions, ignoreThreshold });
-    if (_debug) console.log("[jschardet] detectAll candidates:", all);
+    if (isDebug()) console.log("[jschardet] detectAll candidates:", all);
     if (!hasCustomThreshold) return all;
     const filtered = all.filter((r) => r.confidence >= threshold);
     return filtered.length > 0 ? filtered : all;
