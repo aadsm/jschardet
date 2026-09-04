@@ -87,20 +87,15 @@ concatenated, so each per-encoding literal is the size of its high half.
 
 **Three call sites**, all through `byte-decode.ts`:
 
-- [`decode.ts`](../src/decode.ts) — the two predicates
-  that must reproduce Python's judgment, `decodesWithoutError` (tolerant,
-  the `filter_by_validity` question) and `decodesCompletely`
-  (strict/whole-input, for the decode-safety flip and the past-cap hold),
-  answer every single-byte encoding from the table: a stateless codec decodes
-  data iff no undefined byte appears (`decodesAsSingleByte`). Their sibling
-  `danglingTailWithAsciiPrefix` (chardet's `dangling_tail_with_ascii_prefix`)
-  answers a single-byte encoding as false before any decode, since it has no
-  multi-byte tail. That closes gap
-  2 — windows-125x and the other SBCS with WHATWG labels match CPython
-  instead of WHATWG's pass-through, and the pages TextDecoder lacks are
-  checked rather than waved through, and `ascii` is strictly 7-bit rather
-  than the windows-1252 its WHATWG label aliases. Only the multi-byte
-  encodings reach `TextDecoder`.
+- [`decode.ts`](../src/decode.ts) — the by-name decode API (next section)
+  answers every single-byte encoding from the table: a stateless codec
+  decodes data iff no undefined byte appears (`decodesAsSingleByte`), its
+  strict text is the table's characters (`decodeSingleByteText`), and it has
+  no multi-byte tail. That closes gap 2 — windows-125x and the other SBCS
+  with WHATWG labels match CPython instead of WHATWG's pass-through, the
+  pages TextDecoder lacks are checked rather than waved through, and `ascii`
+  is strictly 7-bit rather than the windows-1252 its WHATWG label aliases.
+  Only the multi-byte encodings reach `TextDecoder`.
 - [`pipeline/markup.ts`](../src/pipeline/markup.ts) — charset declarations
   inside EBCDIC-encoded markup can't be read with any WHATWG decoder, so the
   head is decoded as cp037 from the table (`decodeSingleByteText`, chardet's
@@ -151,34 +146,48 @@ tabling it would mean shipping a general UCD snapshot. The drift rarely changes
 a ranking, so the port accepts `\p{...}` here and documents the caveat in
 architecture.md §e.
 
-## The unified shim, and the two corners it can't reach
+## The unified shim: `src/decode.ts`
 
 Every bridge above is a point-solution to the same root need: *faithfully
 answer "decode these bytes as CPython would" and "what is this code point's
-category at CPython's UCD version."* The natural general solution is a single
-build-time-extracted **"codec + unicodedata" data layer** that every site
-queries, instead of each reaching for `TextDecoder` / `\p{}` / a table of its
-own.
+category at CPython's UCD version."* The port's answer to the first half is
+one module, [`src/decode.ts`](../src/decode.ts): the decode questions chardet
+asks through the `codecs` module, each keyed by chardet encoding name and
+each choosing the mechanism per encoding — the byte tables for a single-byte
+codec, the WHATWG decoder (the `whatwg*` helpers in
+[`text-decoder.ts`](../src/text-decoder.ts)) for a multi-byte one. Nothing
+else in the pipeline calls a WHATWG decoder for a chardet decode question.
 
-For the single-byte, build-time-known slice, that layer exists:
-`_byte-decode-tables.ts` behind `byte-decode.ts` is the one artifact that
-*decode-single-byte*, *strictness*, *category* and *letter-kind* all come
-from, and validity, markup and confusion all query it. Its consumers hold no
-single-byte data of their own.
+| `src/decode.ts` | chardet | Asked by | No WHATWG decoder → |
+|---|---|---|---|
+| `decodesWithoutError` | `_utils.decodes_without_error` | validity filtering, the past-cap hold, prefer_superset, declared charsets and superset promotion in markup, the dead-heat superset | kept as valid (as `filter_by_validity` keeps it) |
+| `decodesCompletely` | `_utils.decodes_completely` | the decode-safety flip | false |
+| `danglingTailWithAsciiPrefix` | `_utils.dangling_tail_with_ascii_prefix` | the decode-safety flip | false |
+| `decodeText` | `bytes.decode(enc, errors="ignore")` | language scoring (`to-utf8.ts`) | null |
+| `decodeStrictText` | `bytes.decode(enc)` | the UTF-16 sample decode (`utf1632.ts`) | null |
+
+Below it, `_byte-decode-tables.ts` behind `byte-decode.ts` is the
+single-byte data layer that *decode-single-byte*, *strictness*, *category*
+and *letter-kind* all come from; `decode.ts`, markup's cp037 scan and
+confusion's category voting query it, and hold no single-byte data of their
+own.
 
 Two corners resist the general solution for structural reasons, not for lack of
 effort:
 
 1. **Multibyte decoding can't be tabled.** You can't enumerate CJK sequence
-   space, so `TextDecoder` stays for the multi-byte encodings — and that is
-   exactly where the codec-collapse divergence (gap 3) lives. Only shipping
-   first-party CJK decoders would close it, which is enormous and not
-   worthwhile for the handful of corpus files affected.
+   space, so inside `decode.ts` the multi-byte encodings still go to
+   `TextDecoder` — and that is exactly where the codec-collapse divergence
+   (gap 3) lives. Only shipping first-party CJK decoders would close it,
+   which is enormous and not worthwhile for the handful of corpus files
+   affected. `decodeText` inherits the same limit for language scoring: a
+   single-byte page TextDecoder lacks yields no text there yet, and its
+   gap-filled positions are WHATWG's, not Python's.
 2. **Category scoring over arbitrary text (utf1632) needs general UCD
    coverage.** A faithful snapshot there is large, for a heuristic where the
    drift seldom changes the answer — so `\p{...}` with a documented caveat is a
    deliberate cost trade, not something a single-byte table can absorb.
 
-So the single-byte / build-time-known corner is consolidated, and the
-multibyte-decode and arbitrary-text-category corners stay point-solutions on
-purpose.
+So every decode question has one entry point, the single-byte /
+build-time-known corner behind it is consolidated, and the multibyte-decode
+and arbitrary-text-category corners stay point-solutions on purpose.
