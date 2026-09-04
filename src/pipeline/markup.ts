@@ -101,8 +101,13 @@ function _detectPep263(data: Uint8Array): DetectionResult | null {
   if (!data.subarray(0, 200).includes(0x23)) return null;
 
   // Python uses a byte-regex (rb"...") on raw bytes. JS RegExp needs a string,
-  // so decode as latin1 — a 1:1 byte→codepoint mapping (0xNN → U+00NN) that
-  // never raises, preserving byte values for the ASCII guard below.
+  // so decode with WHATWG's 'latin1', which never raises and maps every ASCII
+  // byte to itself; that is all the regexes need, since they match ASCII
+  // structure only. It is not a 1:1 byte mapping — WHATWG's 'latin1' is an
+  // alias of windows-1252, so 0x80..0x9F become characters like U+20AC — but
+  // a high byte lands on a non-ASCII character under either mapping, which
+  // is all the ASCII guard below needs. Not a decode of the data in any
+  // encoding's sense, so it stays out of src/decode.ts.
   const text = new TextDecoder('latin1').decode(data);
   const lines = text.split('\n');
   const firstTwo = lines.slice(0, 2).join('\n');
@@ -112,10 +117,10 @@ function _detectPep263(data: Uint8Array): DetectionResult | null {
 
   const rawName = m[1].trim();
   // Extra step with no Python equivalent. Python relies on .decode("ascii")
-  // raising UnicodeDecodeError to bail on non-ASCII charset names. Our latin1
-  // decode is total (never raises) and preserves bytes 0x80..0xFF as
-  // U+0080..U+00FF, so non-ASCII bytes survive into rawName. Guard explicitly
-  // before handing off to lookupEncoding to match Python's control flow.
+  // raising UnicodeDecodeError to bail on non-ASCII charset names. Our decode
+  // is total (never raises) and turns every high byte into a non-ASCII
+  // character, so such bytes survive into rawName. Guard explicitly before
+  // handing off to lookupEncoding to match Python's control flow.
   if (!_isAscii(rawName)) return null;
 
   const encoding = lookupEncoding(rawName);
@@ -133,7 +138,7 @@ export function detectMarkupCharset(data: Uint8Array): DetectionResult | null {
   if (data.length === 0) return null;
 
   const head = data.subarray(0, _SCAN_LIMIT);
-  // latin1 decode for byte-preserving regex (see _detectPep263 for rationale).
+  // ASCII-preserving decode for the byte regexes (see _detectPep263).
   const headStr = new TextDecoder('latin1').decode(head);
 
   const patterns: Array<[RegExp, string]> = [
@@ -147,7 +152,7 @@ export function detectMarkupCharset(data: Uint8Array): DetectionResult | null {
     if (!m) continue;
     const rawName = m[1].trim();
     // Extra step with no Python equivalent — see _detectPep263 for the full
-    // rationale. Latin1 decode never raises, so non-ASCII bytes survive into
+    // rationale. The decode never raises, so non-ASCII bytes survive into
     // rawName; this guard reproduces Python's UnicodeDecodeError bail-out.
     if (!_isAscii(rawName)) continue;
     const encoding = lookupEncoding(rawName);
