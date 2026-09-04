@@ -1,6 +1,5 @@
 import { DETERMINISTIC_CONFIDENCE, DetectionResult, PipelineContext } from './index.js';
 import { lookupEncoding, EncodingName, REGISTRY } from '../registry.js';
-import { whatwgDecodesWithoutError, whatwgLabelFor } from '../text-decoder.js';
 import { computeStructuralScore } from './structural.js';
 import { EncodingEra } from '../enums.js';
 import { decodesWithoutError } from '../decode.js';
@@ -20,15 +19,13 @@ function _isAscii(s: string): boolean {
   return true;
 }
 
-// Port of Python's _validate_bytes: decodes_without_error over the first
-// _SCAN_LIMIT bytes. Python supports ~90 codecs; TextDecoder only supports
-// WHATWG labels. Encodings without a label fall through to a pass — accepted
-// parity drift, see "bytes.decode() validity filtering" in
-// docs/architecture.md.
+// Port of chardet's _validate_bytes: decodes_without_error over the first
+// _SCAN_LIMIT bytes. A declared single-byte charset is judged by Python's
+// codec (a declared windows-1252 page carrying 0x81 is not honoured, as in
+// chardet); a multi-byte one with no WHATWG decoder passes unchecked — see
+// "bytes.decode() validity filtering" in docs/architecture.md.
 function _validateBytes(data: Uint8Array, encoding: EncodingName): boolean {
-  const label = whatwgLabelFor(encoding);
-  if (!label) return true;
-  return whatwgDecodesWithoutError(label, data.subarray(0, _SCAN_LIMIT));
+  return decodesWithoutError(encoding, data.subarray(0, _SCAN_LIMIT));
 }
 
 // Charset declarations in EBCDIC-encoded markup, matched against a cp037

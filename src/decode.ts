@@ -31,13 +31,9 @@ import { byteDecodeTable, decodesAsSingleByte } from './pipeline/byte-decode.js'
 // as filter_by_validity would — tolerant of an incomplete multi-byte
 // sequence at the end of the input, which detection input (usually a prefix
 // of a larger whole) routinely has. An encoding with no WHATWG decoder is
-// treated as valid, exactly as filter_by_validity keeps it.
-//
-// ascii is the one single-byte codec kept on the TextDecoder path: its WHATWG
-// label is an alias of windows-1252, so it accepts every high byte here,
-// where Python's codec rejects them. The ascii stage settles pure-ASCII
-// input before validity runs, and decodesCompletely below answers ascii
-// from the tables.
+// treated as valid, exactly as filter_by_validity keeps it. ascii is a
+// single-byte codec like any other, with every high byte undefined; its
+// WHATWG label is an alias of windows-1252 and would accept them all.
 //
 // Callers that must reproduce validity's judgment on a different window — the
 // past-cap validity hold, and prefer_superset's decode-safety check — go
@@ -45,10 +41,8 @@ import { byteDecodeTable, decodesAsSingleByte } from './pipeline/byte-decode.js'
 // gap-filling WHATWG decoder passes bytes (0x81, 0x8D, 0x9D) that Python's
 // codec rejects.
 export function decodesWithoutError(encName: string, data: Uint8Array): boolean {
-  if (encName !== 'ascii') {
-    const singleByte = decodesAsSingleByte(encName, data);
-    if (singleByte !== null) return singleByte;
-  }
+  const singleByte = decodesAsSingleByte(encName, data);
+  if (singleByte !== null) return singleByte;
   const label = whatwgLabelFor(encName);
   if (label === null) return true;
   return whatwgDecodesWithoutError(label, data);

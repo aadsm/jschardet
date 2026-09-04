@@ -98,10 +98,9 @@ concatenated, so each per-encoding literal is the size of its high half.
   multi-byte tail. That closes gap
   2 — windows-125x and the other SBCS with WHATWG labels match CPython
   instead of WHATWG's pass-through, and the pages TextDecoder lacks are
-  checked rather than waved through. Only the multi-byte encodings reach
-  `TextDecoder`. The one exception is `ascii` in the tolerant predicate,
-  which stays on its WHATWG alias (windows-1252) and so accepts high bytes
-  there; the strict predicate answers it from the table, as strictly 7-bit.
+  checked rather than waved through, and `ascii` is strictly 7-bit rather
+  than the windows-1252 its WHATWG label aliases. Only the multi-byte
+  encodings reach `TextDecoder`.
 - [`pipeline/markup.ts`](../src/pipeline/markup.ts) — charset declarations
   inside EBCDIC-encoded markup can't be read with any WHATWG decoder, so the
   head is decoded as cp037 from the table (`decodeSingleByteText`, chardet's

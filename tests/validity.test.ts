@@ -93,6 +93,16 @@ test('rejects windows-125x SBCS on undefined C1 bytes (matches Python, not WHATW
   expect(valid.length).toBe(0);
 });
 
+test('rejects ascii on a high byte (Python, not the WHATWG windows-1252 alias)', () => {
+  // TextDecoder('ascii') is a WHATWG alias of windows-1252 and decodes every
+  // byte; Python's ascii codec raises on 0x80 and above. The byte tables
+  // answer ascii like any other single-byte codec.
+  const candidates = getCandidates(EncodingEra.ALL).filter(e => e.name === 'ascii');
+  expect(candidates.length).toBe(1);
+  expect(filterByValidity(new TextEncoder().encode('Hello'), candidates).length).toBe(1);
+  expect(filterByValidity(new Uint8Array([0x48, 0x69, 0xe9]), candidates).length).toBe(0);
+});
+
 test('rejects SBCS without WHATWG label when bytes hit the undefined-byte set', () => {
   // 0xAA is undefined under koi8-t and cp424, but defined under cp864 and cp1256.
   // Without the undefined-byte table, koi8-t and cp424 would slip through validity since they

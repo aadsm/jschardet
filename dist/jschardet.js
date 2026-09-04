@@ -1389,10 +1389,8 @@ var jschardet = (() => {
 
   // src/decode.ts
   function decodesWithoutError(encName, data4) {
-    if (encName !== "ascii") {
-      const singleByte = decodesAsSingleByte(encName, data4);
-      if (singleByte !== null) return singleByte;
-    }
+    const singleByte = decodesAsSingleByte(encName, data4);
+    if (singleByte !== null) return singleByte;
     const label = whatwgLabelFor(encName);
     if (label === null) return true;
     return whatwgDecodesWithoutError(label, data4);
@@ -3176,9 +3174,7 @@ var jschardet = (() => {
     return true;
   }
   function _validateBytes(data4, encoding) {
-    const label = whatwgLabelFor(encoding);
-    if (!label) return true;
-    return whatwgDecodesWithoutError(label, data4.subarray(0, _SCAN_LIMIT));
+    return decodesWithoutError(encoding, data4.subarray(0, _SCAN_LIMIT));
   }
   var _EBCDIC_TAG_RE = /<(?:meta|\?xml)[^>]*/gi;
   var _EBCDIC_DECL_RE = /(?:charset|encoding)\s*=\s*[^\sA-Za-z0-9._-]?\s*([A-Za-z][A-Za-z0-9._-]+)/gi;
