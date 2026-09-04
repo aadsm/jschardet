@@ -13,6 +13,28 @@ function concat(...arrs: Uint8Array[]): Uint8Array {
   return out;
 }
 
+// A declared single-byte charset is honoured only if Python's strict codec
+// decodes the head (chardet's _validate_bytes). WHATWG's windows-1252 decoder
+// accepts 0x81 and TextDecoder('ascii') is an alias of windows-1252, so both
+// would honour these declarations; Python rejects them and falls through to
+// statistics.
+describe('declared single-byte charsets are judged by the Python codec', () => {
+  test('a declared windows-1252 page is honoured when it decodes', () => {
+    const data = concat(enc('<meta charset="windows-1252"><p>caf'), new Uint8Array([0xe9]), enc('</p>'));
+    expect(detectMarkupCharset(data)?.encoding).toBe('cp1252');
+  });
+
+  test('a declared windows-1252 page with an undefined byte is not', () => {
+    const data = concat(enc('<meta charset="windows-1252"><p>caf'), new Uint8Array([0x81]), enc('</p>'));
+    expect(detectMarkupCharset(data)).toBeNull();
+  });
+
+  test('a declared ascii page with a high byte is not', () => {
+    const data = concat(enc('<meta charset="us-ascii"><p>caf'), new Uint8Array([0xe9]), enc('</p>'));
+    expect(detectMarkupCharset(data)).toBeNull();
+  });
+});
+
 describe('detectMarkupCharset', () => {
   test('XML encoding declaration', () => {
     const data = enc('<?xml version="1.0" encoding="iso-8859-1"?><root/>');
