@@ -1,3 +1,5 @@
+import { warnDeprecated } from './debug.js';
+
 export const DEFAULT_MAX_BYTES = 200_000;
 
 // Evidence cap: how much of the examination window the candidate-filtering,
@@ -10,11 +12,9 @@ export const EVIDENCE_CAP_BYTES = 256 * 1024;
 
 export const _DEFAULT_CHUNK_SIZE = 65_536;
 
-// Python emits DeprecationWarning; JS uses console.warn with a "DEPRECATION:"
-// prefix so tests can filter via regex.
 export function _warnDeprecatedChunkSize(chunkSize: number): void {
   if (chunkSize !== _DEFAULT_CHUNK_SIZE) {
-    console.warn("DEPRECATION: chunk_size is not used in this version of chardet and will be ignored");
+    warnDeprecated("chunk_size is not used in this version of chardet and will be ignored");
   }
 }
 
@@ -32,7 +32,8 @@ export function _resolvePreferSuperset(
   preferSuperset: boolean,
 ): boolean {
   if (shouldRenameLegacy) {
-    console.warn("DEPRECATION: should_rename_legacy is deprecated, use prefer_superset instead");
+    // The notice is debug-gated; the remap itself is unconditional.
+    warnDeprecated("should_rename_legacy is deprecated, use prefer_superset instead");
     return true;
   }
   return preferSuperset;

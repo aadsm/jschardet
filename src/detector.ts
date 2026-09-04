@@ -7,6 +7,7 @@ import {
   _resolvePreferSuperset,
   _validateMaxBytes,
 } from './utils.js';
+import { warnDeprecated } from './debug.js';
 import { EncodingEra, LanguageFilter } from './enums.js';
 import {
   PREFERRED_SUPERSET,
@@ -76,9 +77,7 @@ export class UniversalDetector {
     // langFilter has no effect; kept for API parity with chardet 6.x. Same
     // shape as Python's lang_filter deprecation.
     if (langFilter !== LanguageFilter.ALL) {
-      console.warn(
-        'DEPRECATION: lang_filter is not implemented in this version of chardet and will be ignored',
-      );
+      warnDeprecated('lang_filter is not implemented in this version of chardet and will be ignored');
     }
     this._preferSuperset = _resolvePreferSuperset(shouldRenameLegacy, preferSuperset);
     this._compatNames = compatNames;
