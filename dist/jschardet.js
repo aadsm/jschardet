@@ -200,6 +200,8 @@ var jschardet = (() => {
     "mac-roman": "macintosh",
     "shift_jis_2004": "shift_jis",
     "tis-620": "windows-874",
+    "utf-16-be": "utf-16be",
+    "utf-16-le": "utf-16le",
     "utf-8": "utf-8"
   });
 
@@ -279,6 +281,13 @@ var jschardet = (() => {
   }
   function whatwgDecodeText(label, data4) {
     return new TextDecoder(label, { fatal: false }).decode(data4);
+  }
+  function whatwgDecodeStrictText(label, data4) {
+    try {
+      return decoderForLabel(label).decode(data4);
+    } catch {
+      return null;
+    }
   }
 
   // src/encoding-alias-map.ts
@@ -1412,6 +1421,15 @@ var jschardet = (() => {
     const label = whatwgLabelFor(encName);
     if (label === null) return null;
     return whatwgDecodeText(label, data4);
+  }
+  function decodeStrictText(encName, data4) {
+    const singleByte = decodesAsSingleByte(encName, data4);
+    if (singleByte !== null) {
+      return singleByte ? decodeSingleByteText(byteDecodeTable(encName), data4) : null;
+    }
+    const label = whatwgLabelFor(encName);
+    if (label === null) return null;
+    return whatwgDecodeStrictText(label, data4);
   }
 
   // src/output_names.ts
@@ -4284,8 +4302,8 @@ var jschardet = (() => {
     const beQualified = beFrac >= _UTF16_MIN_NULL_FRACTION && !_isNullSeparatorPattern(data4.subarray(0, sampleLen), beFrac);
     if (!leQualified && !beQualified) return null;
     const sides = [
-      { name: "utf-16-le", decoderLabel: "utf-16le", frac: leFrac, qualified: leQualified },
-      { name: "utf-16-be", decoderLabel: "utf-16be", frac: beFrac, qualified: beQualified }
+      { name: "utf-16-le", frac: leFrac, qualified: leQualified },
+      { name: "utf-16-be", frac: beFrac, qualified: beQualified }
     ];
     if (beFrac > leFrac) sides.reverse();
     let bestName = null;
@@ -4293,13 +4311,9 @@ var jschardet = (() => {
     let bestQualified = false;
     let viable = 0;
     let qualifiedSideDecoded = false;
-    for (const { name, decoderLabel, qualified } of sides) {
-      let text;
-      try {
-        text = decoderForLabel(decoderLabel).decode(data4.subarray(0, sampleLen));
-      } catch {
-        continue;
-      }
+    for (const { name, qualified } of sides) {
+      const text = decodeStrictText(name, data4.subarray(0, sampleLen));
+      if (text === null) continue;
       if (qualified) qualifiedSideDecoded = true;
       if (!_looksLikeText(text)) continue;
       viable++;

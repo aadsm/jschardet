@@ -1,5 +1,5 @@
 import { ASCII_TEXT_BYTES, DETERMINISTIC_CONFIDENCE, DetectionResult } from './index.js';
-import { decoderForLabel } from '../text-decoder.js';
+import { decodeStrictText } from '../decode.js';
 
 const _SAMPLE_SIZE = 4096;
 const _MIN_BYTES_UTF32 = 16;
@@ -111,12 +111,9 @@ function _checkUtf16(data: Uint8Array): DetectionResult | null {
   // let text quality decide. Sides are visited in null-signal order and
   // a challenger must win by a clear margin, so noisy near-ties keep the
   // answer the null pattern chose.
-  //
-  // name is the chardet encoding name, decoderLabel the WHATWG TextDecoder
-  // label (WHATWG uses 'utf-16le'/'utf-16be', not 'utf-16-le'/'utf-16-be').
   const sides = [
-    { name: 'utf-16-le', decoderLabel: 'utf-16le', frac: leFrac, qualified: leQualified },
-    { name: 'utf-16-be', decoderLabel: 'utf-16be', frac: beFrac, qualified: beQualified },
+    { name: 'utf-16-le', frac: leFrac, qualified: leQualified },
+    { name: 'utf-16-be', frac: beFrac, qualified: beQualified },
   ];
   if (beFrac > leFrac) sides.reverse();
 
@@ -126,12 +123,11 @@ function _checkUtf16(data: Uint8Array): DetectionResult | null {
   let viable = 0;
   let qualifiedSideDecoded = false;
 
-  for (const { name, decoderLabel, qualified } of sides) {
-    let text: string;
-    try {
-      // Replaces Python data.decode('utf-16-be') — TextDecoder throws on invalid sequences
-      text = decoderForLabel(decoderLabel).decode(data.subarray(0, sampleLen));
-    } catch { continue; }
+  for (const { name, qualified } of sides) {
+    // Python data[:sample_len].decode(encoding): strict, so an invalid
+    // sequence rules the side out.
+    const text = decodeStrictText(name, data.subarray(0, sampleLen));
+    if (text === null) continue;
     if (qualified) qualifiedSideDecoded = true;
     if (!_looksLikeText(text)) continue;
     viable++;

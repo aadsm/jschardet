@@ -40,5 +40,7 @@ export const ENCODING_WHATWG_MAP: Readonly<Record<string, string>> = Object.free
   "mac-roman": "macintosh",
   "shift_jis_2004": "shift_jis",
   "tis-620": "windows-874",
+  "utf-16-be": "utf-16be",
+  "utf-16-le": "utf-16le",
   "utf-8": "utf-8",
 });
