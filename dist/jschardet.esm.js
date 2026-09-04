@@ -4835,7 +4835,7 @@ function detectAll(byteStr, options = {}) {
 }
 
 // src/version.js
-var VERSION = "4.0.0-rc.2";
+var VERSION = "4.0.0-rc.3";
 
 // src/index.ts
 var _debug = false;
