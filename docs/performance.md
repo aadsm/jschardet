@@ -1,6 +1,6 @@
 # jschardet performance
 
-Benchmarked on 2026-08-22 against 3125 test files from the
+Benchmarked on 2026-09-04 against 3138 test files from the
 [chardet test corpus](https://github.com/chardet/test-data).
 Methodology mirrors
 [chardet/docs/rewrite_performance.md](https://github.com/chardet/chardet/blob/main/docs/rewrite_performance.md):
@@ -29,14 +29,14 @@ npm run benchmark:memory
 
 | Detector        | Correct   | Accuracy |
 |-----------------|-----------|----------|
-| jschardet 3.1.4 | 1344/3125 | 43.0%    |
-| jschardet 4.0.0 | 3107/3125 | 99.4%    |
-| chardet 7.6.0   | 3108/3125 | 99.5%    |
+| jschardet 3.1.4 | 1352/3138 | 43.1%    |
+| jschardet 4.0.0 | 3120/3138 | 99.4%    |
+| chardet 7.6.0   | 3122/3138 | 99.5%    |
 
-jschardet 4 lifts accuracy by 56.4pp over jschardet 3 — the underlying
+jschardet 4 lifts accuracy by 56.3pp over jschardet 3 — the underlying
 chardet rewrite ships new bigram models, EBCDIC/DOS/Mac coverage, and
 magic-number plus markup-charset pipelines that v3 lacked. It trails
-upstream by a single file (one cp932 sample, see the per-encoding table
+upstream by two files (two cp932 samples, see the per-encoding table
 below); every other encoding matches chardet exactly.
 
 ## Language detection accuracy
@@ -44,8 +44,8 @@ below); every other encoding matches chardet exactly.
 | Detector        | Correct   | Accuracy |
 |-----------------|-----------|----------|
 | jschardet 3.1.4 | n/a       | n/a      |
-| jschardet 4.0.0 | 2909/3117 | 93.3%    |
-| chardet 7.6.0   | 2909/3117 | 93.3%    |
+| jschardet 4.0.0 | 2922/3130 | 93.4%    |
+| chardet 7.6.0   | 2922/3130 | 93.4%    |
 
 jschardet 3 does not return a `language` field. The 208 wrong-language
 cases under jschardet 4 are primarily confusable language pairs within
@@ -61,13 +61,13 @@ don't, to keep runtime reasonable.
 
 | Detector        | Files/s | Mean    | Median  | p90      | p95      |
 |-----------------|---------|---------|---------|----------|----------|
-| jschardet 3.1.4 |     125 | 8.02 ms | 0.76 ms |  8.95 ms | 18.11 ms |
-| jschardet 4.0.0 |     568 | 1.76 ms | 0.43 ms |  2.75 ms |  4.44 ms |
-| chardet 7.6.0   |     212 | 4.71 ms | 1.89 ms | 10.98 ms | 15.70 ms |
+| jschardet 3.1.4 |     126 | 7.91 ms | 0.76 ms |  9.00 ms | 18.00 ms |
+| jschardet 4.0.0 |     780 | 1.28 ms | 0.43 ms |  2.43 ms |  3.69 ms |
+| chardet 7.6.0   |     222 | 4.51 ms | 1.85 ms | 10.91 ms | 15.76 ms |
 
-jschardet 4 processes about 5× more files per second than jschardet 3
+jschardet 4 processes about 6× more files per second than jschardet 3
 on this corpus, and the tail latency narrows too — p95 drops from
-18.11 ms to 4.44 ms.
+18.00 ms to 3.69 ms.
 
 This port does not implement upstream's rowmax scoring pruning (see
 [port-notes.md](port-notes.md#statistical-scoring-rowmax-pruning-not-ported));
@@ -89,9 +89,9 @@ effects.
 
 | Detector        | Import   | First detect | Total     |
 |-----------------|----------|--------------|-----------|
-| jschardet 3.1.4 | 27.18 ms |      0.59 ms |  27.77 ms |
-| jschardet 4.0.0 | 42.21 ms |     65.64 ms | 107.85 ms |
-| chardet 7.6.0   | 35.51 ms |     64.14 ms |  99.65 ms |
+| jschardet 3.1.4 | 29.23 ms |      0.68 ms |  29.91 ms |
+| jschardet 4.0.0 | 44.74 ms |     64.46 ms | 109.20 ms |
+| chardet 7.6.0   | 36.31 ms |     65.44 ms | 101.74 ms |
 
 jschardet 4 trades a heavier first-call cost for a lighter steady state:
 the bigram models ship zlib-compressed and decompress lazily on the first
@@ -113,17 +113,17 @@ the same syscall on both sides keeps the numbers comparable.
 
 | Detector        | Baseline RSS | Import delta | Peak delta | Final RSS |
 |-----------------|--------------|--------------|------------|-----------|
-| jschardet 3.1.4 | 137.8 MiB    | 620.0 KiB    | 829.1 MiB  | 966.9 MiB |
-| jschardet 4.0.0 | 137.2 MiB    | 6.0 MiB      | 89.9 MiB   | 227.1 MiB |
-| chardet 7.6.0   |  88.9 MiB    | 8.5 MiB      | 37.4 MiB   | 126.3 MiB |
+| jschardet 3.1.4 | 138.5 MiB    | 668.0 KiB    | 831.8 MiB  | 970.2 MiB |
+| jschardet 4.0.0 | 138.2 MiB    | 6.0 MiB      | 85.5 MiB   | 223.6 MiB |
+| chardet 7.6.0   |  89.2 MiB    | 8.6 MiB      | 37.6 MiB   | 126.9 MiB |
 
-jschardet 4's peak RSS is ~9× lower than jschardet 3 (89.9 MiB vs
-829.1 MiB of growth above baseline). The chardet rewrite's dense bigram
+jschardet 4's peak RSS is ~10× lower than jschardet 3 (85.5 MiB vs
+831.8 MiB of growth above baseline). The chardet rewrite's dense bigram
 model format (one 64 KiB lookup table per language, loaded once and
 shared across calls) replaces the per-call sparse-map allocations that
 drive v3's high water mark.
 
-The baseline gap between Node (~137 MiB) and Python (~89 MiB) is the
+The baseline gap between Node (~138 MiB) and Python (~89 MiB) is the
 interpreter's own resident footprint plus the corpus bytes — both
 workers pre-load the full corpus into memory before measuring baseline,
 so the corpus shows up there rather than under the detector.
@@ -143,7 +143,7 @@ so the corpus shows up there rather than under the detector.
 | cp424            |   9 | 0/9 (0.0%)       | 9/9 (100.0%)     | 9/9 (100.0%)     |
 | cp437            |  33 | 0/33 (0.0%)      | 32/33 (97.0%)    | 32/33 (97.0%)    |
 | cp500            |  29 | 0/29 (0.0%)      | 28/29 (96.6%)    | 28/29 (96.6%)    |
-| cp720            |   8 | 0/8 (0.0%)       | 8/8 (100.0%)     | 8/8 (100.0%)     |
+| cp720            |  10 | 0/10 (0.0%)      | 10/10 (100.0%)   | 10/10 (100.0%)   |
 | cp737            |   3 | 0/3 (0.0%)       | 3/3 (100.0%)     | 3/3 (100.0%)     |
 | cp775            |  12 | 0/12 (0.0%)      | 12/12 (100.0%)   | 12/12 (100.0%)   |
 | cp850            |  45 | 0/45 (0.0%)      | 42/45 (93.3%)    | 42/45 (93.3%)    |
@@ -154,20 +154,20 @@ so the corpus shows up there rather than under the detector.
 | cp858            |  35 | 0/35 (0.0%)      | 33/35 (94.3%)    | 33/35 (94.3%)    |
 | cp860            |   6 | 0/6 (0.0%)       | 6/6 (100.0%)     | 6/6 (100.0%)     |
 | cp861            |   5 | 0/5 (0.0%)       | 5/5 (100.0%)     | 5/5 (100.0%)     |
-| cp862            |   5 | 0/5 (0.0%)       | 5/5 (100.0%)     | 5/5 (100.0%)     |
+| cp862            |   7 | 0/7 (0.0%)       | 7/7 (100.0%)     | 7/7 (100.0%)     |
 | cp863            |   5 | 0/5 (0.0%)       | 5/5 (100.0%)     | 5/5 (100.0%)     |
-| cp864            |   1 | 0/1 (0.0%)       | 1/1 (100.0%)     | 1/1 (100.0%)     |
+| cp864            |   2 | 0/2 (0.0%)       | 2/2 (100.0%)     | 2/2 (100.0%)     |
 | cp865            |   6 | 0/6 (0.0%)       | 6/6 (100.0%)     | 6/6 (100.0%)     |
 | cp866            |  37 | 37/37 (100.0%)   | 37/37 (100.0%)   | 37/37 (100.0%)   |
 | cp869            |   6 | 0/6 (0.0%)       | 6/6 (100.0%)     | 6/6 (100.0%)     |
 | cp874            |   8 | 5/8 (62.5%)      | 6/8 (75.0%)      | 6/8 (75.0%)      |
 | cp875            |   8 | 0/8 (0.0%)       | 8/8 (100.0%)     | 8/8 (100.0%)     |
-| cp932            |   9 | 0/9 (0.0%)       | 8/9 (88.9%)      | 9/9 (100.0%)     |
+| cp932            |   9 | 0/9 (0.0%)       | 7/9 (77.8%)      | 9/9 (100.0%)     |
 | cp949            |   8 | 7/8 (87.5%)      | 8/8 (100.0%)     | 8/8 (100.0%)     |
 | euc-jp           |  32 | 32/32 (100.0%)   | 32/32 (100.0%)   | 32/32 (100.0%)   |
-| euc-kr           |  33 | 33/33 (100.0%)   | 33/33 (100.0%)   | 33/33 (100.0%)   |
+| euc-kr           |  37 | 37/37 (100.0%)   | 37/37 (100.0%)   | 37/37 (100.0%)   |
 | gb18030          |   9 | 9/9 (100.0%)     | 9/9 (100.0%)     | 9/9 (100.0%)     |
-| gb2312           |  24 | 24/24 (100.0%)   | 24/24 (100.0%)   | 24/24 (100.0%)   |
+| gb2312           |  25 | 25/25 (100.0%)   | 25/25 (100.0%)   | 25/25 (100.0%)   |
 | hp-roman8        |  44 | 12/44 (27.3%)    | 44/44 (100.0%)   | 44/44 (100.0%)   |
 | hz-gb-2312       |   8 | 8/8 (100.0%)     | 8/8 (100.0%)     | 8/8 (100.0%)     |
 | iso-2022-jp      |   8 | 8/8 (100.0%)     | 8/8 (100.0%)     | 8/8 (100.0%)     |
@@ -202,7 +202,7 @@ so the corpus shows up there rather than under the detector.
 | macturkish       |   5 | 0/5 (0.0%)       | 5/5 (100.0%)     | 5/5 (100.0%)     |
 | ptcp154          |   6 | 0/6 (0.0%)       | 6/6 (100.0%)     | 6/6 (100.0%)     |
 | shift-jis        |   3 | 3/3 (100.0%)     | 3/3 (100.0%)     | 3/3 (100.0%)     |
-| shift_jis        |  31 | 31/31 (100.0%)   | 31/31 (100.0%)   | 31/31 (100.0%)   |
+| shift_jis        |  34 | 34/34 (100.0%)   | 34/34 (100.0%)   | 34/34 (100.0%)   |
 | tis-620          |   8 | 8/8 (100.0%)     | 8/8 (100.0%)     | 8/8 (100.0%)     |
 | utf-16           | 220 | 220/220 (100.0%) | 220/220 (100.0%) | 220/220 (100.0%) |
 | utf-16be         | 153 | 0/153 (0.0%)     | 153/153 (100.0%) | 153/153 (100.0%) |
@@ -218,7 +218,7 @@ so the corpus shows up there rather than under the detector.
 | windows-1252     |  44 | 28/44 (63.6%)    | 44/44 (100.0%)   | 44/44 (100.0%)   |
 | windows-1253     |   8 | 3/8 (37.5%)      | 8/8 (100.0%)     | 8/8 (100.0%)     |
 | windows-1254     |   9 | 0/9 (0.0%)       | 9/9 (100.0%)     | 9/9 (100.0%)     |
-| windows-1255     |   7 | 7/7 (100.0%)     | 6/7 (85.7%)      | 6/7 (85.7%)      |
+| windows-1255     |   7 | 7/7 (100.0%)     | 7/7 (100.0%)     | 7/7 (100.0%)     |
 | windows-1256     |  46 | 0/46 (0.0%)      | 46/46 (100.0%)   | 46/46 (100.0%)   |
 | windows-1257     |  18 | 1/18 (5.6%)      | 18/18 (100.0%)   | 18/18 (100.0%)   |
 | windows-1258     |  14 | 2/14 (14.3%)     | 14/14 (100.0%)   | 14/14 (100.0%)   |

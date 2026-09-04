@@ -10,16 +10,16 @@ The API is `detect()` and `detectAll()`, returning `encoding`, `confidence`, `la
 
 ## Features
 
-99.4% accuracy on 3,125 test files, up from 43.0% in jschardet 3, with ~5× the throughput and ~9× lower peak memory. Language detection for every result. MIME type detection for binary files.
+99.4% accuracy on 3,138 test files, up from 43.1% in jschardet 3, with ~6× the throughput and ~10× lower peak memory. Language detection for every result. MIME type detection for binary files.
 
 | | jschardet 4.0.0 | jschardet 3.1.4 | chardet 7.6.0 (Python) |
 |---|---|---|---|
-| Accuracy (3,125 files) | **99.4%** | 43.0% | 99.5% |
-| Speed | **568 files/s** | 125 files/s | 212 files/s |
-| Language detection | **93.3%** | — | 93.3% |
-| Peak memory | **89.9 MiB** | 829.1 MiB | 37.4 MiB |
+| Accuracy (3,138 files) | **99.4%** | 43.1% | 99.5% |
+| Speed | **780 files/s** | 126 files/s | 222 files/s |
+| Language detection | **93.4%** | — | 93.4% |
+| Peak memory | **85.5 MiB** | 831.8 MiB | 37.6 MiB |
 | Bundle size (min / gzip) | **1,141 / 691 KiB** | 334 / 119 KiB | — |
-| Cold start (import + first detect) | **107.9 ms** | 27.8 ms | 99.7 ms |
+| Cold start (import + first detect) | **109.2 ms** | 29.9 ms | 101.7 ms |
 | Runs in browsers | **yes** | yes | — |
 | MIME type detection | **yes** | no | yes |
 | License | **0BSD** | LGPL | 0BSD |
