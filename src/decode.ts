@@ -19,12 +19,17 @@
 
 import {
   whatwgDanglingTailWithAsciiPrefix,
+  whatwgDecodeStrictText,
   whatwgDecodeText,
   whatwgDecodesCompletely,
   whatwgDecodesWithoutError,
   whatwgLabelFor,
 } from './text-decoder.js';
-import { byteDecodeTable, decodesAsSingleByte } from './pipeline/byte-decode.js';
+import {
+  byteDecodeTable,
+  decodeSingleByteText,
+  decodesAsSingleByte,
+} from './pipeline/byte-decode.js';
 
 // chardet's decodes_without_error, the validity stage's per-encoding
 // predicate: "could these bytes be text in this encoding?", answered exactly
@@ -95,4 +100,18 @@ export function decodeText(encName: string, data: Uint8Array): string | null {
   const label = whatwgLabelFor(encName);
   if (label === null) return null;
   return whatwgDecodeText(label, data);
+}
+
+// data.decode(encName): the strict text, or null when the bytes do not decode
+// (Python raises) or the runtime has no decoder for the name. A single-byte
+// encoding decodes from the byte tables; a multi-byte one through its WHATWG
+// decoder. The UTF-16/32 stage reads its candidate text through this.
+export function decodeStrictText(encName: string, data: Uint8Array): string | null {
+  const singleByte = decodesAsSingleByte(encName, data);
+  if (singleByte !== null) {
+    return singleByte ? decodeSingleByteText(byteDecodeTable(encName)!, data) : null;
+  }
+  const label = whatwgLabelFor(encName);
+  if (label === null) return null;
+  return whatwgDecodeStrictText(label, data);
 }

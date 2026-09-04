@@ -44,6 +44,14 @@ export function generate() {
     }
   }
 
+  // WHATWG's UTF-16LE and UTF-16BE labels. chardet's snapshot covers the
+  // labels its spec test round-trips, which leaves the fixed-endian UTF-16
+  // pair out; the port decodes UTF-16 samples by chardet name through
+  // src/decode.ts, so it needs them. WHATWG's plain 'utf-16' is an alias of
+  // utf-16le and not the BOM-honouring codec Python's 'utf-16' is, so that
+  // one stays out.
+  chardetToWhatwg['utf-16-le'] = 'utf-16le';
+  chardetToWhatwg['utf-16-be'] = 'utf-16be';
   const entries = Object.entries(chardetToWhatwg)
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([canonical, label]) => `  ${JSON.stringify(canonical)}: ${JSON.stringify(label)},`)

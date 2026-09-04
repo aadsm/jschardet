@@ -141,3 +141,15 @@ export function whatwgDanglingTailWithAsciiPrefix(label: string, data: Uint8Arra
 export function whatwgDecodeText(label: string, data: Uint8Array): string {
   return new TextDecoder(label, { fatal: false }).decode(data);
 }
+
+// data.decode(label) by WHATWG label: a strict one-shot decode, null when the
+// bytes do not decode. One difference from Python: the utf-8, utf-16le and
+// utf-16be decoders strip a leading BOM, where Python's fixed-form codecs
+// keep it as U+FEFF.
+export function whatwgDecodeStrictText(label: string, data: Uint8Array): string | null {
+  try {
+    return decoderForLabel(label).decode(data);
+  } catch {
+    return null;
+  }
+}

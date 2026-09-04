@@ -5,6 +5,7 @@
 
 import {
   danglingTailWithAsciiPrefix,
+  decodeStrictText,
   decodeText,
   decodesCompletely,
   decodesWithoutError,
@@ -51,4 +52,17 @@ test('decodeText: errors="ignore" text through the WHATWG decoder', () => {
   expect(decodeText('utf-8', bytes('caf\xff'))).toBe('caf\ufffd');
   // No WHATWG decoder: no text.
   expect(decodeText('cp500', bytes('\x88\x85'))).toBeNull();
+});
+
+test('decodeStrictText: the strict text, null when the bytes do not decode', () => {
+  expect(decodeStrictText('cp1252', bytes('caf\xe9'))).toBe('caf\u00e9');
+  expect(decodeStrictText('cp1252', bytes('caf\x81'))).toBeNull();
+  // A page TextDecoder lacks decodes from the byte tables: "Hi".encode("cp500")
+  expect(decodeStrictText('cp500', new Uint8Array([0xc8, 0x89]))).toBe('Hi');
+  expect(decodeStrictText('utf-8', bytes('caf\xc3\xa9'))).toBe('caf\u00e9');
+  expect(decodeStrictText('utf-8', bytes('caf\xff'))).toBeNull();
+  // "Hi".encode("utf-16-le") / ("utf-16-be"); a lone low surrogate does not decode.
+  expect(decodeStrictText('utf-16-le', new Uint8Array([0x48, 0x00, 0x69, 0x00]))).toBe('Hi');
+  expect(decodeStrictText('utf-16-be', new Uint8Array([0x00, 0x48, 0x00, 0x69]))).toBe('Hi');
+  expect(decodeStrictText('utf-16-le', new Uint8Array([0x00, 0xdc]))).toBeNull();
 });
