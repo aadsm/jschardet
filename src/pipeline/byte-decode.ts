@@ -10,8 +10,8 @@
 // the gaps; this module is the bridge for the single-byte, build-time-known
 // corner of them.
 //
-// Three consumers: validity.ts (a single-byte encoding's validity is "no
-// undefined byte"), markup.ts (decoding an EBCDIC head as cp037), and
+// Three consumers: src/decode.ts (a single-byte encoding decodes iff it has
+// no undefined byte), markup.ts (decoding an EBCDIC head as cp037), and
 // confusion.ts (differingHighBytes, _pairCategories, _letterCaseTable).
 
 import { lookupEncoding } from '../registry.js';

@@ -25,7 +25,8 @@ import {
 } from './structural.js';
 import { scanUtf8 } from './utf8.js';
 import { detectUtf1632Patterns } from './utf1632.js';
-import { decodesWithoutError, filterByValidity } from './validity.js';
+import { decodesWithoutError } from '../decode.js';
+import { filterByValidity } from './validity.js';
 import { EncodingInfo, getCandidates } from '../registry.js';
 
 // Frozen because callers spread {..._BINARY_RESULT} before applyCompatNames

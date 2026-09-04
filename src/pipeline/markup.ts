@@ -3,7 +3,7 @@ import { lookupEncoding, EncodingName, REGISTRY } from '../registry.js';
 import { whatwgDecodesWithoutError, whatwgLabelFor } from '../text-decoder.js';
 import { computeStructuralScore } from './structural.js';
 import { EncodingEra } from '../enums.js';
-import { decodesWithoutError } from './validity.js';
+import { decodesWithoutError } from '../decode.js';
 import { byteDecodeTable, decodeSingleByteText } from './byte-decode.js';
 
 const _SCAN_LIMIT = 4096;
@@ -205,13 +205,9 @@ export function promoteMarkupSuperset(
   if (supersetInfo === undefined) {
     return markupResult;
   }
-  // Validate: superset must be able to decode the data. whatwgDecodesWithoutError is
-  // fatal:true (Python errors="strict"), tolerating only a truncated tail.
-  const label = whatwgLabelFor(supersetName);
-  if (label === null) {
-    return markupResult;
-  }
-  if (!whatwgDecodesWithoutError(label, data)) {
+  // Validate: superset must be able to decode the data (Python
+  // errors="strict", tolerating only a truncated tail).
+  if (!decodesWithoutError(supersetName, data)) {
     return markupResult;
   }
   // Compare structural scores on the head only. Multi-byte structure is

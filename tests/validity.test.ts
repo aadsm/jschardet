@@ -1,7 +1,7 @@
 // Port of chardet/tests/test_validity.py.
 
 import { EncodingEra } from '../src/enums.js';
-import { danglingTailWithAsciiPrefix, filterByValidity } from '../src/pipeline/validity.js';
+import { filterByValidity } from '../src/pipeline/validity.js';
 import { getCandidates } from '../src/registry.js';
 
 function encode(text: string, label: string): Uint8Array {
@@ -107,14 +107,4 @@ test('rejects SBCS without WHATWG label when bytes hit the undefined-byte set', 
   expect(names.has('cp424')).toBe(false);
   expect(names.has('cp864')).toBe(true);
   expect(names.has('cp1256')).toBe(true);
-});
-
-test('danglingTailWithAsciiPrefix is keyed by encoding name', () => {
-  // "mam" + the first byte of a two-byte UTF-8 sequence.
-  const dangling = new Uint8Array([0x6d, 0x61, 0x6d, 0xe1]);
-  expect(danglingTailWithAsciiPrefix('utf-8', dangling)).toBe(true);
-  expect(danglingTailWithAsciiPrefix('utf-8', new TextEncoder().encode('mama'))).toBe(false);
-  // A single-byte encoding has no multi-byte tail: 0xe1 is a whole character.
-  expect(danglingTailWithAsciiPrefix('cp1252', dangling)).toBe(false);
-  expect(danglingTailWithAsciiPrefix('cp500', dangling)).toBe(false);
 });

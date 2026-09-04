@@ -14,8 +14,8 @@
 // see docs/textdecoder-vs-python.md for the map of the gaps it bridges.
 //
 // One table, three consumers:
-//   - validity.ts: a single-byte encoding decodes data iff no byte of it is
-//     undefined (the cps sentinel), which is exactly chardet's
+//   - src/decode.ts: a single-byte encoding decodes data iff no byte of it
+//     is undefined (the cps sentinel), which is exactly chardet's
 //     decodes_without_error / decodes_completely for a stateless codec.
 //   - markup.ts: decodes the head as cp037 to read EBCDIC charset
 //     declarations.

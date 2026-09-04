@@ -87,7 +87,7 @@ concatenated, so each per-encoding literal is the size of its high half.
 
 **Three call sites**, all through `byte-decode.ts`:
 
-- [`pipeline/validity.ts`](../src/pipeline/validity.ts) — the two predicates
+- [`decode.ts`](../src/decode.ts) — the two predicates
   that must reproduce Python's judgment, `decodesWithoutError` (tolerant,
   the `filter_by_validity` question) and `decodesCompletely`
   (strict/whole-input, for the decode-safety flip and the past-cap hold),

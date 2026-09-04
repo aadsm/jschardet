@@ -25,11 +25,7 @@ import {
 import { ART_LANGUAGE, RARE_LANGUAGES, getEncIndex } from '../models/index.js';
 import { REGISTRY, lookupEncoding } from '../registry.js';
 import { _COMPAT_NAMES } from '../output_names.js';
-import {
-  whatwgDecodesWithoutError,
-  whatwgLabelFor,
-} from '../text-decoder.js';
-import { danglingTailWithAsciiPrefix, decodesCompletely } from './validity.js';
+import { danglingTailWithAsciiPrefix, decodesCompletely, decodesWithoutError } from '../decode.js';
 
 // Common Western Latin encodings that share the iso-8859-1 character repertoire
 // for the byte values where iso-8859-10 is indistinguishable. Used as swap
@@ -400,11 +396,8 @@ function _promoteSupersetOnDeadHeat(
   for (let i = 1; i < results.length; i++) {
     const r = results[i];
     if (top.confidence - r.confidence > _DEAD_HEAT_EPSILON) break;
-    if (r.encoding === superset) {
-      const label = whatwgLabelFor(superset);
-      if (label !== null && whatwgDecodesWithoutError(label, data)) {
-        return _promoteToTop(results, i);
-      }
+    if (r.encoding === superset && decodesWithoutError(superset, data)) {
+      return _promoteToTop(results, i);
     }
   }
   return results;
