@@ -15,7 +15,8 @@
 // This module provides explicit, errors=ignore-equivalent decode paths for each of those
 // encodings and falls through to TextDecoder for everything else.
 
-import { whatwgLabelFor } from '../text-decoder.js';
+import { decodeText } from '../decode.js';
+import { whatwgDecodeText } from '../text-decoder.js';
 
 // Pre-built lookup: byte value → 6-bit base64 value, or 0xFF if not a base64 character.
 // Used by _utf7ToUtf8. Modified UTF-7 (RFC 2152) uses the standard base64 alphabet.
@@ -251,26 +252,15 @@ export function toUtf8(data: Uint8Array, encoding: string): Uint8Array | null {
     } else {
       return null;
     }
-    try {
-      const decoded = new TextDecoder(label, { fatal: false }).decode(data.subarray(start));
-      return new TextEncoder().encode(decoded);
-    } catch { return null; }
+    return new TextEncoder().encode(whatwgDecodeText(label, data.subarray(start)));
   }
 
   // utf-16-le / utf-16-be (no-BOM): decode directly with the matching WHATWG label.
   if (encoding === 'utf-16-le') {
-    try {
-      return new TextEncoder().encode(
-        new TextDecoder('utf-16le', { fatal: false }).decode(data),
-      );
-    } catch { return null; }
+    return new TextEncoder().encode(whatwgDecodeText('utf-16le', data));
   }
   if (encoding === 'utf-16-be') {
-    try {
-      return new TextEncoder().encode(
-        new TextDecoder('utf-16be', { fatal: false }).decode(data),
-      );
-    } catch { return null; }
+    return new TextEncoder().encode(whatwgDecodeText('utf-16be', data));
   }
 
   // utf-32 variants: WHATWG TextDecoder has no UTF-32 support — decode manually.
@@ -283,12 +273,7 @@ export function toUtf8(data: Uint8Array, encoding: string): Uint8Array | null {
     return _utf7ToUtf8(data);
   }
 
-  // All other encodings: look up the WHATWG label and use TextDecoder.
-  const label = whatwgLabelFor(encoding);
-  if (label === null) return null;
-  try {
-    return new TextEncoder().encode(
-      new TextDecoder(label, { fatal: false }).decode(data),
-    );
-  } catch { return null; }
+  // All other encodings: decode by name, null when the port has no decoder.
+  const text = decodeText(encoding, data);
+  return text === null ? null : new TextEncoder().encode(text);
 }

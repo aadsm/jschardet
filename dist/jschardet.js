@@ -277,6 +277,9 @@ var jschardet = (() => {
     if (!text || !ASCII_ONLY_RE.test(text)) return false;
     return hadDanglingTail;
   }
+  function whatwgDecodeText(label, data4) {
+    return new TextDecoder(label, { fatal: false }).decode(data4);
+  }
 
   // src/encoding-alias-map.ts
   var ENCODING_ALIAS_MAP = Object.freeze({
@@ -1384,7 +1387,7 @@ var jschardet = (() => {
     return out;
   }
 
-  // src/pipeline/validity.ts
+  // src/decode.ts
   function decodesWithoutError(encName, data4) {
     if (encName !== "ascii") {
       const singleByte = decodesAsSingleByte(encName, data4);
@@ -1407,15 +1410,10 @@ var jschardet = (() => {
     if (label === null) return false;
     return whatwgDanglingTailWithAsciiPrefix(label, data4);
   }
-  function filterByValidity(data4, candidates) {
-    if (data4.length === 0) return candidates;
-    const valid = [];
-    for (const enc of candidates) {
-      if (decodesWithoutError(enc.name, data4)) {
-        valid.push(enc);
-      }
-    }
-    return valid;
+  function decodeText(encName, data4) {
+    const label = whatwgLabelFor(encName);
+    if (label === null) return null;
+    return whatwgDecodeText(label, data4);
   }
 
   // src/output_names.ts
@@ -2356,41 +2354,24 @@ var jschardet = (() => {
       return hasBom ? data4.subarray(3) : data4;
     }
     if (encoding === "utf-16") {
-      let label2;
+      let label;
       let start;
       if (data4.length >= 2 && data4[0] === 255 && data4[1] === 254) {
-        label2 = "utf-16le";
+        label = "utf-16le";
         start = 2;
       } else if (data4.length >= 2 && data4[0] === 254 && data4[1] === 255) {
-        label2 = "utf-16be";
+        label = "utf-16be";
         start = 2;
       } else {
         return null;
       }
-      try {
-        const decoded = new TextDecoder(label2, { fatal: false }).decode(data4.subarray(start));
-        return new TextEncoder().encode(decoded);
-      } catch {
-        return null;
-      }
+      return new TextEncoder().encode(whatwgDecodeText(label, data4.subarray(start)));
     }
     if (encoding === "utf-16-le") {
-      try {
-        return new TextEncoder().encode(
-          new TextDecoder("utf-16le", { fatal: false }).decode(data4)
-        );
-      } catch {
-        return null;
-      }
+      return new TextEncoder().encode(whatwgDecodeText("utf-16le", data4));
     }
     if (encoding === "utf-16-be") {
-      try {
-        return new TextEncoder().encode(
-          new TextDecoder("utf-16be", { fatal: false }).decode(data4)
-        );
-      } catch {
-        return null;
-      }
+      return new TextEncoder().encode(whatwgDecodeText("utf-16be", data4));
     }
     if (encoding === "utf-32" || encoding === "utf-32-be" || encoding === "utf-32-le") {
       return _utf32ToUtf8(data4, encoding);
@@ -2398,15 +2379,8 @@ var jschardet = (() => {
     if (encoding === "utf-7") {
       return _utf7ToUtf8(data4);
     }
-    const label = whatwgLabelFor(encoding);
-    if (label === null) return null;
-    try {
-      return new TextEncoder().encode(
-        new TextDecoder(label, { fatal: false }).decode(data4)
-      );
-    } catch {
-      return null;
-    }
+    const text = decodeText(encoding, data4);
+    return text === null ? null : new TextEncoder().encode(text);
   }
 
   // src/pipeline/bom.ts
@@ -3289,11 +3263,7 @@ var jschardet = (() => {
     if (supersetInfo === void 0) {
       return markupResult;
     }
-    const label = whatwgLabelFor(supersetName);
-    if (label === null) {
-      return markupResult;
-    }
-    if (!whatwgDecodesWithoutError(label, data4)) {
+    if (!decodesWithoutError(supersetName, data4)) {
       return markupResult;
     }
     const head = data4.subarray(0, _SCAN_LIMIT);
@@ -4070,11 +4040,8 @@ var jschardet = (() => {
     for (let i = 1; i < results.length; i++) {
       const r = results[i];
       if (top.confidence - r.confidence > _DEAD_HEAT_EPSILON) break;
-      if (r.encoding === superset) {
-        const label = whatwgLabelFor(superset);
-        if (label !== null && whatwgDecodesWithoutError(label, data4)) {
-          return _promoteToTop(results, i);
-        }
+      if (r.encoding === superset && decodesWithoutError(superset, data4)) {
+        return _promoteToTop(results, i);
       }
     }
     return results;
@@ -4421,6 +4388,18 @@ var jschardet = (() => {
       result += String.fromCodePoint(cp);
     }
     return result;
+  }
+
+  // src/pipeline/validity.ts
+  function filterByValidity(data4, candidates) {
+    if (data4.length === 0) return candidates;
+    const valid = [];
+    for (const enc of candidates) {
+      if (decodesWithoutError(enc.name, data4)) {
+        valid.push(enc);
+      }
+    }
+    return valid;
   }
 
   // src/pipeline/orchestrator.ts

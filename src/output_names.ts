@@ -2,7 +2,7 @@
 // remapping: superset preference and 5.x/6.x-compatible display names.
 
 import { DetectionResult } from './pipeline/index.js';
-import { decodesWithoutError } from './pipeline/validity.js';
+import { decodesWithoutError } from './decode.js';
 
 export const PREFERRED_SUPERSET: Readonly<Record<string, string>> = Object.freeze({
   "ascii":     "cp1252",

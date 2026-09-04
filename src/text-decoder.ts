@@ -3,12 +3,12 @@
 // TextDecoder only accepts WHATWG labels, and decoders should be cached for
 // the process/page lifetime.
 //
-// The whatwg-prefixed predicates decode by WHATWG label with WHATWG's rules:
+// The whatwg-prefixed functions decode by WHATWG label with WHATWG's rules:
 // single-byte decoders that gap-fill positions CPython leaves undefined, and
 // a subset and its superset collapsed onto one decoder. The port of chardet's
-// decodes_without_error / decodes_completely, keyed by chardet name and
-// answering single-byte encodings from the byte tables, is in
-// pipeline/validity.ts; these are its multi-byte path.
+// decode questions, keyed by chardet name and answering single-byte
+// encodings from the byte tables, is src/decode.ts; these are its
+// TextDecoder path, and nothing else in the pipeline calls them.
 
 import { ENCODING_WHATWG_MAP } from './encoding-whatwg-map.js';
 
@@ -102,7 +102,7 @@ export function whatwgDecodesCompletely(label: string, data: Uint8Array): boolea
 const ASCII_ONLY_RE = /^[\x00-\x7F]*$/;
 
 // The WHATWG-label half of chardet's dangling_tail_with_ascii_prefix (the
-// port by encoding name is in pipeline/validity.ts). One decode pass answers
+// port by encoding name is in src/decode.ts). One decode pass answers
 // both halves of the decode-safety question: the tolerant ({ stream: true })
 // decode yields the text before any deferred tail, and flushing the decoder
 // afterwards throws exactly when a deferred tail existed. True means the
@@ -134,4 +134,10 @@ export function whatwgDanglingTailWithAsciiPrefix(label: string, data: Uint8Arra
   }
   if (!text || !ASCII_ONLY_RE.test(text)) return false;
   return hadDanglingTail;
+}
+
+// data.decode(label, errors="ignore") by WHATWG label: a non-fatal decode,
+// so undefined bytes become U+FFFD rather than an error.
+export function whatwgDecodeText(label: string, data: Uint8Array): string {
+  return new TextDecoder(label, { fatal: false }).decode(data);
 }
