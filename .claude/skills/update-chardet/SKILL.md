@@ -54,6 +54,20 @@ rules and benchmark policy in `CLAUDE.md`.
 ## 3. Port
 
 - Comments and docs read as current code — never "chardet X.Y changed this".
+- Anything upstream does through the codecs module lands in `src/decode.ts`:
+  the `_utils.py` predicates (`decodes_without_error`, `decodes_completely`,
+  `dangling_tail_with_ascii_prefix`) and the pipeline's `bytes.decode(...)`
+  calls each have a by-name counterpart there (`decodesWithoutError`,
+  `decodesCompletely`, `danglingTailWithAsciiPrefix`, `decodeText`,
+  `decodeStrictText`), which answers a single-byte encoding from the byte
+  tables and a multi-byte one through TextDecoder. Pipeline code never calls
+  `text-decoder.ts`'s `whatwg*` helpers or `TextDecoder` for a chardet decode
+  question; a new kind of decode gets a new by-name function beside the
+  others. A codec the port decodes by literal name (markup's cp037) goes in
+  `EXTRA_CODECS` in `scripts/generate-byte-tables.js`; a chardet name whose
+  WHATWG label the upstream snapshot lacks (the utf-16 pair) goes in the
+  supplement in `scripts/generate-encodings-whatwg-map.js`. The map of what
+  each mechanism gets wrong is `docs/textdecoder-vs-python.md`.
 - A NOT PORTABLE verdict also needs a divergence test pinning the port's
   behavior on the input Python treats differently.
 - Doc changes in the update commit must be caused by the update's code

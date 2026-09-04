@@ -61,9 +61,11 @@ seam in `orchestrator.ts`.
 `detectAscii` / `isBinary` / escape validators already count in one allocation-free
 pass, so there is no `count_deleted` helper to test. Its two tests, and the
 chunked-decode straddle tests for `decodes_without_error` (the port's
-`TextDecoder`-based check is not chunked — `{ stream: true }` carries decoder
-state natively), have nothing to attach to. The unknown-codec cases map to
-`whatwgLabelFor` returning `null`, covered in `tests/text-decoder.test.ts`.
+`decodesWithoutError` is not chunked — a single-byte encoding is one table
+scan, and for a multi-byte one `{ stream: true }` carries TextDecoder state
+natively), have nothing to attach to. The unknown-codec cases map to
+`whatwgLabelFor` returning `null`, covered in `tests/text-decoder.test.ts`
+and `tests/decode.test.ts`.
 
 ### `test_models.py` — write side and zlib-stream parser (`_format`)
 
