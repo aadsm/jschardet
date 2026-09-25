@@ -97,6 +97,10 @@ jobs:
             *-*) echo "NPM_DIST_TAG=rc" >> "$GITHUB_ENV" ;;
             *)   echo "NPM_DIST_TAG=latest" >> "$GITHUB_ENV" ;;
           esac
+      # .gitmodules clones chardet shallow, but the changelog's "7.6.0 + 32
+      # commits" needs the history back to the last chardet release.
+      - name: Fetch chardet history
+        run: git -C chardet fetch --unshallow --quiet
       - name: Amend with changelog
         run: |
           # Promoting a release candidate reports against the last stable

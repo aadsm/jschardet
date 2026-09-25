@@ -4,7 +4,7 @@
 import { execSync } from 'node:child_process';
 import { statSync } from 'node:fs';
 import { createRequire } from 'node:module';
-import { chardetVersion, chardetVersionAt } from './chardet-version.js';
+import { chardetCommitAt, describeChardetCommit } from './chardet-version.js';
 
 const [fromTag, version, semverUpdate] = process.argv.slice(2);
 if (!fromTag || !version || !semverUpdate) {
@@ -62,11 +62,23 @@ const sizeLines = DIST_FILES.map(file => {
   return `- ${file} ${sign}${fmt(Math.abs(delta))} ${sign}${pct}% (${fmt(oldSize)} -> ${fmt(newSize)})`;
 }).filter(Boolean).join('\n');
 
-const currentChardet = chardetVersion();
-const oldChardet = chardetVersionAt(fromTag);
+// A release tag reads "7.6.0 (<hash>, 2026-08-14)"; an untagged commit reads
+// "<hash> (7.6.0 + 32 commits, 2026-08-30)", so the notes say how far past a
+// release the pin is. The hash links to the commit on GitHub.
+function formatChardet(hash) {
+  const { tag, date, base, ahead } = describeChardetCommit(hash);
+  const link = `[${hash.slice(0, 12)}](https://github.com/chardet/chardet/commit/${hash})`;
+  if (tag) return `${tag} (${[link, date].filter(Boolean).join(', ')})`;
+  const since = base ? `${base} + ${ahead} commit${ahead === 1 ? '' : 's'}` : null;
+  const details = [since, date].filter(Boolean).join(', ');
+  return details ? `${link} (${details})` : link;
+}
+
+const currentChardet = chardetCommitAt();
+const oldChardet = chardetCommitAt(fromTag);
 const chardetLine = (oldChardet && oldChardet !== currentChardet)
-  ? `Based on chardet ${oldChardet} → ${currentChardet}`
-  : `Based on chardet ${currentChardet}`;
+  ? `Based on chardet ${formatChardet(oldChardet)} → ${formatChardet(currentChardet)}`
+  : `Based on chardet ${formatChardet(currentChardet)}`;
 
 // 'release' promotes a release candidate rather than bumping a version part,
 // so "(release update)" would read oddly.
