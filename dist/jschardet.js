@@ -4876,7 +4876,7 @@ var jschardet = (() => {
   }
 
   // src/version.js
-  var VERSION = "4.0.0-rc.3";
+  var VERSION = "4.0.0-rc.4";
 
   // src/index.ts
   function toBytes(input) {
