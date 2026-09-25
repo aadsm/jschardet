@@ -31,6 +31,12 @@ function enableDebug() {
 function warnDeprecated(message) {
   if (_debug) console.warn(`DEPRECATION: ${message}`);
 }
+var _warned = /* @__PURE__ */ new Set();
+function warnOnce(message) {
+  if (_warned.has(message)) return;
+  _warned.add(message);
+  console.warn(message);
+}
 
 // src/utils.ts
 var DEFAULT_MAX_BYTES = 2e5;
@@ -4410,7 +4416,7 @@ var _STRUCTURAL_CONFIDENCE_THRESHOLD = 0.85;
 var _STAT_SCORE_MAX_BYTES = 16384;
 function _makeFallbackOrNone(encoding, allowed, paramName) {
   if (!allowed.has(encoding)) {
-    console.warn(
+    warnOnce(
       `${paramName} '${encoding}' is excluded by include_encodings/exclude_encodings; returning encoding=None`
     );
     return [{ ..._NONE_RESULT }];

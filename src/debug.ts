@@ -23,10 +23,30 @@ export function enableDebug(): void {
 // flag and stamped with the "DEPRECATION:" prefix the suite filters on. This is
 // the JS counterpart to Python's warnings.warn(..., DeprecationWarning) — the
 // category Python hides by default — so callers own the *condition* and this
-// owns *how* it surfaces. UserWarning and RuntimeWarning, which Python shows by
-// default, stay as unconditional console.warn at their call sites.
+// owns *how* it surfaces. UserWarning, which Python shows by default, goes
+// through warnOnce() below; RuntimeWarning stays as console.warn at its call
+// sites, which already run once per process.
 export function warnDeprecated(message: string): void {
   if (_debug) console.warn(`DEPRECATION: ${message}`);
+}
+
+// The one way the pipeline emits a UserWarning: printed the first time each
+// distinct message is raised, then suppressed for the rest of the process.
+// This is the JS counterpart to Python's default warnings action, which shows a
+// warning once per message and call site; console.warn alone would print it on
+// every detect() call.
+const _warned = new Set<string>();
+
+export function warnOnce(message: string): void {
+  if (_warned.has(message)) return;
+  _warned.add(message);
+  console.warn(message);
+}
+
+// Test-only reset, the counterpart to Python's warnings.catch_warnings(), so a
+// test can observe a warning an earlier test already raised.
+export function _resetWarned(): void {
+  _warned.clear();
 }
 
 // Test-only reset. enableDebug() has no public off-switch; the suite uses this

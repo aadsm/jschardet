@@ -96,9 +96,8 @@ never left the one the oracle *is*. See `docs/missing-python-tests.md`.
 **TypeScript:** JS has no warnings filter — `console.warn` always prints, once per call, un-silenceable short of monkeypatching. So map each category to the JS behaviour that matches Python's *default*, not a blanket `console.warn`:
 
 - `DeprecationWarning` → `warnDeprecated()` in `src/debug.ts`, gated behind `enableDebug()`. Silent by default like Python, opt-in through the same flag that turns on candidate logging — `enableDebug()` is the port's stand-in for the warnings filter. The condition stays at the call site; `warnDeprecated` owns only how the notice surfaces (the gate plus the `DEPRECATION:` prefix the suite filters on).
-- `UserWarning` and `RuntimeWarning` → unconditional `console.warn` at the call site, matching Python's default.
-
-Two divergences no gate restores: JS does not de-duplicate (Python shows each warning once per site), and there is no per-warning filter — `enableDebug()` is all-or-nothing.
+- `UserWarning` → `warnOnce()` in `src/debug.ts`: printed the first time each distinct message is raised, then suppressed, matching Python's default of showing a warning once per message and site. Without it, a caller detecting many files would see the warning on every call.
+- `RuntimeWarning` → `console.warn` at the call site. chardet raises these only while loading model data, which happens once per process, so they need no de-duplication; a `RuntimeWarning` raised on a path that can repeat goes through `warnOnce()` instead.
 
 ## Dataclasses without methods → interfaces
 

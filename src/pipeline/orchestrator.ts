@@ -2,6 +2,7 @@
 // Port of chardet/src/chardet/pipeline/orchestrator.py.
 
 import { DEFAULT_MAX_BYTES, EVIDENCE_CAP_BYTES } from '../utils.js';
+import { warnOnce } from '../debug.js';
 import { ART_LANGUAGE } from '../models/index.js';
 import {
   _NONE_RESULT,
@@ -58,7 +59,7 @@ function _makeFallbackOrNone(
     // Python uses warnings.warn(..., stacklevel=5) to attribute the warning to
     // the public caller. JS has no stacklevel mechanism; console.warn attributes
     // to wherever the runtime decides.
-    console.warn(
+    warnOnce(
       `${paramName} '${encoding}' is excluded by include_encodings/exclude_encodings; returning encoding=None`,
     );
     return [{ ..._NONE_RESULT }];

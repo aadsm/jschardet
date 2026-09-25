@@ -7,7 +7,7 @@
 
 import { vi } from 'vitest';
 import { detect, detectAll } from '../src/chardet.js';
-import { _setDebug } from '../src/debug.js';
+import { _resetWarned, _setDebug } from '../src/debug.js';
 import { UniversalDetector } from '../src/detector.js';
 import { EncodingEra, LanguageFilter } from '../src/enums.js';
 import { getCandidates, normalizeEncodings } from '../src/registry.js';
@@ -31,8 +31,10 @@ function repeatBytes(arr: Uint8Array, times: number): Uint8Array {
 }
 
 // Helper to scope a console.warn spy to a single test (Python uses
-// warnings.catch_warnings).
+// warnings.catch_warnings). Clears warnOnce's record so a warning an earlier
+// test already raised is observed again.
 function captureWarnings(): { calls: string[]; restore: () => void } {
+  _resetWarned();
   const calls: string[] = [];
   const spy = vi.spyOn(console, 'warn').mockImplementation((...args: unknown[]) => {
     calls.push(args.map(String).join(' '));
@@ -794,6 +796,18 @@ describe('include / exclude / fallback / empty', () => {
       expect(calls.length).toBeGreaterThanOrEqual(1);
       expect(result.encoding).toBeNull();
       expect(result.confidence).toBe(0.0);
+    } finally {
+      restore();
+    }
+  });
+
+  test('a repeated warning prints once per process', () => {
+    const { calls, restore } = captureWarnings();
+    try {
+      const options = { includeEncodings: ['cp1252'], compatNames: false };
+      detect(new Uint8Array(0), options);
+      detect(new Uint8Array(0), options);
+      expect(calls.filter(c => c.includes('empty_input_encoding'))).toHaveLength(1);
     } finally {
       restore();
     }
