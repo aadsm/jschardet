@@ -73,5 +73,8 @@
         "publint": "^0.3.24",
         "typescript": "^6.0.0",
         "vitest": "^4.1.11"
+    },
+    "engines": {
+        "node": ">=20"
     }
 }

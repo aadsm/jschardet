@@ -18,11 +18,15 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+    # The oldest version is the floor package.json's engines field declares.
+    strategy:
+      matrix:
+        node-version: [20, 22, 24]
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-node@v6
         with:
-          node-version: 20
+          node-version: ${{ matrix.node-version }}
       - run: npm ci
       - run: npm run typecheck
       - run: npm run build
