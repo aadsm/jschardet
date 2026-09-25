@@ -4,7 +4,7 @@
 
 jschardet is a character encoding detector for JavaScript. Runs in Node.js and browsers with zero runtime dependencies.
 
-jschardet 4 is a ground-up TypeScript port of [chardet 7](https://github.com/chardet/chardet). It's much faster and more accurate than jschardet 3, and a drop-in replacement for its documented API.
+jschardet 4 is a ground-up TypeScript port of [chardet 7](https://github.com/chardet/chardet). It's much faster and more accurate than jschardet 3 and keeps its API; see [Upgrading from jschardet 3](#upgrading-from-jschardet-3) for what behaves differently.
 
 The API is `detect()` and `detectAll()`, returning `encoding`, `confidence`, `language`, and `mimeType`.
 
@@ -209,6 +209,18 @@ for await (const chunk of createReadStream('unknown.txt')) {
 console.log(detector.close());
 // { encoding: 'utf-8', confidence: 1, language: 'en', mimeType: 'text/plain' }
 ```
+
+## Upgrading from jschardet 3
+
+`detect()`, `detectAll()`, `enableDebug()`, and the `minimumThreshold` and `detectEncodings` options keep their v3 signatures, and a string is still read as one byte per character. What changes:
+
+- **Results.** Many inputs detect differently; that is where the accuracy gain comes from. Encoding names follow chardet's spelling, e.g. `utf-8` where v3 returned `UTF-8`, so compare names case-insensitively.
+- **`detectEncodings`** accepts v3 names except four encodings v4 does not detect, which throw: `EUC-TW`, `ISO-2022-CN`, `X-ISO-10646-UCS-4-3412`, and `X-ISO-10646-UCS-4-2143`. When the list leaves out `windows-1252` and no listed encoding matches, the result is `null` and a warning is logged with `console.warn`.
+- **Confidence scale.** Correct answers often score far lower than in v3: the Big5 sample from v3's README scored 0.99 in v3 and scores 0.08 in v4. Re-tune any threshold chosen against v3 numbers.
+- **`detect()` always returns its best guess.** v3 returned `{ encoding: null, confidence: 0 }` when the best guess scored below `minimumThreshold` (default 0.20); v4's `detect()` ignores `minimumThreshold`, so check `confidence` yourself. `minimumThreshold` filters `detectAll()` instead, which v3 did not filter.
+- **Empty input** returns `utf-8` with confidence 0.1, where v3 returned `{ encoding: null, confidence: 0 }`.
+- **Result type.** Results gain `language` and `mimeType`, and `encoding` is typed `string | null` (v3: `string`), so TypeScript code under `strictNullChecks` needs a null check.
+- **`UniversalDetector`**, exported but undocumented in v3, is now `chardet.UniversalDetector` (see [chardet module](#chardet-module)). It has chardet's API: `feed()` takes a `Uint8Array` rather than a string, and the constructor takes chardet's options (`includeEncodings` rather than `detectEncodings`, no `minimumThreshold`).
 
 ## License
 
