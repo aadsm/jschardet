@@ -300,6 +300,70 @@ describe('input types', () => {
   });
 });
 
+// jschardet 3.x's index.d.ts promised detect(buffer: Buffer | string,
+// { minimumThreshold, detectEncodings }) returning { encoding, confidence }.
+// These pin that surface so v3 callers keep working unchanged.
+describe('v3 API compatibility', () => {
+  test('detect() result carries v3 fields with v3 types', () => {
+    const result = detect(shiftJisJaJp);
+    expect(typeof result.encoding).toBe('string');
+    expect(typeof result.confidence).toBe('number');
+    expect(result.confidence).toBeGreaterThanOrEqual(0);
+    expect(result.confidence).toBeLessThanOrEqual(1);
+  });
+
+  test('detectAll() entries carry v3 fields, sorted by confidence', () => {
+    const results = detectAll(shiftJisJaJp);
+    expect(results.length).toBeGreaterThan(0);
+    for (const r of results) {
+      expect(typeof r.encoding).toBe('string');
+      expect(typeof r.confidence).toBe('number');
+    }
+    const confidences = results.map(r => r.confidence);
+    expect(confidences).toEqual([...confidences].sort((a, b) => b - a));
+  });
+
+  test.skipIf(!IS_NODE)('Node Buffer input matches Uint8Array input', () => {
+    const buffer = Buffer.from(shiftJisJaJp);
+    expect(detect(buffer)).toEqual(detect(shiftJisJaJp));
+    expect(detectAll(buffer)).toEqual(detectAll(shiftJisJaJp));
+  });
+
+  test('binary string input matches the same bytes as Uint8Array', () => {
+    const binary = String.fromCharCode(...shiftJisJaJpShort);
+    expect(detect(binary)).toEqual(detect(shiftJisJaJpShort));
+  });
+
+  describe('minimumThreshold', () => {
+    test('lowering it returns candidates the default threshold drops', () => {
+      const unfiltered = detectAll(shiftJisJaJp, { minimumThreshold: 0 });
+      expect(unfiltered.length).toBeGreaterThan(detectAll(shiftJisJaJp).length);
+    });
+
+    test('drops candidates below the threshold', () => {
+      const all = detectAll(euckrKo, { minimumThreshold: 0 });
+      const filtered = detectAll(euckrKo, { minimumThreshold: 0.1 });
+      expect(filtered.length).toBeGreaterThan(0);
+      expect(filtered.length).toBeLessThan(all.length);
+      for (const r of filtered) expect(r.confidence).toBeGreaterThanOrEqual(0.1);
+    });
+
+    test('returns every candidate when none clears the threshold', () => {
+      expect(detectAll(euckrKo, { minimumThreshold: 1.1 }))
+        .toEqual(detectAll(euckrKo, { minimumThreshold: 0 }));
+    });
+
+    test('combines with detectEncodings', () => {
+      const results = detectAll(shiftJisJaJp, {
+        minimumThreshold: 0,
+        detectEncodings: ['UTF-8', 'SHIFT_JIS', 'EUC-JP'],
+      });
+      expect(results.length).toBeGreaterThan(0);
+      for (const r of results) expect(['UTF-8', 'SHIFT_JIS', 'EUC-JP']).toContain(r.encoding);
+    });
+  });
+});
+
 // enableDebug flips a module-level flag that's never reset, so this block
 // must run last in the file. The 'before' test must precede the 'after' test
 // so the default-off case is observed before enableDebug() is called.
