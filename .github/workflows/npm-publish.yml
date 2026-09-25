@@ -142,6 +142,12 @@ jobs:
             grep '^npm ' "$RUNNER_TEMP/publish.txt" || true
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
+      # Checks the package.json routing (exports, main, types) against the
+      # packed tarball, which the test suite never sees: it imports src/.
+      # Relies on the dry-run publish above having run prepublishOnly, since
+      # build/ holds the files being checked.
+      - name: Check package entry points
+        run: npm run check:package
       - name: Push new version
         if: inputs.dry_run == false
         run: git push --atomic origin ${{ github.ref_name }} $(git tag --points-at HEAD)
