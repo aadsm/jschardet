@@ -1,6 +1,6 @@
 {
     "name": "jschardet",
-    "version": "4.0.0-rc.4",
+    "version": "4.0.0",
     "type": "module",
     "license": "0BSD",
     "author": "António Afonso",
