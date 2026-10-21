@@ -123,6 +123,15 @@ describe('jschardet CLI — in-process', () => {
     expect(c.stdout()).toContain('with confidence');
   });
 
+  test('-e rejects unknown eras instead of falling back to all eras', async () => {
+    const c = captured({ stdin: new TextEncoder().encode('synthetic local text') });
+    const code = await main(['-e', 'not-an-era'], c.opts);
+    expect(code).toBe(2);
+    expect(c.stderr()).toContain('invalid choice');
+    expect(c.stderr()).toContain('modern_web');
+    expect(c.stdout()).toBe('');
+  });
+
   test('partial failure (some files succeed) exits 0', async () => {
     const good = writeBytes('good.txt', 'Hello world');
     const c = captured();
