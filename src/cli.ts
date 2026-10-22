@@ -132,6 +132,11 @@ export async function main(argv: string[], opts: MainOptions = {}): Promise<numb
 
   const files = parsed.positionals;
   const values = parsed.values as CliValues;
+  const eraName = values['encoding-era'];
+  if (eraName !== undefined && !ERA_NAMES.includes(eraName.toLowerCase())) {
+    writeErr(`jschardet: argument --encoding-era: invalid choice: '${eraName}' (choose from ${ERA_NAMES.join(', ')})\n`);
+    return 2;
+  }
 
   if (values.help) {
     write(formatHelp());
@@ -146,9 +151,8 @@ export async function main(argv: string[], opts: MainOptions = {}): Promise<numb
   const minimal = values.minimal ?? false;
   const language = values.language ?? false;
   const mimeType = values['mime-type'] ?? false;
-  const eraName = values['encoding-era'];
   const era = eraName
-    ? EncodingEra[eraName.toUpperCase() as keyof typeof EncodingEra] ?? EncodingEra.ALL
+    ? EncodingEra[eraName.toUpperCase() as keyof typeof EncodingEra]
     : EncodingEra.ALL;
 
   const include = values['include-encodings']
