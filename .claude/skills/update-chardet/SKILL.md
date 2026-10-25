@@ -50,6 +50,10 @@ rules and benchmark policy in `CLAUDE.md`.
   is derived from the submodule at test time (see "Test Corpus" in
   docs/testing.md). Version-stamp-only diffs in generated files are normal
   and correct.
+- Commit the result as a work-in-progress commit before step 4: the corpus
+  tests refuse a submodule checkout that differs from the pin recorded in
+  `HEAD` (`_assertCheckoutMatchesPin` in `scripts/lib/test-data.js`). Step 5
+  amends it into the update commit.
 
 ## 3. Port
 
