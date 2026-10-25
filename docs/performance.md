@@ -1,6 +1,6 @@
 # jschardet performance
 
-Benchmarked on 2026-09-04 against 3138 test files from the
+Benchmarked on 2026-10-25 against 3138 test files from the
 [chardet test corpus](https://github.com/chardet/test-data).
 Methodology mirrors
 [chardet/docs/rewrite_performance.md](https://github.com/chardet/chardet/blob/main/docs/rewrite_performance.md):
@@ -13,7 +13,7 @@ Three detectors are compared:
 
 - **jschardet 3.1.4** — the previous JavaScript port
 - **jschardet 4.0.0** — this package, a TypeScript ground-up port of chardet 7
-- **chardet 7.6.0** — upstream Python, run via PYTHONPATH against the
+- **chardet 7.7.0** — upstream Python, run via PYTHONPATH against the
   `chardet/` submodule
 
 Reproduce locally:
@@ -30,24 +30,24 @@ npm run benchmark:memory
 | Detector        | Correct   | Accuracy |
 |-----------------|-----------|----------|
 | jschardet 3.1.4 | 1352/3138 | 43.1%    |
-| jschardet 4.0.0 | 3120/3138 | 99.4%    |
-| chardet 7.6.0   | 3122/3138 | 99.5%    |
+| jschardet 4.0.0 | 3119/3138 | 99.4%    |
+| chardet 7.7.0   | 3122/3138 | 99.5%    |
 
 jschardet 4 lifts accuracy by 56.3pp over jschardet 3 — the underlying
 chardet rewrite ships new bigram models, EBCDIC/DOS/Mac coverage, and
 magic-number plus markup-charset pipelines that v3 lacked. It trails
-upstream by two files (two cp932 samples, see the per-encoding table
-below); every other encoding matches chardet exactly.
+upstream by three files (two cp932 samples and one cp949 sample, see the
+per-encoding table below); every other encoding matches chardet exactly.
 
 ## Language detection accuracy
 
 | Detector        | Correct   | Accuracy |
 |-----------------|-----------|----------|
 | jschardet 3.1.4 | n/a       | n/a      |
-| jschardet 4.0.0 | 2922/3130 | 93.4%    |
-| chardet 7.6.0   | 2922/3130 | 93.4%    |
+| jschardet 4.0.0 | 2958/3130 | 94.5%    |
+| chardet 7.7.0   | 2959/3130 | 94.5%    |
 
-jschardet 3 does not return a `language` field. The 208 wrong-language
+jschardet 3 does not return a `language` field. The 172 wrong-language
 cases under jschardet 4 are primarily confusable language pairs within
 the same script (Danish/Norwegian, Belarusian/Bulgarian for Cyrillic,
 etc.).
@@ -61,13 +61,13 @@ don't, to keep runtime reasonable.
 
 | Detector        | Files/s | Mean    | Median  | p90      | p95      |
 |-----------------|---------|---------|---------|----------|----------|
-| jschardet 3.1.4 |     126 | 7.91 ms | 0.76 ms |  9.00 ms | 18.00 ms |
-| jschardet 4.0.0 |     780 | 1.28 ms | 0.43 ms |  2.43 ms |  3.69 ms |
-| chardet 7.6.0   |     222 | 4.51 ms | 1.85 ms | 10.91 ms | 15.76 ms |
+| jschardet 3.1.4 |     122 | 8.18 ms | 0.79 ms |  9.57 ms | 18.33 ms |
+| jschardet 4.0.0 |     777 | 1.29 ms | 0.45 ms |  2.63 ms |  4.15 ms |
+| chardet 7.7.0   |     234 | 4.28 ms | 1.68 ms |  9.95 ms | 14.48 ms |
 
 jschardet 4 processes about 6× more files per second than jschardet 3
 on this corpus, and the tail latency narrows too — p95 drops from
-18.00 ms to 3.69 ms.
+18.33 ms to 4.15 ms.
 
 This port does not implement upstream's rowmax scoring pruning (see
 [port-notes.md](port-notes.md#statistical-scoring-rowmax-pruning-not-ported));
@@ -89,9 +89,9 @@ effects.
 
 | Detector        | Import   | First detect | Total     |
 |-----------------|----------|--------------|-----------|
-| jschardet 3.1.4 | 29.23 ms |      0.68 ms |  29.91 ms |
-| jschardet 4.0.0 | 44.74 ms |     64.46 ms | 109.20 ms |
-| chardet 7.6.0   | 36.31 ms |     65.44 ms | 101.74 ms |
+| jschardet 3.1.4 | 25.73 ms |      0.59 ms |  26.32 ms |
+| jschardet 4.0.0 | 40.47 ms |     64.92 ms | 105.39 ms |
+| chardet 7.7.0   | 48.84 ms |     89.70 ms | 138.54 ms |
 
 jschardet 4 trades a heavier first-call cost for a lighter steady state:
 the bigram models ship zlib-compressed and decompress lazily on the first
@@ -113,24 +113,24 @@ the same syscall on both sides keeps the numbers comparable.
 
 | Detector        | Baseline RSS | Import delta | Peak delta | Final RSS |
 |-----------------|--------------|--------------|------------|-----------|
-| jschardet 3.1.4 | 138.5 MiB    | 668.0 KiB    | 831.8 MiB  | 970.2 MiB |
-| jschardet 4.0.0 | 138.2 MiB    | 6.0 MiB      | 85.5 MiB   | 223.6 MiB |
-| chardet 7.6.0   |  89.2 MiB    | 8.6 MiB      | 37.6 MiB   | 126.9 MiB |
+| jschardet 3.1.4 | 135.5 MiB    | 1.3 MiB      | 825.9 MiB  | 961.4 MiB |
+| jschardet 4.0.0 | 135.2 MiB    | 6.4 MiB      | 90.8 MiB   | 226.0 MiB |
+| chardet 7.7.0   |  90.3 MiB    | 7.7 MiB      | 37.3 MiB   | 127.6 MiB |
 
-jschardet 4's peak RSS is ~10× lower than jschardet 3 (85.5 MiB vs
-831.8 MiB of growth above baseline). The chardet rewrite's dense bigram
+jschardet 4's peak RSS is ~9× lower than jschardet 3 (90.8 MiB vs
+825.9 MiB of growth above baseline). The chardet rewrite's dense bigram
 model format (one 64 KiB lookup table per language, loaded once and
 shared across calls) replaces the per-call sparse-map allocations that
 drive v3's high water mark.
 
-The baseline gap between Node (~138 MiB) and Python (~89 MiB) is the
+The baseline gap between Node (~135 MiB) and Python (~90 MiB) is the
 interpreter's own resident footprint plus the corpus bytes — both
 workers pre-load the full corpus into memory before measuring baseline,
 so the corpus shows up there rather than under the detector.
 
 ## Per-encoding accuracy
 
-| Encoding         |   N | jschardet 3.1.4  | jschardet 4.0.0  | chardet 7.6.0    |
+| Encoding         |   N | jschardet 3.1.4  | jschardet 4.0.0  | chardet 7.7.0    |
 |------------------|-----|------------------|------------------|------------------|
 | (binary)         |   8 | 7/8 (87.5%)      | 8/8 (100.0%)     | 8/8 (100.0%)     |
 | ascii            |  32 | 31/32 (96.9%)    | 32/32 (100.0%)   | 32/32 (100.0%)   |
@@ -163,7 +163,7 @@ so the corpus shows up there rather than under the detector.
 | cp874            |   8 | 5/8 (62.5%)      | 6/8 (75.0%)      | 6/8 (75.0%)      |
 | cp875            |   8 | 0/8 (0.0%)       | 8/8 (100.0%)     | 8/8 (100.0%)     |
 | cp932            |   9 | 0/9 (0.0%)       | 7/9 (77.8%)      | 9/9 (100.0%)     |
-| cp949            |   8 | 7/8 (87.5%)      | 8/8 (100.0%)     | 8/8 (100.0%)     |
+| cp949            |   8 | 7/8 (87.5%)      | 7/8 (87.5%)      | 8/8 (100.0%)     |
 | euc-jp           |  32 | 32/32 (100.0%)   | 32/32 (100.0%)   | 32/32 (100.0%)   |
 | euc-kr           |  37 | 37/37 (100.0%)   | 37/37 (100.0%)   | 37/37 (100.0%)   |
 | gb18030          |   9 | 9/9 (100.0%)     | 9/9 (100.0%)     | 9/9 (100.0%)     |
@@ -248,7 +248,7 @@ The full list of known per-file failures is tracked in
 ## Hardware
 
 ```
-Node v22.22.2 on linux/x64
+Node v22.22.0 on linux/x64
 CPU: Intel(R) Xeon(R) Processor @ 2.80GHz (4 cores)
 RAM: 15.7 GiB
 ```
