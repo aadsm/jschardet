@@ -88,7 +88,7 @@ function decodesCleanly(data: Uint8Array, encoding: string): string | null {
     // the byte tables answer. Return a placeholder — no fidelity check is
     // possible here.
     const canonical = lookupEncoding(encoding);
-    if (canonical === null || REGISTRY[canonical].isMultibyte) return null;
+    if (canonical === null || REGISTRY[canonical].isMultibyteCjk) return null;
     if (decodesAsSingleByte(canonical, data) === false) return null;
     return '(decodes; not decodable by iconv)';
   }

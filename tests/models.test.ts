@@ -1,12 +1,22 @@
 import {
   loadModels,
   getEncIndex,
+  getIdfWeights,
+  getLanguageNorms,
+  getLanguageScale,
   scoreBestLanguage,
   scoreWithProfile,
   BigramProfile,
   _buildEncIndex,
 } from '../src/models/index.js';
-import { parseModelsBin } from '../src/models/_format.js';
+import {
+  LANGNORM_HEADER_SIZE,
+  LANGNORM_MAGIC,
+  langnormFromTable,
+  parseLangnormBin,
+  parseModelsBin,
+} from '../src/models/_format.js';
+import { readBytes as readLangnormBin } from '../src/models/langnorm.bin.js';
 
 // ---------------------------------------------------------------------------
 // Helpers for building synthetic models.bin payloads. Mirrors Python's
@@ -288,5 +298,129 @@ describe('parseModelsBin', () => {
     expect(models.get('fr/cp1252')![(0xE9 << 8) | 0x20]).toBe(200);
     expect(models.get('fr/cp1252')![(0x6C << 8) | 0x65]).toBe(50);
     expect(norms.get('fr/cp1252')).toBe(norm);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// langnorm.bin and the language-scoring space
+// ---------------------------------------------------------------------------
+
+describe('langnorm.bin', () => {
+  // chardet also checks the embedded digest against models.bin here; the
+  // port's models.bin.js carries a re-packed image, so
+  // scripts/generate-model-bins.js checks the digest against chardet's
+  // source file instead.
+  test('carries the CLN1 magic and one norm per model', () => {
+    const raw = readLangnormBin();
+    expect([...raw.subarray(0, 4)]).toEqual([...LANGNORM_MAGIC]);
+    expect(raw.length).toBe(LANGNORM_HEADER_SIZE + loadModels().size * 8);
+  });
+
+  test('holds each model\'s norm under root-IDF weighting', () => {
+    const models = loadModels();
+    const norms = getLanguageNorms();
+    const idf = getIdfWeights();
+    expect(new Set(norms.keys())).toEqual(new Set(models.keys()));
+    for (const [key, table] of models) {
+      let total = 0;
+      for (let i = 0; i < 65536; i++) if (table[i]) total += table[i] * table[i] * idf[i];
+      expect(norms.get(key)).toBeCloseTo(Math.sqrt(total), 6);
+    }
+  });
+
+  // chardet patches the resource loader to feed a stale or missing file and
+  // checks the warned fallback reproduces the shipped norms. ES module
+  // exports cannot be patched, so the two halves are checked directly: a bad
+  // file parses to null, and the derivation the fallback runs reproduces the
+  // shipped norms exactly.
+  test('a stale or truncated file is rejected, and the derivation reproduces it', () => {
+    const raw = readLangnormBin();
+    const keys = [...loadModels().keys()];
+    const badMagic = raw.slice();
+    badMagic[0] = 0;
+    expect(parseLangnormBin(badMagic, keys)).toBeNull();
+    expect(parseLangnormBin(raw.subarray(0, raw.length - 8), keys)).toBeNull();
+    const idf = getIdfWeights();
+    const shipped = parseLangnormBin(raw, keys)!;
+    for (const [key, table] of loadModels()) {
+      expect(langnormFromTable(table, idf)).toBe(shipped.get(key));
+    }
+  });
+});
+
+describe('the language-scoring space', () => {
+  test('forLanguage carries IDF times root IDF per occurrence, a norm under IDF', () => {
+    // The root-IDF table is scaled by 16 to fill a byte, and the norm
+    // carries the same 16.
+    const idf = getIdfWeights();
+    const scale = getLanguageScale();
+    expect(scale.length).toBe(65536);
+    for (let i = 0; i < 65536; i += 97) expect(scale[i]).toBe(Math.round(16 * Math.sqrt(idf[i])));
+    expect(Math.min(...scale)).toBe(16);
+    const data = new TextEncoder().encode('Café  résumé\n\n naïve'); // whitespace runs collapse
+    const profile = BigramProfile.forLanguage(data);
+    const plain = new BigramProfile(data);
+    expect(profile.nonzero).toEqual(plain.nonzero);
+    const counts = new Map<number, number>();
+    for (let i = 0; i < data.length - 1; i++) {
+      const [b1, b2] = [data[i], data[i + 1]];
+      if (b1 === b2 && /\s/.test(String.fromCharCode(b1))) continue;
+      const idx = (b1 << 8) | b2;
+      counts.set(idx, (counts.get(idx) ?? 0) + 1);
+    }
+    let weightSum = 0;
+    let normSq = 0;
+    for (const [i, c] of counts) {
+      weightSum += c * idf[i] * scale[i];
+      normSq += (c * idf[i]) ** 2;
+    }
+    expect(profile.weightSum).toBe(weightSum);
+    expect(profile.inputNorm).toBeCloseTo(16 * Math.sqrt(normSq), 9);
+    expect(profile.inputNorm).toBeCloseTo(16 * plain.inputNorm, 9);
+    expect(BigramProfile.forLanguage(new Uint8Array(0)).inputNorm).toBe(0);
+  });
+
+  test('scoreWithProfile with languageWeighting is the weighted cosine', () => {
+    const idf = getIdfWeights();
+    const [, table, key] = getEncIndex().get('utf-8')![0];
+    const data = new TextEncoder().encode('Nous avons trouvé plusieurs vétérinaires près de la gare.');
+    const profile = BigramProfile.forLanguage(data);
+    const counts = new Map<number, number>();
+    for (let i = 0; i < data.length - 1; i++) {
+      const idx = (data[i] << 8) | data[i + 1];
+      counts.set(idx, (counts.get(idx) ?? 0) + 1);
+    }
+    let inputNormSq = 0;
+    let exact = 0;
+    let dot = 0;
+    const scale = getLanguageScale();
+    for (const [i, c] of counts) {
+      inputNormSq += (c * idf[i]) ** 2;
+      exact += c * idf[i] * table[i] * Math.sqrt(idf[i]);
+      dot += c * idf[i] * scale[i] * table[i];
+    }
+    let modelNormSq = 0;
+    for (let i = 0; i < 65536; i++) modelNormSq += table[i] ** 2 * idf[i];
+    const inputNorm = Math.sqrt(inputNormSq);
+    const modelNorm = Math.sqrt(modelNormSq);
+    const got = scoreWithProfile(profile, table, key, { languageWeighting: true });
+    // The per-occurrence weight is idf times a byte-quantized 16 * sqrt(idf),
+    // so the score matches that definition exactly and the real one closely.
+    const expected = dot / (16 * inputNorm * modelNorm);
+    expect(Math.abs(got - expected) / expected).toBeLessThan(1e-12);
+    expect(Math.abs(got - exact / (inputNorm * modelNorm)) / got).toBeLessThan(2e-2);
+    // An unknown key derives the same norm from the table itself.
+    const unkeyed = scoreWithProfile(profile, table, '', { languageWeighting: true });
+    expect(Math.abs(unkeyed - expected) / expected).toBeLessThan(1e-9);
+    // The plain cosine is a different number on the same input.
+    const plain = scoreWithProfile(new BigramProfile(data), table, key);
+    expect(Math.abs(plain - expected) / expected).toBeGreaterThan(1e-3);
+  });
+
+  test('scoreBestLanguage builds the language profile itself', () => {
+    const data = new TextEncoder().encode('Nous avons trouvé plusieurs vétérinaires près de la gare.');
+    const profile = BigramProfile.forLanguage(data);
+    expect(scoreBestLanguage(data, 'utf-8', undefined, { languageWeighting: true }))
+      .toEqual(scoreBestLanguage(data, 'utf-8', profile, { languageWeighting: true }));
   });
 });

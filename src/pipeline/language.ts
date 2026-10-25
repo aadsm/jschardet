@@ -5,6 +5,11 @@
 // Tier 2: statistical bigram scoring against the encoding's language-model variants.
 // Tier 3: decode to UTF-8 and score against the UTF-8 byte-level language models.
 //
+// Tiers 2 and 3 score in the IDF-weighted space of BigramProfile.forLanguage,
+// not the plain cosine the encoding ranking uses: with 49 languages in play,
+// the plain cosine let the UTF-8 bigram for é alone hand French text to
+// Hungarian.
+//
 // Python's private _to_utf8 helper lives in ./to-utf8.ts here: TextDecoder has
 // no UTF-32/UTF-7 support and no auto-endian 'utf-16' label, so the one-line
 // Python decode expands into per-encoding fallbacks.
@@ -70,8 +75,11 @@ export function fillLanguages(
     let lang = recheck ? null : inferLanguage(encoding);
     // Tier 2: statistical scoring for multi-language encodings
     if (lang === null && data.length > 0 && _internal.hasModelVariants(encoding)) {
-      if (profile === null) profile = new BigramProfile(data);
-      const [, l] = scoreBestLanguage(data, encoding, profile, { demoteThinRare: thin });
+      if (profile === null) profile = BigramProfile.forLanguage(data);
+      const [, l] = scoreBestLanguage(data, encoding, profile, {
+        demoteThinRare: thin,
+        languageWeighting: true,
+      });
       lang = l;
     }
     // Tier 3: decode to UTF-8, score against UTF-8 language models. Also
@@ -85,11 +93,12 @@ export function fillLanguages(
       const utf8Data = _toUtf8(data, encoding);
       if (utf8Data !== null && utf8Data.length > 0) {
         if (!_bytesEqual(utf8Data, utf8ProfileSrc)) {
-          utf8Profile = new BigramProfile(utf8Data);
+          utf8Profile = BigramProfile.forLanguage(utf8Data);
           utf8ProfileSrc = utf8Data;
         }
         const [, utf8Lang] = scoreBestLanguage(utf8Data, 'utf-8', utf8Profile!, {
           demoteThinRare: thin,
+          languageWeighting: true,
         });
         if (lang === null || (utf8Lang !== null && !RARE_LANGUAGES.has(utf8Lang))) {
           lang = utf8Lang;

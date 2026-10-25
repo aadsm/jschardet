@@ -30,6 +30,7 @@ import {
   decodeSingleByteText,
   decodesAsSingleByte,
 } from './pipeline/byte-decode.js';
+import { utf7DecodesWithoutError } from './pipeline/to-utf8.js';
 
 // chardet's decodes_without_error, the validity stage's per-encoding
 // predicate: "could these bytes be text in this encoding?", answered exactly
@@ -48,9 +49,91 @@ import {
 export function decodesWithoutError(encName: string, data: Uint8Array): boolean {
   const singleByte = decodesAsSingleByte(encName, data);
   if (singleByte !== null) return singleByte;
+  const utf = _utfDecodesWithoutError(encName, data);
+  if (utf !== null) return utf;
   const label = whatwgLabelFor(encName);
   if (label === null) return true;
   return whatwgDecodesWithoutError(label, data);
+}
+
+// decodesWithoutError for the UTF encodings with no WHATWG label of their
+// own, answered as CPython's codecs would; null for any other name. WHATWG
+// has UTF-8 and the two fixed-endian UTF-16 decoders, so utf-8-sig and
+// utf-16 decode through those once the mark is read (WHATWG's utf-16 label
+// is plain utf-16le and does not read the mark), UTF-32 is checked by
+// _utf32DecodesWithoutError, and UTF-7 by to-utf8.ts's reimplementation of
+// CPython's decoder.
+//
+// CPython's utf-16 and utf-32 decoders take the byte order from the mark and
+// raise when the stream does not start with one; a stream too short to hold
+// a whole mark is deferred like any truncated tail.
+function _utfDecodesWithoutError(encName: string, data: Uint8Array): boolean | null {
+  switch (encName) {
+    case 'utf-8-sig':
+      return whatwgDecodesWithoutError('utf-8', data);
+    case 'utf-16':
+      if (data.length < 2) return true;
+      if (data[0] === 0xfe && data[1] === 0xff) return whatwgDecodesWithoutError('utf-16be', data.subarray(2));
+      if (data[0] === 0xff && data[1] === 0xfe) return whatwgDecodesWithoutError('utf-16le', data.subarray(2));
+      return false;
+    case 'utf-32':
+      if (data.length < 4) return true;
+      if (data[0] === 0x00 && data[1] === 0x00 && data[2] === 0xfe && data[3] === 0xff) {
+        return _utf32DecodesWithoutError(data.subarray(4), false);
+      }
+      if (data[0] === 0xff && data[1] === 0xfe && data[2] === 0x00 && data[3] === 0x00) {
+        return _utf32DecodesWithoutError(data.subarray(4), true);
+      }
+      return false;
+    case 'utf-32-be':
+      return _utf32DecodesWithoutError(data, false);
+    case 'utf-32-le':
+      return _utf32DecodesWithoutError(data, true);
+    case 'utf-7':
+      return utf7DecodesWithoutError(data);
+    default:
+      return null;
+  }
+}
+
+// CPython's utf_32 decoder: every 4-byte unit must be a Unicode scalar value
+// (at most U+10FFFF, not a surrogate). A partial unit at the end is a
+// truncated tail and is tolerated, as decodesWithoutError tolerates one for
+// every encoding.
+function _utf32DecodesWithoutError(data: Uint8Array, littleEndian: boolean): boolean {
+  const view = new DataView(data.buffer, data.byteOffset, data.byteLength);
+  const whole = data.length - (data.length % 4);
+  for (let i = 0; i < whole; i += 4) {
+    const cp = view.getUint32(i, littleEndian);
+    if (cp > 0x10ffff || (cp >= 0xd800 && cp <= 0xdfff)) return false;
+  }
+  return true;
+}
+
+// The escape sequences WHATWG's iso-2022-jp decoder accepts. ISO-2022-JP-2
+// has more (ESC $ ( D for JIS X 0212, ESC $ A for GB 2312, ESC . A for the
+// Latin-1 upper half, ...) that the decoder rejects even though CPython's
+// iso2022_jp_2 decodes them.
+const _ISO2022JP_ESCAPES: readonly (readonly number[])[] = [
+  [0x1b, 0x28, 0x42], // ESC ( B
+  [0x1b, 0x28, 0x4a], // ESC ( J
+  [0x1b, 0x28, 0x49], // ESC ( I
+  [0x1b, 0x24, 0x40], // ESC $ @
+  [0x1b, 0x24, 0x42], // ESC $ B
+];
+
+// decodesWithoutError for iso2022_jp_2, as the escape stage asks it. The
+// port decodes iso2022_jp_2 with WHATWG's iso-2022-jp, which reads plain
+// ISO-2022-JP only, so data using an escape sequence that decoder doesn't
+// know cannot be checked and answers true, as an encoding with no decoder
+// does; any other data gets iso-2022-jp's verdict. Only the escape stage
+// asks this: decodesWithoutError itself stays keyed by name alone.
+export function iso2022Jp2DecodesWithoutError(data: Uint8Array): boolean {
+  for (let i = data.indexOf(0x1b); i !== -1; i = data.indexOf(0x1b, i + 1)) {
+    const known = _ISO2022JP_ESCAPES.some(seq => seq.every((b, j) => data[i + j] === b));
+    if (!known) return true;
+  }
+  return decodesWithoutError('iso2022_jp_2', data);
 }
 
 // chardet's decodes_completely, the strict, whole-input sibling of

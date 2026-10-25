@@ -6,7 +6,7 @@ import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { afterEach, beforeEach, describe, expect, test } from 'vitest';
 import { main, type MainOptions } from '../src/cli.js';
-import type { DetectionResult } from '../src/chardet.js';
+import { detect, type DetectionResult } from '../src/chardet.js';
 import { VERSION } from '../src/version.js';
 
 let tmpDir: string;
@@ -327,6 +327,31 @@ describe('jschardet CLI — in-process', () => {
     expect(code).toBe(0);
     expect(c.stdout()).toContain('--encoding-era');
     expect(c.stdout()).toContain('Encoding era filter');
+  });
+});
+
+describe('jschardet CLI — input truncation', () => {
+  const cases: Array<[string, Uint8Array]> = [
+    ['clipped-utf8', new Uint8Array([0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x20, 0xc3, 0xa9, ...new TextEncoder().encode(' more text here')])],
+    ['incomplete-input', new Uint8Array([0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x20, 0xc3])],
+    ['exact-cap', new TextEncoder().encode('Hello!!')],
+    ['past-cap', new Uint8Array([...new TextEncoder().encode('Hello!!'), 0xff])],
+  ];
+  describe.each(['file', 'stdin'])('preserves input truncation (%s)', source => {
+    test.each(cases)('%s', async (id, data) => {
+      const maxBytes = 7;
+      const expected = detect(data, { maxBytes }).encoding;
+      if (id === 'clipped-utf8') expect(expected).toBe('utf-8');
+
+      const argv = ['--minimal'];
+      const c = source === 'file'
+        ? captured({ maxBytes })
+        : captured({ maxBytes, stdin: data });
+      if (source === 'file') argv.push(writeBytes('capped.txt', data));
+      await main(argv, c.opts);
+      expect(c.stderr()).toBe('');
+      expect(c.stdout().trim()).toBe(expected);
+    });
   });
 });
 

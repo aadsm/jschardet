@@ -2,13 +2,13 @@
 
 ## From Python .bin to JS Modules
 
-Python chardet loads three binary model files from disk at runtime: `models.bin` (~585 KB on disk), `idf.bin` (~64 KB), and `confusion.bin` (~8 KB). TypeScript cannot load files at runtime in a browser context, so instead these are shipped as JS modules that embed the data as a compressed base64 string.
+Python chardet loads its binary model files from disk at runtime; the port ships four of them: `models.bin` (~585 KB on disk), `idf.bin` (~64 KB), `confusion.bin` (~8 KB), and `langnorm.bin` (~3 KB). TypeScript cannot load files at runtime in a browser context, so instead these are shipped as JS modules that embed the data as a compressed base64 string.
 
-[`scripts/generate-model-bins.js`](../scripts/generate-model-bins.js) reads each `.bin` file from the [`chardet/`](../chardet/) submodule, re-compresses it with `zlib.compressobj(level=9, strategy=Z_FIXED)`, base64-encodes the result, and writes it to [`src/models/models.bin.js`](../src/models/models.bin.js), [`src/models/idf.bin.js`](../src/models/idf.bin.js), and [`src/models/confusion.bin.js`](../src/models/confusion.bin.js). The script verifies the output by round-tripping through both the Node and browser decoders before writing. It is called automatically by [`scripts/update-chardet.js`](../scripts/update-chardet.js) when the chardet pin changes.
+[`scripts/generate-model-bins.js`](../scripts/generate-model-bins.js) reads each `.bin` file from the [`chardet/`](../chardet/) submodule, re-compresses it with `zlib.compressobj(level=9, strategy=Z_FIXED)`, base64-encodes the result (or the raw bytes, when compressing them does not make them smaller: `langnorm.bin` is packed float64s and ships raw), and writes it to [`src/models/models.bin.js`](../src/models/models.bin.js), [`src/models/idf.bin.js`](../src/models/idf.bin.js), [`src/models/confusion.bin.js`](../src/models/confusion.bin.js), and [`src/models/langnorm.bin.js`](../src/models/langnorm.bin.js). `langnorm.bin` embeds the SHA-256 of the `models.bin` it was computed from; chardet checks it at load time, and since `models.bin.js` carries a re-packed image the generator checks it against chardet's source file instead. The script verifies the output by round-tripping through both the Node and browser decoders before writing. It is called automatically by [`scripts/update-chardet.js`](../scripts/update-chardet.js) when the chardet pin changes.
 
 At runtime, each module exports a lazy loader: the first call to `readBytes()` decompresses the base64 payload and caches the result. Subsequent calls return the cached `Uint8Array` without re-decompressing.
 
-The `--raw` flag produces uncompressed wrappers (passthrough base64, no decompression import) for local debugging — do not commit these.
+The `--raw` flag produces uncompressed wrappers (passthrough base64, no decompression import) for every file, for local debugging — do not commit these. A wrapper the default mode emits raw because compression would not shrink it is committed as is; its header reads `// mode: raw`.
 
 ## Two Decompression Paths
 

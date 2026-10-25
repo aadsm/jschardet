@@ -1,7 +1,7 @@
 import { ASCII_TEXT_BYTES, DETERMINISTIC_CONFIDENCE, DetectionResult } from './index.js';
 import { decodeStrictText } from '../decode.js';
 
-const _SAMPLE_SIZE = 4096;
+export const _SAMPLE_SIZE = 4096;
 const _MIN_BYTES_UTF32 = 16;
 const _MIN_BYTES_UTF16 = 10;
 const _UTF16_MIN_NULL_FRACTION = 0.03;
@@ -13,7 +13,17 @@ const _MIN_TEXT_QUALITY = 0.5;
 // scatter across the BMP) flip the answer.
 const _QUALITY_TIE_MARGIN = 0.05;
 const _MIN_PRINTABLE_FRACTION = 0.7;
-const _NULL_SEPARATOR_MAX_FRACTION = 0.15;
+// Null-separator guard: when every non-null byte is printable ASCII, the
+// two readings are easy to tell apart by how many code units carry a null.
+// UTF-16 text made of ASCII characters puts a null in every unit, and the
+// only thing that lowers the fraction is a stretch that fell out of phase
+// (the corpus has a UTF-16-BE file with one such stretch, at 0.865).
+// Null-separated records (find -print0, git ls-tree -z) put a null in at
+// most half the units once records are two characters or longer: three-byte
+// abc\0 records on one parity give exactly 0.5, and longer records give
+// less. Single-character records are byte-identical to UTF-16 and are read
+// as UTF-16. 0.75 sits between the two shapes.
+const _NULL_SEPARATOR_MAX_FRACTION = 0.75;
 
 // ASCII_TEXT_BYTES plus null — used by the null-separator guard
 const _NULL_SEPARATOR_ALLOWED = new Set([0x00, ...ASCII_TEXT_BYTES]);

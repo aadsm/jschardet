@@ -4,9 +4,8 @@
 //
 // Callers routinely detect on a slice — an editor reads the first 4 kB or
 // 64 kB of a file and hands over the buffer — and chardet slices further on
-// its own, data[:max_bytes] in the orchestrator and data[:_SCAN_LIMIT] in
-// markup's _validateBytes. For a two-byte encoding any of those cuts lands
-// mid-character about half the time.
+// its own, data[:max_bytes] in the orchestrator. For a two-byte encoding any
+// of those cuts lands mid-character about half the time.
 //
 // A one-shot strict decode cannot tell a truncated tail from corrupt data, so
 // a single dangling lead byte would drop every CJK candidate and the answer
@@ -150,11 +149,11 @@ test('corruption before a truncated tail is still caught', () => {
 });
 
 test('markup declaration survives the scan limit cut', () => {
-  // A complete, well-formed page with an honest declaration. _validateBytes
-  // slices its own 4 kB head, and one byte of padding decides whether that cut
-  // lands mid-character — which must not change the answer. (Python also
-  // asserts _validate_bytes directly; here detectMarkupCharset returning
-  // non-null subsumes it, since _validateBytes is not exported.)
+  // A complete, well-formed page with an honest declaration. One byte of
+  // padding shifts where every internal cut lands relative to the two-byte
+  // characters — which must not change the answer. (Python also asserts
+  // _validate_bytes directly; here detectMarkupCharset returning non-null
+  // subsumes it, since _validateBytes is not exported.)
   const body = repeatBytes(_ZH_GBK, 200);
   for (const pad of [0, 1]) {
     const data = concat(

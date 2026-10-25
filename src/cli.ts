@@ -117,12 +117,19 @@ export interface MainOptions {
   write?: (s: string) => void;
   writeErr?: (s: string) => void;
   detectFn?: (bytes: Uint8Array, options: DetectOptions) => DetectionResult;
+  // The read cap, DEFAULT_MAX_BYTES unless a test lowers it.
+  maxBytes?: number;
 }
 
 export async function main(argv: string[], opts: MainOptions = {}): Promise<number> {
   const write = opts.write ?? process.stdout.write.bind(process.stdout);
   const writeErr = opts.writeErr ?? process.stderr.write.bind(process.stderr);
   const detectFn = opts.detectFn ?? detect;
+  const maxBytes = opts.maxBytes ?? DEFAULT_MAX_BYTES;
+  // Reads take one byte past the cap so detect() can tell truncated input
+  // from input that ends exactly at the cap. It does its own slicing to
+  // maxBytes.
+  const readCap = maxBytes + 1;
 
   const parsed = parseArgs({
     args: argv,
@@ -164,6 +171,7 @@ export async function main(argv: string[], opts: MainOptions = {}): Promise<numb
     encodingEra: era,
     includeEncodings: include,
     excludeEncodings: exclude,
+    maxBytes,
     noMatchEncoding,
     emptyInputEncoding,
   };
@@ -173,7 +181,7 @@ export async function main(argv: string[], opts: MainOptions = {}): Promise<numb
     for (const filepath of files) {
       let data: Uint8Array;
       try {
-        data = readFileSync(filepath).subarray(0, DEFAULT_MAX_BYTES);
+        data = readFileSync(filepath).subarray(0, readCap);
       } catch (e) {
         writeErr(`jschardet: ${filepath}: ${e}\n`);
         errors += 1;
@@ -195,7 +203,7 @@ export async function main(argv: string[], opts: MainOptions = {}): Promise<numb
 
   let data: Uint8Array;
   if (opts.stdin !== undefined) {
-    data = opts.stdin.subarray(0, DEFAULT_MAX_BYTES);
+    data = opts.stdin.subarray(0, readCap);
   } else {
     const chunks: Buffer[] = [];
     let total = 0;
@@ -203,9 +211,9 @@ export async function main(argv: string[], opts: MainOptions = {}): Promise<numb
       const buf = chunk as Buffer;
       chunks.push(buf);
       total += buf.length;
-      if (total >= DEFAULT_MAX_BYTES) break;
+      if (total >= readCap) break;
     }
-    data = Buffer.concat(chunks).subarray(0, DEFAULT_MAX_BYTES);
+    data = Buffer.concat(chunks).subarray(0, readCap);
   }
 
   let result: DetectionResult;

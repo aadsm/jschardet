@@ -86,8 +86,9 @@ describe('_toUtf8', () => {
 });
 
 // The calibrated mislabel snippet: plain argmax fills it as Scottish
-// Gaelic (measured margin under 0.021 over English). Shared by every band
-// test so they all certify the same input.
+// Gaelic (measured margin 0.039 over English in the language tiers'
+// weighted cosine). Shared by every band test so they all certify the same
+// input.
 const MISLABEL_SNIPPET = 'It’s a lovely day, so let’s grab coffee and chat.';
 
 describe('thin-rare band', () => {
@@ -114,14 +115,16 @@ describe('thin-rare band', () => {
     }
   });
 
-  // Genuine short Celtic text keeps its language: measured gd/cy snippets
-  // win by 0.07+ even at 40 characters, and Breton clears the band from
-  // about 60 characters.
+  // Genuine short Celtic text keeps its language: measured Scottish Gaelic
+  // and Welsh snippets win by 0.2+ at 60 characters and Irish by 0.14, and
+  // this Breton snippet by 0.2 at 100, so the demotion must not fire on them.
   test('keeps genuine Celtic snippets', () => {
     const enc = new TextEncoder();
     const gaelic = 'Tha mi a’ dol dhan bhùth an-diugh còmhla ri mo charaid.';
     const welsh = 'Mae’r tywydd yn braf heddiw ac rydw i’n mynd i’r traeth.';
-    const breton = 'Deuet eo an amzer vrav ha me a ya da bourmen war an aod gant ma mignoned.';
+    const breton =
+      'Deuet eo an amzer vrav ha me a ya da bourmen war an aod gant ma ' +
+      'mignoned. Brav e vo an deiz, emezañ.';
     const irish = 'Is maith liom an aimsir bhreá agus téim ag siúl cois farraige.';
     expect(detect(enc.encode(gaelic)).language).toBe('gd');
     expect(detect(enc.encode(welsh)).language).toBe('cy');
@@ -130,19 +133,35 @@ describe('thin-rare band', () => {
   });
 
   // The band's accepted casualty: thin-margin Irish at snippet length. This
-  // snippet is genuine Irish that the plain argmax labels ga by a margin
-  // under 0.03, so the band demotes it — the trade ADR-0005's addendum
-  // accepts on prevalence grounds. Pinned so any widening of the band's
+  // snippet is genuine Irish that the plain argmax labels ga by a margin of
+  // 0.053, under the 0.06 band, so the band demotes it — the trade
+  // ADR-0005's addendum accepts on prevalence grounds. Pinned so any widening of the band's
   // margin or length bounds surfaces here as a deliberate decision instead
   // of a silent shift in who gets demoted.
   test('casualty class is pinned', () => {
     const irish =
       'Beidh mé ar ais amárach agus tabharfaidh mé an leabhar duit ansin.';
     const data = new TextEncoder().encode(irish);
-    const [, plain] = scoreBestLanguage(data, 'utf-8');
+    const [, plain] = scoreBestLanguage(data, 'utf-8', undefined, { languageWeighting: true });
     expect(plain).toBe('ga'); // the models do recognize it ...
     const detected = detect(data).language;
     expect(detected === null || !RARE_LANGUAGES.has(detected)).toBe(true); // ... band demotes
+  });
+
+  // A 73-character Breton snippet with no accented letter reads as
+  // Indonesian. The weighted cosine charges each model for its rare bigrams,
+  // which on an all-ASCII input counts against an accent-bearing language for
+  // mass the snippet never shows. The plain cosine gave this one to Breton
+  // by 0.065; the weighted one gives it to Indonesian outright, not through
+  // the band. Pinned per ADR-0005's addendum: the corpus's rare-language
+  // files are labeled better at every length under the weighted cosine, so
+  // the loss is accepted, and a fix that recovers it should show up here.
+  test('thin ASCII Breton snippet is a known casualty', () => {
+    const breton = 'Deuet eo an amzer vrav ha me a ya da bourmen war an aod gant ma mignoned.';
+    const data = new TextEncoder().encode(breton);
+    const [, plain] = scoreBestLanguage(data, 'utf-8');
+    expect(plain).toBe('br'); // the plain cosine still recognizes it ...
+    expect(detect(data).language).toBe('id'); // ... the weighted one does not
   });
 
   // The encoding-ranking caller relies on the default being a plain argmax,
@@ -158,4 +177,70 @@ describe('thin-rare band', () => {
     expect(bandedLang === null || !RARE_LANGUAGES.has(bandedLang)).toBe(true);
     expect(bandedScore).toBe(plainScore);
   });
+});
+
+// ---------------------------------------------------------------------------
+// Language scoring in the IDF-weighted space
+// ---------------------------------------------------------------------------
+
+// A French paragraph the plain cosine labels Hungarian. The UTF-8 pair for é
+// carries about a hundred times the IDF weight of any common ASCII bigram and
+// sits near Hungarian's maximum weight, so it outvoted de, le and qu.
+const FRENCH_WITH_ACCENTS =
+  'Nous avons trouvé plusieurs vétérinaires près de la gare. Le plus ' +
+  'proche est situé rue de la République, à côté de la pharmacie.';
+
+function encodeAs(text: string, encoding: string): Uint8Array {
+  const units = (le: boolean, bom: boolean) => {
+    const out = new Uint8Array((bom ? 2 : 0) + text.length * 2);
+    const view = new DataView(out.buffer);
+    if (bom) view.setUint16(0, 0xfeff, le);
+    for (let i = 0; i < text.length; i++) view.setUint16((bom ? 2 : 0) + i * 2, text.charCodeAt(i), le);
+    return out;
+  };
+  switch (encoding) {
+    case 'utf-8': return new TextEncoder().encode(text);
+    case 'utf-16': return units(true, true); // CPython writes a mark, little-endian
+    case 'utf-16-le': return units(true, false);
+    case 'utf-32': {
+      const cps = [0xfeff, ...Array.from(text, c => c.codePointAt(0)!)];
+      const out = new Uint8Array(cps.length * 4);
+      cps.forEach((cp, i) => new DataView(out.buffer).setUint32(i * 4, cp, true));
+      return out;
+    }
+    case 'utf-7':
+      // FRENCH_WITH_ACCENTS.encode("utf-7")
+      return new TextEncoder().encode(
+        'Nous avons trouv+AOk plusieurs v+AOk-t+AOk-rinaires pr+AOg-s de la gare. Le plus ' +
+        'proche est situ+AOk rue de la R+AOk-publique, +AOA c+APQ-t+AOk de la pharmacie.',
+      );
+    default: throw new Error(encoding);
+  }
+}
+
+test('a French paragraph is not Hungarian', () => {
+  // The language tiers score French as French under every Unicode encoding.
+  const data = encodeAs(FRENCH_WITH_ACCENTS, 'utf-8');
+  const [, plain] = scoreBestLanguage(data, 'utf-8');
+  expect(plain).toBe('hu'); // the plain cosine's verdict, kept for the record
+  const [, weighted] = scoreBestLanguage(data, 'utf-8', undefined, { languageWeighting: true });
+  expect(weighted).toBe('fr');
+  for (const encoding of ['utf-8', 'utf-16', 'utf-16-le', 'utf-32', 'utf-7']) {
+    expect([encoding, detect(encodeAs(FRENCH_WITH_ACCENTS, encoding)).language]).toEqual([encoding, 'fr']);
+  }
+});
+
+test('language weighting leaves the encoding ranking alone', () => {
+  // Only the label moves: encoding and confidence are byte-identical. The
+  // encoding ranking scores in the plain cosine; the weighted space is the
+  // language tiers' alone.
+  const data = encodeAs(FRENCH_WITH_ACCENTS, 'utf-8');
+  const result = detect(data);
+  expect(result.encoding).toBe('utf-8');
+  const [plainScore] = scoreBestLanguage(data, 'utf-8');
+  const [weightedScore] = scoreBestLanguage(data, 'utf-8', undefined, { languageWeighting: true });
+  expect(plainScore).not.toBe(weightedScore);
+  // fillLanguages derives the label; the statistical stage never sees the
+  // weighted score, so the confidence is the one the plain ranking produced.
+  expect(detectAll(data)[0].confidence).toBe(result.confidence);
 });

@@ -36,14 +36,25 @@ function _remapEncoding(result: DetectionResult, mapping: Readonly<Record<string
 // stage's predicate (SBCS undefined-byte table first, then TextDecoder), not
 // raw whatwgDecodesWithoutError, or WHATWG's gap-filling cp1252 decoder would accept
 // the very C1 bytes Python's codec rejects.
+//
+// includeEncodings / excludeEncodings are canonical encoding names (as
+// normalizeEncodings returns them): the superset is skipped when it is not
+// among the included names, or is among the excluded ones.
 export function applyPreferredSuperset(
   result: DetectionResult,
   data?: Uint8Array,
+  filters: {
+    includeEncodings?: ReadonlySet<string> | null;
+    excludeEncodings?: ReadonlySet<string> | null;
+  } = {},
 ): DetectionResult {
   const enc = result.encoding;
   if (enc === null) return result;
   const superset = PREFERRED_SUPERSET[enc];
   if (superset === undefined) return result;
+  const { includeEncodings, excludeEncodings } = filters;
+  if (includeEncodings != null && !includeEncodings.has(superset)) return result;
+  if (excludeEncodings != null && excludeEncodings.has(superset)) return result;
   if (data === undefined || decodesWithoutError(superset, data)) {
     result.encoding = superset;
   }

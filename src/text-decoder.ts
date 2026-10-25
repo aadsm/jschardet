@@ -52,8 +52,8 @@ export function decoderForLabel(label: string): TextDecoder {
 // _validate_bytes and promote_markup_superset.
 //
 // Detection input is routinely a prefix of a larger whole: callers hand over
-// the first N bytes of a file (e.g. 4096 / 65536), and _validateBytes slices
-// its own 4096-byte head. For a 2-byte encoding either cut lands mid-character
+// the first N bytes of a file (e.g. 4096 / 65536), and chardet cuts its own
+// max_bytes window. For a 2-byte encoding either cut lands mid-character
 // about half the time. A trailing partial sequence is a truncation artefact,
 // not invalid data, and a one-shot fatal decode cannot tell the two apart — it
 // throws either way, and the candidate is dropped, eliminating every CJK

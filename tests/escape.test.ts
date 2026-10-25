@@ -1,4 +1,7 @@
-import { detectEscapeEncoding, _isValidUtf7B64 } from '../src/pipeline/escape.js';
+import { detectEscapeEncoding, _hasValidHzRegions, _isValidUtf7B64 } from '../src/pipeline/escape.js';
+import { detect } from '../src/chardet.js';
+import { decodesWithoutError } from '../src/decode.js';
+import { lookupEncoding } from '../src/registry.js';
 import { utf7DecodesWithoutError } from '../src/pipeline/to-utf8.js';
 
 const DETERMINISTIC_CONFIDENCE = 0.95;
@@ -29,8 +32,9 @@ describe('detectEscapeEncoding — ISO-2022-JP', () => {
     expect(result!.confidence).toBe(DETERMINISTIC_CONFIDENCE);
   });
 
-  test('iso2022_jp_2004 via ESC$(O', () => {
-    const data = new Uint8Array([0x1b, 0x24, 0x42, 0x24, 0x33, 0x24, 0x73, 0x1b, 0x28, 0x42, 0x1b, 0x24, 0x28, 0x4f, 0x21, 0x21, 0x1b, 0x28, 0x42]);
+  test('JIS X 0213 escape codes → iso2022_jp_2004', () => {
+    // ESC $ ( Q designates JIS X 0213:2004 plane 1
+    const data = new Uint8Array([0x1b, 0x24, 0x42, 0x24, 0x33, 0x24, 0x73, 0x1b, 0x28, 0x42, 0x1b, 0x24, 0x28, 0x51, 0x21, 0x21, 0x1b, 0x28, 0x42]);
     const result = detectEscapeEncoding(data);
     expect(result).not.toBeNull();
     expect(result!.encoding).toBe('iso2022_jp_2004');
@@ -44,7 +48,9 @@ describe('detectEscapeEncoding — ISO-2022-JP', () => {
   });
 
   test('iso2022_jp_ext via SI/SO', () => {
-    const data = new Uint8Array([0x1b, 0x24, 0x42, 0x24, 0x33, 0x24, 0x73, 0x1b, 0x28, 0x42, 0x0e, 0xb1, 0xb2, 0x0f]);
+    // ESC $ B for JIS X 0208, then SO (0x0E) / SI (0x0F) around 7-bit
+    // half-width katakana (ISO-2022 streams are 7-bit)
+    const data = new Uint8Array([0x1b, 0x24, 0x42, 0x24, 0x33, 0x24, 0x73, 0x1b, 0x28, 0x42, 0x0e, 0x31, 0x32, 0x0f]);
     const result = detectEscapeEncoding(data);
     expect(result).not.toBeNull();
     expect(result!.encoding).toBe('iso2022_jp_ext');
@@ -72,7 +78,7 @@ describe('detectEscapeEncoding — ISO-2022-JP', () => {
   });
 
   test('JIS X 0213 alone → iso2022_jp_2004', () => {
-    const data = new Uint8Array([0x1b, 0x24, 0x28, 0x4f, 0x21, 0x21, 0x1b, 0x28, 0x42]);
+    const data = new Uint8Array([0x1b, 0x24, 0x28, 0x51, 0x21, 0x21, 0x1b, 0x28, 0x42]);
     const result = detectEscapeEncoding(data);
     expect(result).not.toBeNull();
     expect(result!.encoding).toBe('iso2022_jp_2004');
@@ -107,10 +113,18 @@ describe('detectEscapeEncoding — HZ-GB-2312', () => {
     expect(detectEscapeEncoding(enc('~{ a ~}'))).toBeNull();
   });
 
+  // A ~} before the first ~{ does not stop the region scan: the region
+  // validator still finds the GB region after the stray marker. Divergence
+  // from chardet's test_hz_close_marker_before_open_marker: CPython's hz
+  // codec cannot decode a ~} in ASCII mode, so chardet's stage answers null;
+  // the port has no HZ decoder, so the decode check passes and the stage
+  // answers hz. See "Escape-stage decode check" in docs/port-notes.md.
   test('close marker before open, valid region follows', () => {
-    const result = detectEscapeEncoding(enc('prefix ~} text ~{CEDE~}'));
-    expect(result).not.toBeNull();
-    expect(result!.encoding).toBe('hz');
+    const data = enc('prefix ~} text ~{CEDE~}');
+    expect(_hasValidHzRegions(data, data.length, data.length)).toBe(true);
+    expect(detectEscapeEncoding(data)?.encoding).toBe('hz'); // chardet: null
+    // With the stray tilde escaped as ~~ the same text is HZ in both.
+    expect(detectEscapeEncoding(enc('prefix ~~ text ~{CEDE~}'))?.encoding).toBe('hz');
   });
 
   test('only close before open → null', () => {
@@ -391,4 +405,60 @@ test('a UTF-7 base64 run outrunning the bound is skipped', () => {
   data[0] = 0x2b; // '+'
   for (let i = 1; i < data.length; i++) data[i] = 0x41; // 'A'
   expect(_hasValidUtf7Sequences(data, 10, 5)).toBe(false);
+});
+
+// ---------------------------------------------------------------------------
+// Escape-stage decode check: a designation is evidence, the decode is the
+// answer.
+// ---------------------------------------------------------------------------
+
+describe('escape-stage decode check', () => {
+  test('a designation inside plain text is not ISO-2022', () => {
+    // Three bytes of a JIS designation in a log line.
+    const data = enc('log: \x1b$B is the escape\n' + 'plain text '.repeat(50));
+    expect(detectEscapeEncoding(data)).toBeNull();
+    expect(detect(data).encoding).not.toBe('ISO-2022-JP');
+  });
+
+  test('ISO-2022-JP with a bad byte past the header falls through', () => {
+    // "こんにちは世界".encode("iso-2022-jp")
+    const jp = new Uint8Array([0x1b,0x24,0x42,0x24,0x33,0x24,0x73,0x24,0x4b,0x24,0x41,0x24,0x4f,0x40,0x24,0x33,0x26,0x1b,0x28,0x42]);
+    const data = new Uint8Array([...jp, ...enc(' plain '.repeat(50)), 0x80]);
+    expect(detectEscapeEncoding(data)).toBeNull();
+    // Whatever answers must decode. chardet runs data.decode(); the port
+    // resolves the answer to its codec and asks decodesWithoutError.
+    const encoding = detect(data).encoding;
+    if (encoding !== null) expect(decodesWithoutError(lookupEncoding(encoding)!, data)).toBe(true);
+  });
+
+  // A JP-2 stream using an escape sequence WHATWG's iso-2022-jp decoder
+  // lacks cannot be checked, so it is answered on its designation as before;
+  // CPython decodes it, so this matches chardet.
+  test('a JIS X 0212 stream is still ISO-2022-JP-2', () => {
+    const data = new Uint8Array([0x1b, 0x24, 0x28, 0x44, 0x30, 0x21, 0x1b, 0x28, 0x42]);
+    expect(decodesWithoutError('iso2022_jp_2', data)).toBe(false); // WHATWG iso-2022-jp
+    expect(detectEscapeEncoding(data)?.encoding).toBe('iso2022_jp_2');
+  });
+
+  // Divergences from chardet: CPython's codecs reject each of these, so
+  // chardet's stage answers null. The port has no ISO-2022-KR, ISO-2022-JP-2004
+  // or HZ decoder, so the decode check passes and the stage answers on the
+  // designation. See "Escape-stage decode check" in docs/port-notes.md.
+  test('ISO-2022-KR with a bad byte is still answered (chardet: falls through)', () => {
+    const data = new Uint8Array([...enc('\x1b$)C' + 'plain '.repeat(50)), 0x0e, 0x7f, 0x7f, 0x0f]);
+    expect(detectEscapeEncoding(data)?.encoding).toBe('iso2022_kr'); // chardet: null
+  });
+
+  test('a JIS X 0213:2000 designation is still answered (chardet: falls through)', () => {
+    // CPython's iso2022_jp_2004 codec cannot read ESC $ ( O.
+    const data = new Uint8Array([0x1b, 0x24, 0x28, 0x4f, 0x21, 0x21, 0x1b, 0x28, 0x42]);
+    expect(detectEscapeEncoding(data)?.encoding).toBe('iso2022_jp_2004'); // chardet: null
+  });
+
+  test('HZ with a stray tilde is still answered (chardet: falls through)', () => {
+    // "你好世界".encode("hz")
+    const hz = enc('~{Dc:CJ@=g~}');
+    const data = new Uint8Array([...hz, ...enc(' ok '.repeat(30) + ' a~b end')]);
+    expect(detectEscapeEncoding(data)?.encoding).toBe('hz'); // chardet: null
+  });
 });

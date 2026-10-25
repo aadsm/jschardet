@@ -4,6 +4,7 @@ import {
   EncodingInfo,
   getCandidates,
   lookupEncoding,
+  _lookupCacheInfo,
 } from '../src/registry.js';
 
 describe('REGISTRY', () => {
@@ -49,20 +50,20 @@ describe('REGISTRY', () => {
   test('cp273 is MAINFRAME', () => {
     const cp273 = REGISTRY['cp273'];
     expect(cp273.era & EncodingEra.MAINFRAME).not.toBe(0);
-    expect(cp273.isMultibyte).toBe(false);
+    expect(cp273.isMultibyteCjk).toBe(false);
     expect(cp273.name).toBe('cp273');
   });
 
   test('hp-roman8 is LEGACY_REGIONAL', () => {
     const hp = REGISTRY['hp-roman8'];
     expect(hp.era & EncodingEra.LEGACY_REGIONAL).not.toBe(0);
-    expect(hp.isMultibyte).toBe(false);
+    expect(hp.isMultibyteCjk).toBe(false);
     expect(hp.name).toBe('hp-roman8');
   });
 
   test('multibyte encodings flagged correctly', () => {
-    expect(REGISTRY['shift_jis_2004'].isMultibyte).toBe(true);
-    expect(REGISTRY['iso8859-1'].isMultibyte).toBe(false);
+    expect(REGISTRY['shift_jis_2004'].isMultibyteCjk).toBe(true);
+    expect(REGISTRY['iso8859-1'].isMultibyteCjk).toBe(false);
   });
 
   test('every registry name resolves to itself via lookupEncoding', () => {
@@ -135,7 +136,7 @@ describe('REGISTRY', () => {
     expect(entry.aliases).toContain('big5-tw');
     expect(entry.aliases).toContain('csbig5');
     expect(entry.aliases).toContain('cp950');
-    expect(entry.isMultibyte).toBe(true);
+    expect(entry.isMultibyteCjk).toBe(true);
     expect(entry.languages).toEqual(['zh']);
   });
 
@@ -154,7 +155,7 @@ describe('REGISTRY', () => {
     expect(entry.aliases).toContain('ujis');
     expect(entry.aliases).toContain('u-jis');
     expect(entry.aliases).toContain('euc-jisx0213');
-    expect(entry.isMultibyte).toBe(true);
+    expect(entry.isMultibyteCjk).toBe(true);
     expect(entry.languages).toEqual(['ja']);
   });
 
@@ -166,7 +167,7 @@ describe('REGISTRY', () => {
     expect(entry.aliases).toContain('shiftjis');
     expect(entry.aliases).toContain('s_jis');
     expect(entry.aliases).toContain('shift-jisx0213');
-    expect(entry.isMultibyte).toBe(true);
+    expect(entry.isMultibyteCjk).toBe(true);
     expect(entry.languages).toEqual(['ja']);
   });
 
@@ -176,15 +177,15 @@ describe('REGISTRY', () => {
     expect(jp2.aliases).toContain('iso-2022-jp');
     expect(jp2.aliases).toContain('csiso2022jp');
     expect(jp2.aliases).toContain('iso2022-jp-1');
-    expect(jp2.isMultibyte).toBe(true);
+    expect(jp2.isMultibyteCjk).toBe(true);
 
     const jp2004 = REGISTRY['iso2022_jp_2004'];
     expect(jp2004.aliases).toContain('iso2022-jp-3');
-    expect(jp2004.isMultibyte).toBe(true);
+    expect(jp2004.isMultibyteCjk).toBe(true);
 
     const jpext = REGISTRY['iso2022_jp_ext'];
     expect(jpext.aliases).toEqual(['ISO-2022-JP-EXT']);
-    expect(jpext.isMultibyte).toBe(true);
+    expect(jpext.isMultibyteCjk).toBe(true);
   });
 
   test('cp1140 is primary with cp037 as alias', () => {
@@ -267,6 +268,19 @@ describe('lookupEncoding', () => {
     expect(lookupEncoding('\x00utf-8')).toBeNull();
     expect(lookupEncoding('utf-8\x00')).toBeNull();
     expect(lookupEncoding('\x00')).toBeNull();
+  });
+
+  // The markup stage looks names pulled from attacker-controlled
+  // <meta charset=...> tokens up here, and codec normalization maps
+  // unboundedly many distinct spellings onto the same codec, so an unbounded
+  // cache would retain one permanent entry per distinct name.
+  test('cache is bounded', () => {
+    const { maxsize } = _lookupCacheInfo();
+    for (let i = 0; i < maxsize * 3; i++) lookupEncoding(`bogus-charset-${i}`);
+    expect(_lookupCacheInfo().currsize).toBeLessThanOrEqual(maxsize);
+    // Legitimate lookups still resolve after the churn.
+    expect(lookupEncoding('utf-8')).toBe('utf-8');
+    expect(lookupEncoding('windows-1252')).toBe('cp1252');
   });
 
   test('returns null for Python-only codecs not in chardet registry', () => {

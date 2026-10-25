@@ -1,10 +1,10 @@
 // Port of chardet/src/chardet/models/_format.py — the model-artifacts file
 // format. Upstream keeps the read side and the write side in one module so a
 // format change cannot land on one side only; the port has no trainer, so only
-// the read side (parseModelsBin) crosses over. The pruning-contract read
-// helpers (parse_rowmax_bin, rowmax_from_table) and the whole write side stay
-// out with the rest of the rowmax carve-out — see "Statistical-scoring rowmax
-// pruning" in docs/port-notes.md.
+// the read side crosses over. The pruning-contract read helpers
+// (parse_rowmax_bin, rowmax_from_table) and the whole write side stay out with
+// the rest of the rowmax carve-out — see "Statistical-scoring rowmax pruning"
+// in docs/port-notes.md.
 
 // models.bin magic: the v2 dense format. Upstream's models.bin stores the
 // bigram tables zlib-compressed after this header; the port ships them already
@@ -84,4 +84,45 @@ export function parseModelsBin(data: Uint8Array): ParsedModels {
     }
     throw e;
   }
+}
+
+// langnorm.bin layout: magic, SHA-256 of the matching models.bin, then one
+// big-endian float64 per model in models.bin header order: the model's L2
+// norm after each weight is scaled by the square root of its bigram's IDF
+// (see langnormFromTable).
+export const LANGNORM_MAGIC = new Uint8Array([0x43, 0x4c, 0x4e, 0x31]); // "CLN1"
+export const LANGNORM_HEADER_SIZE = 4 + 32;
+
+// Parse langnorm.bin into per-model language-scoring norms, or null when the
+// magic or size does not match. Mirrors chardet's parse_langnorm_bin minus
+// its digest comparison: the embedded digest is of chardet's models.bin,
+// which the port re-packs into models.bin.js, so
+// scripts/generate-model-bins.js checks it against the source file instead
+// and the two wrappers are only ever generated together.
+export function parseLangnormBin(data: Uint8Array, modelKeys: readonly string[]): Map<string, number> | null {
+  if (
+    data.length !== LANGNORM_HEADER_SIZE + modelKeys.length * 8 ||
+    LANGNORM_MAGIC.some((b, i) => data[i] !== b)
+  ) {
+    return null;
+  }
+  const view = new DataView(data.buffer, data.byteOffset, data.byteLength);
+  const norms = new Map<string, number>();
+  modelKeys.forEach((key, i) => norms.set(key, view.getFloat64(LANGNORM_HEADER_SIZE + i * 8, false)));
+  return norms;
+}
+
+// Derive one model's norm under the language-scoring metric. The language
+// tiers compare an input profile weighted by IDF against models weighted by
+// the square root of IDF, so a model's length in that space is the root of
+// the sum of weight**2 * idf over its bigrams. Scoring folds the model-side
+// factor into the profile and divides by this norm, so the table itself is
+// never rescaled.
+export function langnormFromTable(table: Uint8Array, idf: Uint8Array): number {
+  let total = 0;
+  for (let i = 0; i < 65536; i++) {
+    const v = table[i];
+    if (v) total += v * v * idf[i];
+  }
+  return Math.sqrt(total);
 }

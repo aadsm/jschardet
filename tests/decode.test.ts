@@ -30,6 +30,51 @@ test('decodesWithoutError: an encoding with no decoder is kept', () => {
   expect(decodesWithoutError('iso2022_jp_2', bytes('\x1b$B'))).toBe(true);
 });
 
+// Expected values are chardet's decodes_without_error on the same bytes
+// (CPython 3.11): the UTF encodings with no WHATWG label of their own.
+test.each([
+  ['utf-8-sig', 'efbbbf636166c3a9', true],
+  ['utf-8-sig', 'efbbbf636166e9', true], // truncated tail after the mark
+  ['utf-8-sig', 'efbbbf', true],
+  ['utf-8-sig', '636166c3a9', true],
+  ['utf-8-sig', 'efbbbf6162ff', false],
+  ['utf-16', 'fffe68006900', true],
+  ['utf-16', 'feff00680069', true],
+  ['utf-16', 'fffe00d86100', false], // lone high surrogate
+  ['utf-16', 'feffd8000061', false],
+  ['utf-16', '68006900', false], // no mark
+  ['utf-16', 'fffe680069', true],
+  ['utf-16', 'fffe', true],
+  ['utf-16', 'fffe680000d8', true], // high surrogate deferred at the end
+  ['utf-16', '68', true],
+  ['utf-32', 'fffe000068000000', true],
+  ['utf-32', '0000feff00000068', true],
+  ['utf-32', 'fffe000000001100', false], // above U+10FFFF
+  ['utf-32', 'fffe000000d80000', false], // surrogate
+  ['utf-32', 'fffe00006800', true],
+  ['utf-32', '68000000', false], // no mark
+  ['utf-32', 'fffe0000', true],
+  ['utf-32', 'fffe00', true],
+  ['utf-32', 'fffe0001', false],
+  ['utf-32-be', '00000068', true],
+  ['utf-32-be', '0010ffff', true],
+  ['utf-32-be', '00110000', false],
+  ['utf-32-be', '0000dfff', false],
+  ['utf-32-be', '000000680000', true],
+  ['utf-32-le', '68000000', true],
+  ['utf-32-le', 'ffff1000', true],
+  ['utf-32-le', '00001100', false],
+  ['utf-32-le', '00dc0000', false],
+  ['utf-32-le', '6800000000', true],
+  ['utf-7', '2b414745415967426a2d', true],
+  ['utf-7', '612b2f76382d62', true],
+  ['utf-7', '2b414745', true],
+  ['utf-7', '2b4147452d782b7c', false],
+] as const)('decodesWithoutError(%s, %s) is %s, as in CPython', (enc, hex, expected) => {
+  const data = Uint8Array.from(hex.match(/../g) ?? [], h => parseInt(h, 16));
+  expect(decodesWithoutError(enc, data)).toBe(expected);
+});
+
 test('decodesCompletely: the strict sibling', () => {
   expect(decodesCompletely('cp1252', bytes('caf\xe9'))).toBe(true);
   expect(decodesCompletely('cp1252', bytes('caf\x81'))).toBe(false);

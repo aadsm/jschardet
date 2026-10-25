@@ -94,10 +94,10 @@ var jschardet = (() => {
     }
     return -1;
   }
-  function startsWith(data4, prefix) {
-    if (data4.length < prefix.length) return false;
+  function startsWith(data5, prefix) {
+    if (data5.length < prefix.length) return false;
     for (let i = 0; i < prefix.length; i++) {
-      if (data4[i] !== prefix[i]) return false;
+      if (data5[i] !== prefix[i]) return false;
     }
     return true;
   }
@@ -252,10 +252,10 @@ var jschardet = (() => {
     }
     return decoder;
   }
-  function whatwgDecodesWithoutError(label, data4) {
+  function whatwgDecodesWithoutError(label, data5) {
     const decoder = decoderForLabel(label);
     try {
-      decoder.decode(data4, { stream: true });
+      decoder.decode(data5, { stream: true });
       return true;
     } catch {
       return false;
@@ -266,21 +266,21 @@ var jschardet = (() => {
       }
     }
   }
-  function whatwgDecodesCompletely(label, data4) {
+  function whatwgDecodesCompletely(label, data5) {
     const decoder = decoderForLabel(label);
     try {
-      decoder.decode(data4);
+      decoder.decode(data5);
       return true;
     } catch {
       return false;
     }
   }
   var ASCII_ONLY_RE = /^[\x00-\x7F]*$/;
-  function whatwgDanglingTailWithAsciiPrefix(label, data4) {
+  function whatwgDanglingTailWithAsciiPrefix(label, data5) {
     const decoder = decoderForLabel(label);
     let text;
     try {
-      text = decoder.decode(data4, { stream: true });
+      text = decoder.decode(data5, { stream: true });
     } catch {
       try {
         decoder.decode();
@@ -297,12 +297,12 @@ var jschardet = (() => {
     if (!text || !ASCII_ONLY_RE.test(text)) return false;
     return hadDanglingTail;
   }
-  function whatwgDecodeText(label, data4) {
-    return new TextDecoder(label, { fatal: false }).decode(data4);
+  function whatwgDecodeText(label, data5) {
+    return new TextDecoder(label, { fatal: false }).decode(data5);
   }
-  function whatwgDecodeStrictText(label, data4) {
+  function whatwgDecodeStrictText(label, data5) {
     try {
-      return decoderForLabel(label).decode(data4);
+      return decoderForLabel(label).decode(data5);
     } catch {
       return null;
     }
@@ -772,101 +772,101 @@ var jschardet = (() => {
   var _ARABIC = ["ar", "fa"];
   var _REGISTRY_ENTRIES = [
     // === MODERN_WEB ===
-    Object.freeze({ name: "ascii", aliases: ["us-ascii"], era: EncodingEra.MODERN_WEB, isMultibyte: false, languages: [] }),
-    Object.freeze({ name: "utf-8", aliases: ["utf-8", "utf8", "csutf8", "unicode-1-1-utf-8", "unicode11utf8", "unicode20utf8", "x-unicode20utf8"], era: EncodingEra.MODERN_WEB, isMultibyte: false, languages: [] }),
-    Object.freeze({ name: "utf-8-sig", aliases: ["UTF-8-SIG", "utf-8-bom"], era: EncodingEra.MODERN_WEB, isMultibyte: false, languages: [] }),
-    Object.freeze({ name: "utf-16", aliases: ["UTF-16", "utf16", "csutf16"], era: EncodingEra.MODERN_WEB, isMultibyte: false, languages: [] }),
-    Object.freeze({ name: "utf-16-be", aliases: ["UTF-16-BE", "utf-16be", "csutf16be"], era: EncodingEra.MODERN_WEB, isMultibyte: false, languages: [] }),
-    Object.freeze({ name: "utf-16-le", aliases: ["UTF-16-LE", "utf-16le", "csutf16le"], era: EncodingEra.MODERN_WEB, isMultibyte: false, languages: [] }),
-    Object.freeze({ name: "utf-32", aliases: ["UTF-32", "utf32", "csutf32"], era: EncodingEra.MODERN_WEB, isMultibyte: false, languages: [] }),
-    Object.freeze({ name: "utf-32-be", aliases: ["UTF-32-BE", "utf-32be", "csutf32be"], era: EncodingEra.MODERN_WEB, isMultibyte: false, languages: [] }),
-    Object.freeze({ name: "utf-32-le", aliases: ["UTF-32-LE", "utf-32le", "csutf32le"], era: EncodingEra.MODERN_WEB, isMultibyte: false, languages: [] }),
-    Object.freeze({ name: "utf-7", aliases: ["UTF-7", "utf7", "csutf7"], era: EncodingEra.LEGACY_REGIONAL, isMultibyte: false, languages: [] }),
+    Object.freeze({ name: "ascii", aliases: ["us-ascii"], era: EncodingEra.MODERN_WEB, isMultibyteCjk: false, languages: [] }),
+    Object.freeze({ name: "utf-8", aliases: ["utf-8", "utf8", "csutf8", "unicode-1-1-utf-8", "unicode11utf8", "unicode20utf8", "x-unicode20utf8"], era: EncodingEra.MODERN_WEB, isMultibyteCjk: false, languages: [] }),
+    Object.freeze({ name: "utf-8-sig", aliases: ["UTF-8-SIG", "utf-8-bom"], era: EncodingEra.MODERN_WEB, isMultibyteCjk: false, languages: [] }),
+    Object.freeze({ name: "utf-16", aliases: ["UTF-16", "utf16", "csutf16"], era: EncodingEra.MODERN_WEB, isMultibyteCjk: false, languages: [] }),
+    Object.freeze({ name: "utf-16-be", aliases: ["UTF-16-BE", "utf-16be", "csutf16be"], era: EncodingEra.MODERN_WEB, isMultibyteCjk: false, languages: [] }),
+    Object.freeze({ name: "utf-16-le", aliases: ["UTF-16-LE", "utf-16le", "csutf16le"], era: EncodingEra.MODERN_WEB, isMultibyteCjk: false, languages: [] }),
+    Object.freeze({ name: "utf-32", aliases: ["UTF-32", "utf32", "csutf32"], era: EncodingEra.MODERN_WEB, isMultibyteCjk: false, languages: [] }),
+    Object.freeze({ name: "utf-32-be", aliases: ["UTF-32-BE", "utf-32be", "csutf32be"], era: EncodingEra.MODERN_WEB, isMultibyteCjk: false, languages: [] }),
+    Object.freeze({ name: "utf-32-le", aliases: ["UTF-32-LE", "utf-32le", "csutf32le"], era: EncodingEra.MODERN_WEB, isMultibyteCjk: false, languages: [] }),
+    Object.freeze({ name: "utf-7", aliases: ["UTF-7", "utf7", "csutf7"], era: EncodingEra.LEGACY_REGIONAL, isMultibyteCjk: false, languages: [] }),
     // CJK - Modern Web
-    Object.freeze({ name: "big5hkscs", aliases: ["Big5-HKSCS", "Big5HKSCS", "big5", "big5-tw", "csbig5", "cp950", "cn-big5", "x-x-big5", "csbig5hkscs"], era: EncodingEra.MODERN_WEB, isMultibyte: true, languages: ["zh"] }),
-    Object.freeze({ name: "cp932", aliases: ["CP932", "ms932", "mskanji", "ms-kanji", "cswindows31j", "windows-31j"], era: EncodingEra.MODERN_WEB, isMultibyte: true, languages: ["ja"] }),
-    Object.freeze({ name: "cp949", aliases: ["CP949", "ms949", "uhc", "windows-949", "csksc56011987", "iso-ir-149", "ks_c_5601-1987", "ks_c_5601-1989", "ksc5601", "ksc_5601"], era: EncodingEra.MODERN_WEB, isMultibyte: true, languages: ["ko"] }),
-    Object.freeze({ name: "euc_jis_2004", aliases: ["EUC-JIS-2004", "euc-jp", "eucjp", "ujis", "u-jis", "euc-jisx0213", "cseucpkdfmtjapanese", "x-euc-jp"], era: EncodingEra.MODERN_WEB, isMultibyte: true, languages: ["ja"] }),
-    Object.freeze({ name: "euc_kr", aliases: ["EUC-KR", "euckr", "cseuckr"], era: EncodingEra.MODERN_WEB, isMultibyte: true, languages: ["ko"] }),
-    Object.freeze({ name: "gb18030", aliases: ["GB18030", "gb-18030", "gb2312", "gbk", "csgb2312", "gb_2312", "gb_2312-80", "x-gbk", "csiso58gb231280", "iso-ir-58", "csgb18030", "csgbk", "cp936", "ms936", "windows-936"], era: EncodingEra.MODERN_WEB, isMultibyte: true, languages: ["zh"] }),
-    Object.freeze({ name: "hz", aliases: ["HZ-GB-2312", "hz"], era: EncodingEra.LEGACY_REGIONAL, isMultibyte: true, languages: ["zh"] }),
-    Object.freeze({ name: "iso2022_jp_2", aliases: ["ISO-2022-JP-2", "iso-2022-jp", "csiso2022jp", "iso2022-jp-1", "csiso2022jp2"], era: EncodingEra.MODERN_WEB, isMultibyte: true, languages: ["ja"] }),
-    Object.freeze({ name: "iso2022_jp_2004", aliases: ["ISO-2022-JP-2004", "iso2022-jp-3"], era: EncodingEra.MODERN_WEB, isMultibyte: true, languages: ["ja"] }),
-    Object.freeze({ name: "iso2022_jp_ext", aliases: ["ISO-2022-JP-EXT"], era: EncodingEra.MODERN_WEB, isMultibyte: true, languages: ["ja"] }),
-    Object.freeze({ name: "iso2022_kr", aliases: ["ISO-2022-KR", "csiso2022kr"], era: EncodingEra.LEGACY_REGIONAL, isMultibyte: true, languages: ["ko"] }),
-    Object.freeze({ name: "shift_jis_2004", aliases: ["Shift-JIS-2004", "Shift_JIS_2004", "shift_jis", "sjis", "shiftjis", "s_jis", "shift-jisx0213", "x-sjis", "csshiftjis", "ms_kanji"], era: EncodingEra.MODERN_WEB, isMultibyte: true, languages: ["ja"] }),
+    Object.freeze({ name: "big5hkscs", aliases: ["Big5-HKSCS", "Big5HKSCS", "big5", "big5-tw", "csbig5", "cp950", "cn-big5", "x-x-big5", "csbig5hkscs"], era: EncodingEra.MODERN_WEB, isMultibyteCjk: true, languages: ["zh"] }),
+    Object.freeze({ name: "cp932", aliases: ["CP932", "ms932", "mskanji", "ms-kanji", "cswindows31j", "windows-31j"], era: EncodingEra.MODERN_WEB, isMultibyteCjk: true, languages: ["ja"] }),
+    Object.freeze({ name: "cp949", aliases: ["CP949", "ms949", "uhc", "windows-949", "csksc56011987", "iso-ir-149", "ks_c_5601-1987", "ks_c_5601-1989", "ksc5601", "ksc_5601"], era: EncodingEra.MODERN_WEB, isMultibyteCjk: true, languages: ["ko"] }),
+    Object.freeze({ name: "euc_jis_2004", aliases: ["EUC-JIS-2004", "euc-jp", "eucjp", "ujis", "u-jis", "euc-jisx0213", "cseucpkdfmtjapanese", "x-euc-jp"], era: EncodingEra.MODERN_WEB, isMultibyteCjk: true, languages: ["ja"] }),
+    Object.freeze({ name: "euc_kr", aliases: ["EUC-KR", "euckr", "cseuckr"], era: EncodingEra.MODERN_WEB, isMultibyteCjk: true, languages: ["ko"] }),
+    Object.freeze({ name: "gb18030", aliases: ["GB18030", "gb-18030", "gb2312", "gbk", "csgb2312", "gb_2312", "gb_2312-80", "x-gbk", "csiso58gb231280", "iso-ir-58", "csgb18030", "csgbk", "cp936", "ms936", "windows-936"], era: EncodingEra.MODERN_WEB, isMultibyteCjk: true, languages: ["zh"] }),
+    Object.freeze({ name: "hz", aliases: ["HZ-GB-2312", "hz"], era: EncodingEra.LEGACY_REGIONAL, isMultibyteCjk: true, languages: ["zh"] }),
+    Object.freeze({ name: "iso2022_jp_2", aliases: ["ISO-2022-JP-2", "iso-2022-jp", "csiso2022jp", "iso2022-jp-1", "csiso2022jp2"], era: EncodingEra.MODERN_WEB, isMultibyteCjk: true, languages: ["ja"] }),
+    Object.freeze({ name: "iso2022_jp_2004", aliases: ["ISO-2022-JP-2004", "iso2022-jp-3"], era: EncodingEra.MODERN_WEB, isMultibyteCjk: true, languages: ["ja"] }),
+    Object.freeze({ name: "iso2022_jp_ext", aliases: ["ISO-2022-JP-EXT"], era: EncodingEra.MODERN_WEB, isMultibyteCjk: true, languages: ["ja"] }),
+    Object.freeze({ name: "iso2022_kr", aliases: ["ISO-2022-KR", "csiso2022kr"], era: EncodingEra.LEGACY_REGIONAL, isMultibyteCjk: true, languages: ["ko"] }),
+    Object.freeze({ name: "shift_jis_2004", aliases: ["Shift-JIS-2004", "Shift_JIS_2004", "shift_jis", "sjis", "shiftjis", "s_jis", "shift-jisx0213", "x-sjis", "csshiftjis", "ms_kanji"], era: EncodingEra.MODERN_WEB, isMultibyteCjk: true, languages: ["ja"] }),
     // Windows code pages - Modern Web
-    Object.freeze({ name: "cp874", aliases: ["CP874", "windows-874", "dos-874"], era: EncodingEra.MODERN_WEB, isMultibyte: false, languages: ["th"] }),
-    Object.freeze({ name: "cp1250", aliases: ["Windows-1250", "cp1250", "x-cp1250", "cswindows1250"], era: EncodingEra.MODERN_WEB, isMultibyte: false, languages: [..._CENTRAL_EU, "sr"] }),
-    Object.freeze({ name: "cp1251", aliases: ["Windows-1251", "cp1251", "x-cp1251", "cswindows1251"], era: EncodingEra.MODERN_WEB, isMultibyte: false, languages: [..._CYRILLIC] }),
-    Object.freeze({ name: "cp1252", aliases: ["Windows-1252", "cp1252", "x-cp1252", "cswindows1252"], era: EncodingEra.MODERN_WEB, isMultibyte: false, languages: [..._WESTERN] }),
-    Object.freeze({ name: "cp1253", aliases: ["Windows-1253", "cp1253", "x-cp1253", "cswindows1253"], era: EncodingEra.MODERN_WEB, isMultibyte: false, languages: ["el"] }),
-    Object.freeze({ name: "cp1254", aliases: ["Windows-1254", "cp1254", "x-cp1254", "cswindows1254"], era: EncodingEra.MODERN_WEB, isMultibyte: false, languages: ["tr"] }),
-    Object.freeze({ name: "cp1255", aliases: ["Windows-1255", "cp1255", "x-cp1255", "cswindows1255"], era: EncodingEra.MODERN_WEB, isMultibyte: false, languages: ["he"] }),
-    Object.freeze({ name: "cp1256", aliases: ["Windows-1256", "cp1256", "x-cp1256", "cswindows1256"], era: EncodingEra.MODERN_WEB, isMultibyte: false, languages: [..._ARABIC] }),
-    Object.freeze({ name: "cp1257", aliases: ["Windows-1257", "cp1257", "x-cp1257", "cswindows1257"], era: EncodingEra.MODERN_WEB, isMultibyte: false, languages: [..._BALTIC] }),
-    Object.freeze({ name: "cp1258", aliases: ["Windows-1258", "cp1258", "x-cp1258", "cswindows1258"], era: EncodingEra.MODERN_WEB, isMultibyte: false, languages: ["vi"] }),
+    Object.freeze({ name: "cp874", aliases: ["CP874", "windows-874", "dos-874"], era: EncodingEra.MODERN_WEB, isMultibyteCjk: false, languages: ["th"] }),
+    Object.freeze({ name: "cp1250", aliases: ["Windows-1250", "cp1250", "x-cp1250", "cswindows1250"], era: EncodingEra.MODERN_WEB, isMultibyteCjk: false, languages: [..._CENTRAL_EU, "sr"] }),
+    Object.freeze({ name: "cp1251", aliases: ["Windows-1251", "cp1251", "x-cp1251", "cswindows1251"], era: EncodingEra.MODERN_WEB, isMultibyteCjk: false, languages: [..._CYRILLIC] }),
+    Object.freeze({ name: "cp1252", aliases: ["Windows-1252", "cp1252", "x-cp1252", "cswindows1252"], era: EncodingEra.MODERN_WEB, isMultibyteCjk: false, languages: [..._WESTERN] }),
+    Object.freeze({ name: "cp1253", aliases: ["Windows-1253", "cp1253", "x-cp1253", "cswindows1253"], era: EncodingEra.MODERN_WEB, isMultibyteCjk: false, languages: ["el"] }),
+    Object.freeze({ name: "cp1254", aliases: ["Windows-1254", "cp1254", "x-cp1254", "cswindows1254"], era: EncodingEra.MODERN_WEB, isMultibyteCjk: false, languages: ["tr"] }),
+    Object.freeze({ name: "cp1255", aliases: ["Windows-1255", "cp1255", "x-cp1255", "cswindows1255"], era: EncodingEra.MODERN_WEB, isMultibyteCjk: false, languages: ["he"] }),
+    Object.freeze({ name: "cp1256", aliases: ["Windows-1256", "cp1256", "x-cp1256", "cswindows1256"], era: EncodingEra.MODERN_WEB, isMultibyteCjk: false, languages: [..._ARABIC] }),
+    Object.freeze({ name: "cp1257", aliases: ["Windows-1257", "cp1257", "x-cp1257", "cswindows1257"], era: EncodingEra.MODERN_WEB, isMultibyteCjk: false, languages: [..._BALTIC] }),
+    Object.freeze({ name: "cp1258", aliases: ["Windows-1258", "cp1258", "x-cp1258", "cswindows1258"], era: EncodingEra.MODERN_WEB, isMultibyteCjk: false, languages: ["vi"] }),
     // KOI8 - Modern Web
-    Object.freeze({ name: "koi8-r", aliases: ["KOI8-R", "koi8r", "koi", "koi8", "cskoi8r"], era: EncodingEra.MODERN_WEB, isMultibyte: false, languages: ["ru"] }),
-    Object.freeze({ name: "koi8-u", aliases: ["KOI8-U", "koi8u", "koi8-ru", "cskoi8u"], era: EncodingEra.MODERN_WEB, isMultibyte: false, languages: ["uk"] }),
+    Object.freeze({ name: "koi8-r", aliases: ["KOI8-R", "koi8r", "koi", "koi8", "cskoi8r"], era: EncodingEra.MODERN_WEB, isMultibyteCjk: false, languages: ["ru"] }),
+    Object.freeze({ name: "koi8-u", aliases: ["KOI8-U", "koi8u", "koi8-ru", "cskoi8u"], era: EncodingEra.MODERN_WEB, isMultibyteCjk: false, languages: ["uk"] }),
     // TIS-620 - Modern Web
-    Object.freeze({ name: "tis-620", aliases: ["TIS-620", "tis620", "iso-8859-11", "iso8859-11", "iso885911", "cstis620"], era: EncodingEra.MODERN_WEB, isMultibyte: false, languages: ["th"] }),
+    Object.freeze({ name: "tis-620", aliases: ["TIS-620", "tis620", "iso-8859-11", "iso8859-11", "iso885911", "cstis620"], era: EncodingEra.MODERN_WEB, isMultibyteCjk: false, languages: ["th"] }),
     // === LEGACY_ISO ===
-    Object.freeze({ name: "iso8859-1", aliases: ["ISO-8859-1", "latin-1", "latin1", "iso8859-1", "iso88591"], era: EncodingEra.LEGACY_ISO, isMultibyte: false, languages: [..._WESTERN] }),
-    Object.freeze({ name: "iso8859-2", aliases: ["ISO-8859-2", "latin-2", "latin2", "iso8859-2", "iso88592"], era: EncodingEra.LEGACY_ISO, isMultibyte: false, languages: [..._CENTRAL_EU] }),
-    Object.freeze({ name: "iso8859-3", aliases: ["ISO-8859-3", "latin-3", "latin3", "iso8859-3", "iso88593"], era: EncodingEra.LEGACY_ISO, isMultibyte: false, languages: ["eo", "mt", "tr"] }),
-    Object.freeze({ name: "iso8859-4", aliases: ["ISO-8859-4", "latin-4", "latin4", "iso8859-4", "iso88594"], era: EncodingEra.LEGACY_ISO, isMultibyte: false, languages: [..._BALTIC] }),
-    Object.freeze({ name: "iso8859-5", aliases: ["ISO-8859-5", "iso8859-5", "cyrillic", "iso88595"], era: EncodingEra.LEGACY_ISO, isMultibyte: false, languages: [..._CYRILLIC] }),
-    Object.freeze({ name: "iso8859-6", aliases: ["ISO-8859-6", "iso8859-6", "arabic", "iso88596", "iso-8859-6-e", "iso-8859-6-i", "csiso88596e", "csiso88596i"], era: EncodingEra.LEGACY_ISO, isMultibyte: false, languages: [..._ARABIC] }),
-    Object.freeze({ name: "iso8859-7", aliases: ["ISO-8859-7", "iso8859-7", "greek", "iso88597", "sun_eu_greek"], era: EncodingEra.LEGACY_ISO, isMultibyte: false, languages: ["el"] }),
-    Object.freeze({ name: "iso8859-8", aliases: ["ISO-8859-8", "iso8859-8", "hebrew", "iso88598", "iso-8859-8-e", "iso-8859-8-i", "csiso88598e", "csiso88598i", "visual", "logical"], era: EncodingEra.LEGACY_ISO, isMultibyte: false, languages: ["he"] }),
-    Object.freeze({ name: "iso8859-9", aliases: ["ISO-8859-9", "latin-5", "latin5", "iso8859-9", "iso88599"], era: EncodingEra.LEGACY_ISO, isMultibyte: false, languages: ["tr"] }),
-    Object.freeze({ name: "iso8859-10", aliases: ["ISO-8859-10", "latin-6", "latin6", "iso8859-10", "iso885910"], era: EncodingEra.LEGACY_ISO, isMultibyte: false, languages: ["is", "fi"] }),
-    Object.freeze({ name: "iso8859-13", aliases: ["ISO-8859-13", "latin-7", "latin7", "iso8859-13", "iso885913", "csiso885913"], era: EncodingEra.LEGACY_ISO, isMultibyte: false, languages: [..._BALTIC] }),
-    Object.freeze({ name: "iso8859-14", aliases: ["ISO-8859-14", "latin-8", "latin8", "iso8859-14", "iso885914", "csiso885914", "iso-ir-199", "iso-celtic", "l8"], era: EncodingEra.LEGACY_ISO, isMultibyte: false, languages: ["cy", "ga", "br", "gd"] }),
-    Object.freeze({ name: "iso8859-15", aliases: ["ISO-8859-15", "latin-9", "latin9", "iso8859-15", "iso885915", "csisolatin9", "csiso885915", "l9"], era: EncodingEra.LEGACY_ISO, isMultibyte: false, languages: [..._WESTERN] }),
-    Object.freeze({ name: "iso8859-16", aliases: ["ISO-8859-16", "latin-10", "latin10", "iso8859-16", "iso885916", "csiso885916", "iso-ir-226", "l10"], era: EncodingEra.LEGACY_ISO, isMultibyte: false, languages: ["ro", "pl", "hr", "hu", "sk", "sl"] }),
-    Object.freeze({ name: "johab", aliases: ["Johab"], era: EncodingEra.LEGACY_ISO, isMultibyte: true, languages: ["ko"] }),
+    Object.freeze({ name: "iso8859-1", aliases: ["ISO-8859-1", "latin-1", "latin1", "iso8859-1", "iso88591"], era: EncodingEra.LEGACY_ISO, isMultibyteCjk: false, languages: [..._WESTERN] }),
+    Object.freeze({ name: "iso8859-2", aliases: ["ISO-8859-2", "latin-2", "latin2", "iso8859-2", "iso88592"], era: EncodingEra.LEGACY_ISO, isMultibyteCjk: false, languages: [..._CENTRAL_EU] }),
+    Object.freeze({ name: "iso8859-3", aliases: ["ISO-8859-3", "latin-3", "latin3", "iso8859-3", "iso88593"], era: EncodingEra.LEGACY_ISO, isMultibyteCjk: false, languages: ["eo", "mt", "tr"] }),
+    Object.freeze({ name: "iso8859-4", aliases: ["ISO-8859-4", "latin-4", "latin4", "iso8859-4", "iso88594"], era: EncodingEra.LEGACY_ISO, isMultibyteCjk: false, languages: [..._BALTIC] }),
+    Object.freeze({ name: "iso8859-5", aliases: ["ISO-8859-5", "iso8859-5", "cyrillic", "iso88595"], era: EncodingEra.LEGACY_ISO, isMultibyteCjk: false, languages: [..._CYRILLIC] }),
+    Object.freeze({ name: "iso8859-6", aliases: ["ISO-8859-6", "iso8859-6", "arabic", "iso88596", "iso-8859-6-e", "iso-8859-6-i", "csiso88596e", "csiso88596i"], era: EncodingEra.LEGACY_ISO, isMultibyteCjk: false, languages: [..._ARABIC] }),
+    Object.freeze({ name: "iso8859-7", aliases: ["ISO-8859-7", "iso8859-7", "greek", "iso88597", "sun_eu_greek"], era: EncodingEra.LEGACY_ISO, isMultibyteCjk: false, languages: ["el"] }),
+    Object.freeze({ name: "iso8859-8", aliases: ["ISO-8859-8", "iso8859-8", "hebrew", "iso88598", "iso-8859-8-e", "iso-8859-8-i", "csiso88598e", "csiso88598i", "visual", "logical"], era: EncodingEra.LEGACY_ISO, isMultibyteCjk: false, languages: ["he"] }),
+    Object.freeze({ name: "iso8859-9", aliases: ["ISO-8859-9", "latin-5", "latin5", "iso8859-9", "iso88599"], era: EncodingEra.LEGACY_ISO, isMultibyteCjk: false, languages: ["tr"] }),
+    Object.freeze({ name: "iso8859-10", aliases: ["ISO-8859-10", "latin-6", "latin6", "iso8859-10", "iso885910"], era: EncodingEra.LEGACY_ISO, isMultibyteCjk: false, languages: ["is", "fi"] }),
+    Object.freeze({ name: "iso8859-13", aliases: ["ISO-8859-13", "latin-7", "latin7", "iso8859-13", "iso885913", "csiso885913"], era: EncodingEra.LEGACY_ISO, isMultibyteCjk: false, languages: [..._BALTIC] }),
+    Object.freeze({ name: "iso8859-14", aliases: ["ISO-8859-14", "latin-8", "latin8", "iso8859-14", "iso885914", "csiso885914", "iso-ir-199", "iso-celtic", "l8"], era: EncodingEra.LEGACY_ISO, isMultibyteCjk: false, languages: ["cy", "ga", "br", "gd"] }),
+    Object.freeze({ name: "iso8859-15", aliases: ["ISO-8859-15", "latin-9", "latin9", "iso8859-15", "iso885915", "csisolatin9", "csiso885915", "l9"], era: EncodingEra.LEGACY_ISO, isMultibyteCjk: false, languages: [..._WESTERN] }),
+    Object.freeze({ name: "iso8859-16", aliases: ["ISO-8859-16", "latin-10", "latin10", "iso8859-16", "iso885916", "csiso885916", "iso-ir-226", "l10"], era: EncodingEra.LEGACY_ISO, isMultibyteCjk: false, languages: ["ro", "pl", "hr", "hu", "sk", "sl"] }),
+    Object.freeze({ name: "johab", aliases: ["Johab"], era: EncodingEra.LEGACY_ISO, isMultibyteCjk: true, languages: ["ko"] }),
     // === LEGACY_MAC ===
-    Object.freeze({ name: "mac-cyrillic", aliases: ["Mac-Cyrillic", "MacCyrillic", "maccyrillic", "x-mac-cyrillic", "x-mac-ukrainian"], era: EncodingEra.LEGACY_MAC, isMultibyte: false, languages: [..._CYRILLIC] }),
-    Object.freeze({ name: "mac-greek", aliases: ["Mac-Greek", "MacGreek", "macgreek"], era: EncodingEra.LEGACY_MAC, isMultibyte: false, languages: ["el"] }),
-    Object.freeze({ name: "mac-iceland", aliases: ["Mac-Iceland", "MacIceland", "maciceland"], era: EncodingEra.LEGACY_MAC, isMultibyte: false, languages: ["is"] }),
-    Object.freeze({ name: "mac-latin2", aliases: ["Mac-Latin2", "MacLatin2", "maclatin2", "maccentraleurope"], era: EncodingEra.LEGACY_MAC, isMultibyte: false, languages: [..._CENTRAL_EU_NO_RO] }),
-    Object.freeze({ name: "mac-roman", aliases: ["Mac-Roman", "MacRoman", "macroman", "macintosh", "csmacintosh", "mac", "x-mac-roman"], era: EncodingEra.LEGACY_MAC, isMultibyte: false, languages: [..._WESTERN] }),
-    Object.freeze({ name: "mac-turkish", aliases: ["Mac-Turkish", "MacTurkish", "macturkish"], era: EncodingEra.LEGACY_MAC, isMultibyte: false, languages: ["tr"] }),
+    Object.freeze({ name: "mac-cyrillic", aliases: ["Mac-Cyrillic", "MacCyrillic", "maccyrillic", "x-mac-cyrillic", "x-mac-ukrainian"], era: EncodingEra.LEGACY_MAC, isMultibyteCjk: false, languages: [..._CYRILLIC] }),
+    Object.freeze({ name: "mac-greek", aliases: ["Mac-Greek", "MacGreek", "macgreek"], era: EncodingEra.LEGACY_MAC, isMultibyteCjk: false, languages: ["el"] }),
+    Object.freeze({ name: "mac-iceland", aliases: ["Mac-Iceland", "MacIceland", "maciceland"], era: EncodingEra.LEGACY_MAC, isMultibyteCjk: false, languages: ["is"] }),
+    Object.freeze({ name: "mac-latin2", aliases: ["Mac-Latin2", "MacLatin2", "maclatin2", "maccentraleurope"], era: EncodingEra.LEGACY_MAC, isMultibyteCjk: false, languages: [..._CENTRAL_EU_NO_RO] }),
+    Object.freeze({ name: "mac-roman", aliases: ["Mac-Roman", "MacRoman", "macroman", "macintosh", "csmacintosh", "mac", "x-mac-roman"], era: EncodingEra.LEGACY_MAC, isMultibyteCjk: false, languages: [..._WESTERN] }),
+    Object.freeze({ name: "mac-turkish", aliases: ["Mac-Turkish", "MacTurkish", "macturkish"], era: EncodingEra.LEGACY_MAC, isMultibyteCjk: false, languages: ["tr"] }),
     // === LEGACY_REGIONAL ===
-    Object.freeze({ name: "cp720", aliases: ["CP720"], era: EncodingEra.LEGACY_REGIONAL, isMultibyte: false, languages: [..._ARABIC] }),
-    Object.freeze({ name: "cp1006", aliases: ["CP1006"], era: EncodingEra.LEGACY_REGIONAL, isMultibyte: false, languages: ["ur"] }),
-    Object.freeze({ name: "cp1125", aliases: ["CP1125"], era: EncodingEra.LEGACY_REGIONAL, isMultibyte: false, languages: ["uk"] }),
-    Object.freeze({ name: "koi8-t", aliases: ["KOI8-T"], era: EncodingEra.LEGACY_REGIONAL, isMultibyte: false, languages: ["tg"] }),
-    Object.freeze({ name: "kz1048", aliases: ["KZ-1048", "kz1048", "strk1048-2002", "rk1048"], era: EncodingEra.LEGACY_REGIONAL, isMultibyte: false, languages: ["kk"] }),
-    Object.freeze({ name: "ptcp154", aliases: ["PTCP154", "pt154", "cp154"], era: EncodingEra.LEGACY_REGIONAL, isMultibyte: false, languages: ["kk"] }),
-    Object.freeze({ name: "hp-roman8", aliases: ["HP-Roman8", "roman8", "r8", "csHPRoman8"], era: EncodingEra.LEGACY_REGIONAL, isMultibyte: false, languages: [..._WESTERN] }),
+    Object.freeze({ name: "cp720", aliases: ["CP720"], era: EncodingEra.LEGACY_REGIONAL, isMultibyteCjk: false, languages: [..._ARABIC] }),
+    Object.freeze({ name: "cp1006", aliases: ["CP1006"], era: EncodingEra.LEGACY_REGIONAL, isMultibyteCjk: false, languages: ["ur"] }),
+    Object.freeze({ name: "cp1125", aliases: ["CP1125"], era: EncodingEra.LEGACY_REGIONAL, isMultibyteCjk: false, languages: ["uk"] }),
+    Object.freeze({ name: "koi8-t", aliases: ["KOI8-T"], era: EncodingEra.LEGACY_REGIONAL, isMultibyteCjk: false, languages: ["tg"] }),
+    Object.freeze({ name: "kz1048", aliases: ["KZ-1048", "kz1048", "strk1048-2002", "rk1048"], era: EncodingEra.LEGACY_REGIONAL, isMultibyteCjk: false, languages: ["kk"] }),
+    Object.freeze({ name: "ptcp154", aliases: ["PTCP154", "pt154", "cp154"], era: EncodingEra.LEGACY_REGIONAL, isMultibyteCjk: false, languages: ["kk"] }),
+    Object.freeze({ name: "hp-roman8", aliases: ["HP-Roman8", "roman8", "r8", "csHPRoman8"], era: EncodingEra.LEGACY_REGIONAL, isMultibyteCjk: false, languages: [..._WESTERN] }),
     // === DOS ===
-    Object.freeze({ name: "cp437", aliases: ["CP437"], era: EncodingEra.DOS, isMultibyte: false, languages: ["en", "fr", "de", "es", "pt", "it", "nl", "da", "sv", "fi", "ga"] }),
-    Object.freeze({ name: "cp737", aliases: ["CP737"], era: EncodingEra.DOS, isMultibyte: false, languages: ["el"] }),
-    Object.freeze({ name: "cp775", aliases: ["CP775"], era: EncodingEra.DOS, isMultibyte: false, languages: [..._BALTIC] }),
-    Object.freeze({ name: "cp850", aliases: ["CP850"], era: EncodingEra.DOS, isMultibyte: false, languages: [..._WESTERN] }),
-    Object.freeze({ name: "cp852", aliases: ["CP852"], era: EncodingEra.DOS, isMultibyte: false, languages: [..._CENTRAL_EU] }),
-    Object.freeze({ name: "cp855", aliases: ["CP855"], era: EncodingEra.DOS, isMultibyte: false, languages: [..._CYRILLIC] }),
-    Object.freeze({ name: "cp856", aliases: ["CP856"], era: EncodingEra.DOS, isMultibyte: false, languages: ["he"] }),
-    Object.freeze({ name: "cp857", aliases: ["CP857"], era: EncodingEra.DOS, isMultibyte: false, languages: ["tr"] }),
-    Object.freeze({ name: "cp858", aliases: ["CP858"], era: EncodingEra.DOS, isMultibyte: false, languages: [..._WESTERN] }),
-    Object.freeze({ name: "cp860", aliases: ["CP860"], era: EncodingEra.DOS, isMultibyte: false, languages: ["pt"] }),
-    Object.freeze({ name: "cp861", aliases: ["CP861"], era: EncodingEra.DOS, isMultibyte: false, languages: ["is"] }),
-    Object.freeze({ name: "cp862", aliases: ["CP862"], era: EncodingEra.DOS, isMultibyte: false, languages: ["he"] }),
-    Object.freeze({ name: "cp863", aliases: ["CP863"], era: EncodingEra.DOS, isMultibyte: false, languages: ["fr"] }),
-    Object.freeze({ name: "cp864", aliases: ["CP864"], era: EncodingEra.DOS, isMultibyte: false, languages: ["ar"] }),
-    Object.freeze({ name: "cp865", aliases: ["CP865"], era: EncodingEra.DOS, isMultibyte: false, languages: ["da", "no"] }),
-    Object.freeze({ name: "cp866", aliases: ["CP866"], era: EncodingEra.DOS, isMultibyte: false, languages: [..._CYRILLIC] }),
-    Object.freeze({ name: "cp869", aliases: ["CP869"], era: EncodingEra.DOS, isMultibyte: false, languages: ["el"] }),
+    Object.freeze({ name: "cp437", aliases: ["CP437"], era: EncodingEra.DOS, isMultibyteCjk: false, languages: ["en", "fr", "de", "es", "pt", "it", "nl", "da", "sv", "fi", "ga"] }),
+    Object.freeze({ name: "cp737", aliases: ["CP737"], era: EncodingEra.DOS, isMultibyteCjk: false, languages: ["el"] }),
+    Object.freeze({ name: "cp775", aliases: ["CP775"], era: EncodingEra.DOS, isMultibyteCjk: false, languages: [..._BALTIC] }),
+    Object.freeze({ name: "cp850", aliases: ["CP850"], era: EncodingEra.DOS, isMultibyteCjk: false, languages: [..._WESTERN] }),
+    Object.freeze({ name: "cp852", aliases: ["CP852"], era: EncodingEra.DOS, isMultibyteCjk: false, languages: [..._CENTRAL_EU] }),
+    Object.freeze({ name: "cp855", aliases: ["CP855"], era: EncodingEra.DOS, isMultibyteCjk: false, languages: [..._CYRILLIC] }),
+    Object.freeze({ name: "cp856", aliases: ["CP856"], era: EncodingEra.DOS, isMultibyteCjk: false, languages: ["he"] }),
+    Object.freeze({ name: "cp857", aliases: ["CP857"], era: EncodingEra.DOS, isMultibyteCjk: false, languages: ["tr"] }),
+    Object.freeze({ name: "cp858", aliases: ["CP858"], era: EncodingEra.DOS, isMultibyteCjk: false, languages: [..._WESTERN] }),
+    Object.freeze({ name: "cp860", aliases: ["CP860"], era: EncodingEra.DOS, isMultibyteCjk: false, languages: ["pt"] }),
+    Object.freeze({ name: "cp861", aliases: ["CP861"], era: EncodingEra.DOS, isMultibyteCjk: false, languages: ["is"] }),
+    Object.freeze({ name: "cp862", aliases: ["CP862"], era: EncodingEra.DOS, isMultibyteCjk: false, languages: ["he"] }),
+    Object.freeze({ name: "cp863", aliases: ["CP863"], era: EncodingEra.DOS, isMultibyteCjk: false, languages: ["fr"] }),
+    Object.freeze({ name: "cp864", aliases: ["CP864"], era: EncodingEra.DOS, isMultibyteCjk: false, languages: ["ar"] }),
+    Object.freeze({ name: "cp865", aliases: ["CP865"], era: EncodingEra.DOS, isMultibyteCjk: false, languages: ["da", "no"] }),
+    Object.freeze({ name: "cp866", aliases: ["CP866"], era: EncodingEra.DOS, isMultibyteCjk: false, languages: [..._CYRILLIC] }),
+    Object.freeze({ name: "cp869", aliases: ["CP869"], era: EncodingEra.DOS, isMultibyteCjk: false, languages: ["el"] }),
     // === MAINFRAME ===
-    Object.freeze({ name: "cp1140", aliases: ["CP1140", "cp037", "cp01140", "ibm01140", "ibm1140", "csibm01140"], era: EncodingEra.MAINFRAME, isMultibyte: false, languages: [..._WESTERN_TR] }),
-    Object.freeze({ name: "cp424", aliases: ["CP424"], era: EncodingEra.MAINFRAME, isMultibyte: false, languages: ["he"] }),
-    Object.freeze({ name: "cp500", aliases: ["CP500"], era: EncodingEra.MAINFRAME, isMultibyte: false, languages: [..._WESTERN] }),
-    Object.freeze({ name: "cp875", aliases: ["CP875"], era: EncodingEra.MAINFRAME, isMultibyte: false, languages: ["el"] }),
-    Object.freeze({ name: "cp1026", aliases: ["CP1026"], era: EncodingEra.MAINFRAME, isMultibyte: false, languages: ["tr"] }),
-    Object.freeze({ name: "cp273", aliases: ["CP273"], era: EncodingEra.MAINFRAME, isMultibyte: false, languages: ["de"] })
+    Object.freeze({ name: "cp1140", aliases: ["CP1140", "cp037", "cp01140", "ibm01140", "ibm1140", "csibm01140"], era: EncodingEra.MAINFRAME, isMultibyteCjk: false, languages: [..._WESTERN_TR] }),
+    Object.freeze({ name: "cp424", aliases: ["CP424"], era: EncodingEra.MAINFRAME, isMultibyteCjk: false, languages: ["he"] }),
+    Object.freeze({ name: "cp500", aliases: ["CP500"], era: EncodingEra.MAINFRAME, isMultibyteCjk: false, languages: [..._WESTERN] }),
+    Object.freeze({ name: "cp875", aliases: ["CP875"], era: EncodingEra.MAINFRAME, isMultibyteCjk: false, languages: ["el"] }),
+    Object.freeze({ name: "cp1026", aliases: ["CP1026"], era: EncodingEra.MAINFRAME, isMultibyteCjk: false, languages: ["tr"] }),
+    Object.freeze({ name: "cp273", aliases: ["CP273"], era: EncodingEra.MAINFRAME, isMultibyteCjk: false, languages: ["de"] })
   ];
   var REGISTRY = Object.freeze(
     Object.fromEntries(_REGISTRY_ENTRIES.map((e) => [e.name, e]))
@@ -876,8 +876,8 @@ var jschardet = (() => {
     const incKey = includeEncodings ? [...includeEncodings].sort().join(",") : "";
     const excKey = excludeEncodings ? [...excludeEncodings].sort().join(",") : "";
     const cacheKey = `${era}|${incKey}|${excKey}`;
-    const cached5 = _candidatesCache.get(cacheKey);
-    if (cached5 !== void 0) return cached5;
+    const cached6 = _candidatesCache.get(cacheKey);
+    if (cached6 !== void 0) return cached6;
     let candidates = Object.values(REGISTRY).filter((enc) => enc.era & era);
     if (includeEncodings !== void 0) candidates = candidates.filter((enc) => includeEncodings.has(enc.name));
     if (excludeEncodings !== void 0) candidates = candidates.filter((enc) => !excludeEncodings.has(enc.name));
@@ -885,6 +885,7 @@ var jschardet = (() => {
     _candidatesCache.set(cacheKey, result);
     return result;
   }
+  var _LOOKUP_CACHE_MAXSIZE = 1024;
   var _lookupCache = /* @__PURE__ */ new Map();
   function _lookupUncached(name) {
     const lowered = name.toLowerCase();
@@ -900,9 +901,16 @@ var jschardet = (() => {
     return null;
   }
   function lookupEncoding(name) {
-    const cached5 = _lookupCache.get(name);
-    if (cached5 !== void 0) return cached5;
+    const cached6 = _lookupCache.get(name);
+    if (cached6 !== void 0) {
+      _lookupCache.delete(name);
+      _lookupCache.set(name, cached6);
+      return cached6;
+    }
     const result = _lookupUncached(name);
+    if (_lookupCache.size >= _LOOKUP_CACHE_MAXSIZE) {
+      _lookupCache.delete(_lookupCache.keys().next().value);
+    }
     _lookupCache.set(name, result);
     return result;
   }
@@ -1395,59 +1403,300 @@ var jschardet = (() => {
     _undefinedMasks.set(table, mask);
     return mask;
   }
-  function decodesAsSingleByte(encoding, data4) {
+  function decodesAsSingleByte(encoding, data5) {
     const table = byteDecodeTable(encoding);
     if (table === null || !table.singleByte) return null;
     const mask = _undefinedByteMask(table);
     if (mask === null) return true;
-    for (let i = 0; i < data4.length; i++) {
-      if (mask[data4[i]] !== 0) return false;
+    for (let i = 0; i < data5.length; i++) {
+      if (mask[data5[i]] !== 0) return false;
     }
     return true;
   }
-  function decodeSingleByteText(table, data4) {
+  function decodeSingleByteText(table, data5) {
     let out = "";
-    for (let i = 0; i < data4.length; i++) {
-      const ch = table.cps[data4[i]];
+    for (let i = 0; i < data5.length; i++) {
+      const ch = table.cps[data5[i]];
       out += ch === "\uFFFF" ? "\uFFFD" : ch;
     }
     return out;
   }
 
+  // src/pipeline/to-utf8.ts
+  var _BASE64_TABLE = (() => {
+    const t = new Uint8Array(256).fill(255);
+    const alpha = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+    for (let i = 0; i < alpha.length; i++) t[alpha.charCodeAt(i)] = i;
+    return t;
+  })();
+  function utf7DecodesWithoutError(data5, final = false) {
+    let inShift = false;
+    let shiftStart = false;
+    let bits = 0;
+    let buffer = 0;
+    let surrogatePending = false;
+    for (let i = 0; i < data5.length; i++) {
+      const b = data5[i];
+      if (inShift) {
+        const val = _BASE64_TABLE[b];
+        if (val !== 255) {
+          shiftStart = false;
+          buffer = buffer << 6 | val;
+          bits += 6;
+          if (bits >= 16) {
+            bits -= 16;
+            const unit = buffer >> bits & 65535;
+            buffer &= (1 << bits) - 1;
+            if (surrogatePending) {
+              surrogatePending = unit >= 55296 && unit <= 56319;
+            } else if (unit >= 55296 && unit <= 56319) {
+              surrogatePending = true;
+            }
+          }
+          continue;
+        }
+        if (shiftStart) {
+          if (b !== 45) return false;
+          inShift = false;
+          continue;
+        }
+        if (bits >= 6) return false;
+        if (bits > 0 && buffer !== 0) return false;
+        surrogatePending = false;
+        inShift = false;
+        bits = 0;
+        buffer = 0;
+        if (b === 45) continue;
+        if (b >= 128) return false;
+      } else if (b === 43) {
+        inShift = true;
+        shiftStart = true;
+        bits = 0;
+        buffer = 0;
+      } else if (b >= 128) {
+        return false;
+      }
+    }
+    if (final && inShift) {
+      if (surrogatePending) return false;
+      if (bits >= 6) return false;
+      if (bits > 0 && buffer !== 0) return false;
+    }
+    return true;
+  }
+  function _utf32ToUtf8(data5, encoding) {
+    let littleEndian;
+    let start;
+    if (encoding === "utf-32") {
+      if (data5.length >= 4 && data5[0] === 255 && data5[1] === 254 && data5[2] === 0 && data5[3] === 0) {
+        littleEndian = true;
+        start = 4;
+      } else if (data5.length >= 4 && data5[0] === 0 && data5[1] === 0 && data5[2] === 254 && data5[3] === 255) {
+        littleEndian = false;
+        start = 4;
+      } else {
+        return null;
+      }
+    } else {
+      littleEndian = encoding === "utf-32-le";
+      start = 0;
+    }
+    const aligned = data5.subarray(start);
+    const numCPs = Math.floor(aligned.length / 4);
+    if (numCPs === 0) return null;
+    const view = new DataView(aligned.buffer, aligned.byteOffset, numCPs * 4);
+    let str = "";
+    for (let i = 0; i < numCPs; i++) {
+      const cp = view.getUint32(i * 4, littleEndian);
+      if (cp > 1114111 || cp >= 55296 && cp <= 57343) continue;
+      str += String.fromCodePoint(cp);
+    }
+    return str.length > 0 ? new TextEncoder().encode(str) : null;
+  }
+  function _utf7ToUtf8(data5) {
+    let str = "";
+    let i = 0;
+    while (i < data5.length) {
+      const b = data5[i];
+      if (b === 43) {
+        i++;
+        if (i < data5.length && data5[i] === 45) {
+          str += "+";
+          i++;
+          continue;
+        }
+        const b64Start = i;
+        while (i < data5.length && _BASE64_TABLE[data5[i]] !== 255) i++;
+        const b64Len = i - b64Start;
+        if (i < data5.length && data5[i] === 45) i++;
+        if (b64Len === 0) continue;
+        const rawLen = Math.floor(b64Len * 6 / 8);
+        const raw = new Uint8Array(rawLen);
+        let accum = 0;
+        let bits = 0;
+        let byteIdx = 0;
+        for (let j2 = 0; j2 < b64Len && byteIdx < rawLen; j2++) {
+          accum = accum << 6 | _BASE64_TABLE[data5[b64Start + j2]];
+          bits += 6;
+          if (bits >= 8) {
+            bits -= 8;
+            raw[byteIdx++] = accum >> bits & 255;
+          }
+        }
+        const view = new DataView(raw.buffer, raw.byteOffset, raw.byteLength);
+        const numUnits = Math.floor(raw.length / 2);
+        let j = 0;
+        while (j < numUnits) {
+          const u = view.getUint16(j * 2, false);
+          j++;
+          if (u >= 55296 && u <= 56319 && j < numUnits) {
+            const lo = view.getUint16(j * 2, false);
+            if (lo >= 56320 && lo <= 57343) {
+              const cp = 65536 + (u - 55296 << 10) + (lo - 56320);
+              str += String.fromCodePoint(cp);
+              j++;
+            }
+          } else if (u < 55296 || u > 57343) {
+            str += String.fromCodePoint(u);
+          }
+        }
+      } else if (b < 128) {
+        str += String.fromCharCode(b);
+        i++;
+      } else {
+        i++;
+      }
+    }
+    return str.length > 0 ? new TextEncoder().encode(str) : null;
+  }
+  function toUtf8(data5, encoding) {
+    if (encoding === "utf-8") return data5;
+    if (encoding === "utf-8-sig") {
+      const hasBom = data5.length >= 3 && data5[0] === 239 && data5[1] === 187 && data5[2] === 191;
+      return hasBom ? data5.subarray(3) : data5;
+    }
+    if (encoding === "utf-16") {
+      let label;
+      let start;
+      if (data5.length >= 2 && data5[0] === 255 && data5[1] === 254) {
+        label = "utf-16le";
+        start = 2;
+      } else if (data5.length >= 2 && data5[0] === 254 && data5[1] === 255) {
+        label = "utf-16be";
+        start = 2;
+      } else {
+        return null;
+      }
+      return new TextEncoder().encode(whatwgDecodeText(label, data5.subarray(start)));
+    }
+    if (encoding === "utf-16-le") {
+      return new TextEncoder().encode(whatwgDecodeText("utf-16le", data5));
+    }
+    if (encoding === "utf-16-be") {
+      return new TextEncoder().encode(whatwgDecodeText("utf-16be", data5));
+    }
+    if (encoding === "utf-32" || encoding === "utf-32-be" || encoding === "utf-32-le") {
+      return _utf32ToUtf8(data5, encoding);
+    }
+    if (encoding === "utf-7") {
+      return _utf7ToUtf8(data5);
+    }
+    const text = decodeText(encoding, data5);
+    return text === null ? null : new TextEncoder().encode(text);
+  }
+
   // src/decode.ts
-  function decodesWithoutError(encName, data4) {
-    const singleByte = decodesAsSingleByte(encName, data4);
+  function decodesWithoutError(encName, data5) {
+    const singleByte = decodesAsSingleByte(encName, data5);
     if (singleByte !== null) return singleByte;
+    const utf = _utfDecodesWithoutError(encName, data5);
+    if (utf !== null) return utf;
     const label = whatwgLabelFor(encName);
     if (label === null) return true;
-    return whatwgDecodesWithoutError(label, data4);
+    return whatwgDecodesWithoutError(label, data5);
   }
-  function decodesCompletely(encName, data4) {
-    const singleByte = decodesAsSingleByte(encName, data4);
+  function _utfDecodesWithoutError(encName, data5) {
+    switch (encName) {
+      case "utf-8-sig":
+        return whatwgDecodesWithoutError("utf-8", data5);
+      case "utf-16":
+        if (data5.length < 2) return true;
+        if (data5[0] === 254 && data5[1] === 255) return whatwgDecodesWithoutError("utf-16be", data5.subarray(2));
+        if (data5[0] === 255 && data5[1] === 254) return whatwgDecodesWithoutError("utf-16le", data5.subarray(2));
+        return false;
+      case "utf-32":
+        if (data5.length < 4) return true;
+        if (data5[0] === 0 && data5[1] === 0 && data5[2] === 254 && data5[3] === 255) {
+          return _utf32DecodesWithoutError(data5.subarray(4), false);
+        }
+        if (data5[0] === 255 && data5[1] === 254 && data5[2] === 0 && data5[3] === 0) {
+          return _utf32DecodesWithoutError(data5.subarray(4), true);
+        }
+        return false;
+      case "utf-32-be":
+        return _utf32DecodesWithoutError(data5, false);
+      case "utf-32-le":
+        return _utf32DecodesWithoutError(data5, true);
+      case "utf-7":
+        return utf7DecodesWithoutError(data5);
+      default:
+        return null;
+    }
+  }
+  function _utf32DecodesWithoutError(data5, littleEndian) {
+    const view = new DataView(data5.buffer, data5.byteOffset, data5.byteLength);
+    const whole = data5.length - data5.length % 4;
+    for (let i = 0; i < whole; i += 4) {
+      const cp = view.getUint32(i, littleEndian);
+      if (cp > 1114111 || cp >= 55296 && cp <= 57343) return false;
+    }
+    return true;
+  }
+  var _ISO2022JP_ESCAPES = [
+    [27, 40, 66],
+    // ESC ( B
+    [27, 40, 74],
+    // ESC ( J
+    [27, 40, 73],
+    // ESC ( I
+    [27, 36, 64],
+    // ESC $ @
+    [27, 36, 66]
+    // ESC $ B
+  ];
+  function iso2022Jp2DecodesWithoutError(data5) {
+    for (let i = data5.indexOf(27); i !== -1; i = data5.indexOf(27, i + 1)) {
+      const known = _ISO2022JP_ESCAPES.some((seq) => seq.every((b, j) => data5[i + j] === b));
+      if (!known) return true;
+    }
+    return decodesWithoutError("iso2022_jp_2", data5);
+  }
+  function decodesCompletely(encName, data5) {
+    const singleByte = decodesAsSingleByte(encName, data5);
     if (singleByte !== null) return singleByte;
     const label = whatwgLabelFor(encName);
     if (label === null) return false;
-    return whatwgDecodesCompletely(label, data4);
+    return whatwgDecodesCompletely(label, data5);
   }
-  function danglingTailWithAsciiPrefix(encName, data4) {
+  function danglingTailWithAsciiPrefix(encName, data5) {
     if (byteDecodeTable(encName)?.singleByte) return false;
     const label = whatwgLabelFor(encName);
     if (label === null) return false;
-    return whatwgDanglingTailWithAsciiPrefix(label, data4);
+    return whatwgDanglingTailWithAsciiPrefix(label, data5);
   }
-  function decodeText(encName, data4) {
+  function decodeText(encName, data5) {
     const label = whatwgLabelFor(encName);
     if (label === null) return null;
-    return whatwgDecodeText(label, data4);
+    return whatwgDecodeText(label, data5);
   }
-  function decodeStrictText(encName, data4) {
-    const singleByte = decodesAsSingleByte(encName, data4);
+  function decodeStrictText(encName, data5) {
+    const singleByte = decodesAsSingleByte(encName, data5);
     if (singleByte !== null) {
-      return singleByte ? decodeSingleByteText(byteDecodeTable(encName), data4) : null;
+      return singleByte ? decodeSingleByteText(byteDecodeTable(encName), data5) : null;
     }
     const label = whatwgLabelFor(encName);
     if (label === null) return null;
-    return whatwgDecodeStrictText(label, data4);
+    return whatwgDecodeStrictText(label, data5);
   }
 
   // src/output_names.ts
@@ -1471,12 +1720,15 @@ var jschardet = (() => {
     }
     return result;
   }
-  function applyPreferredSuperset(result, data4) {
+  function applyPreferredSuperset(result, data5, filters = {}) {
     const enc = result.encoding;
     if (enc === null) return result;
     const superset = PREFERRED_SUPERSET[enc];
     if (superset === void 0) return result;
-    if (data4 === void 0 || decodesWithoutError(superset, data4)) {
+    const { includeEncodings, excludeEncodings } = filters;
+    if (includeEncodings != null && !includeEncodings.has(superset)) return result;
+    if (excludeEncodings != null && excludeEncodings.has(superset)) return result;
+    if (data5 === void 0 || decodesWithoutError(superset, data5)) {
       result.encoding = superset;
     }
     return result;
@@ -1532,11 +1784,11 @@ var jschardet = (() => {
   // src/models/_format.ts
   var MODELS_MAGIC = new Uint8Array([67, 77, 68, 50]);
   var utf8Decoder = new TextDecoder("utf-8", { fatal: true });
-  function parseModelsBin(data4) {
-    if (data4.length < 4 || data4[0] !== MODELS_MAGIC[0] || data4[1] !== MODELS_MAGIC[1] || data4[2] !== MODELS_MAGIC[2] || data4[3] !== MODELS_MAGIC[3]) {
+  function parseModelsBin(data5) {
+    if (data5.length < 4 || data5[0] !== MODELS_MAGIC[0] || data5[1] !== MODELS_MAGIC[1] || data5[2] !== MODELS_MAGIC[2] || data5[3] !== MODELS_MAGIC[3]) {
       throw new Error("corrupt models.bin: missing CMD2 magic");
     }
-    const view = new DataView(data4.buffer, data4.byteOffset, data4.byteLength);
+    const view = new DataView(data5.buffer, data5.byteOffset, data5.byteLength);
     let offset = 4;
     try {
       const numModels = view.getUint32(offset, false);
@@ -1554,7 +1806,7 @@ var jschardet = (() => {
         }
         let name;
         try {
-          name = utf8Decoder.decode(data4.subarray(offset, offset + nameLen));
+          name = utf8Decoder.decode(data5.subarray(offset, offset + nameLen));
         } catch (e) {
           throw new Error(`corrupt models.bin: ${e.message}`);
         }
@@ -1564,7 +1816,7 @@ var jschardet = (() => {
         names.push(name);
         norms.set(name, norm);
       }
-      const blob = data4.subarray(offset);
+      const blob = data5.subarray(offset);
       const expectedSize = numModels * 65536;
       if (blob.length !== expectedSize) {
         throw new Error(
@@ -1583,6 +1835,25 @@ var jschardet = (() => {
       }
       throw e;
     }
+  }
+  var LANGNORM_MAGIC = new Uint8Array([67, 76, 78, 49]);
+  var LANGNORM_HEADER_SIZE = 4 + 32;
+  function parseLangnormBin(data5, modelKeys) {
+    if (data5.length !== LANGNORM_HEADER_SIZE + modelKeys.length * 8 || LANGNORM_MAGIC.some((b, i) => data5[i] !== b)) {
+      return null;
+    }
+    const view = new DataView(data5.buffer, data5.byteOffset, data5.byteLength);
+    const norms = /* @__PURE__ */ new Map();
+    modelKeys.forEach((key, i) => norms.set(key, view.getFloat64(LANGNORM_HEADER_SIZE + i * 8, false)));
+    return norms;
+  }
+  function langnormFromTable(table, idf) {
+    let total = 0;
+    for (let i = 0; i < 65536; i++) {
+      const v = table[i];
+      if (v) total += v * v * idf[i];
+    }
+    return Math.sqrt(total);
   }
 
   // src/runtime/decompress.browser.ts
@@ -1958,6 +2229,15 @@ var jschardet = (() => {
     return cached2;
   }
 
+  // src/models/langnorm.bin.js
+  var data3 = "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";
+  var cached3 = null;
+  function readBytes3() {
+    if (cached3) return cached3;
+    cached3 = typeof Buffer !== "undefined" ? new Uint8Array(Buffer.from(data3, "base64")) : Uint8Array.from(atob(data3), (c) => c.charCodeAt(0));
+    return cached3;
+  }
+
   // src/models/index.ts
   var SINGLE_LANG_MAP = {};
   for (const enc of Object.values(REGISTRY)) {
@@ -1968,15 +2248,15 @@ var jschardet = (() => {
   var modelDataCache = null;
   function loadModelData() {
     if (modelDataCache) return modelDataCache;
-    const data4 = readBytes();
-    if (data4.length === 0) {
+    const data5 = readBytes();
+    if (data5.length === 0) {
       console.warn(
         "jschardet models.bin is empty \u2014 statistical detection disabled; reinstall jschardet to fix"
       );
       modelDataCache = { models: /* @__PURE__ */ new Map(), norms: /* @__PURE__ */ new Map() };
       return modelDataCache;
     }
-    modelDataCache = parseModelsBin(data4);
+    modelDataCache = parseModelsBin(data5);
     return modelDataCache;
   }
   function loadModels() {
@@ -2018,23 +2298,51 @@ var jschardet = (() => {
   var idfWeightsCache = null;
   function getIdfWeights() {
     if (idfWeightsCache) return idfWeightsCache;
-    const data4 = readBytes2();
-    if (data4.length !== 65536) {
+    const data5 = readBytes2();
+    if (data5.length !== 65536) {
       console.warn(
-        `jschardet idf.bin has wrong size (${data4.length}), falling back to uniform weights`
+        `jschardet idf.bin has wrong size (${data5.length}), falling back to uniform weights`
       );
       idfWeightsCache = new Uint8Array(65536).fill(1);
       return idfWeightsCache;
     }
-    idfWeightsCache = data4;
+    idfWeightsCache = data5;
     return idfWeightsCache;
+  }
+  var languageNormsCache = null;
+  function getLanguageNorms() {
+    if (languageNormsCache) return languageNormsCache;
+    const models = loadModels();
+    const norms = parseLangnormBin(readBytes3(), [...models.keys()]);
+    if (norms !== null) {
+      languageNormsCache = norms;
+      return norms;
+    }
+    if (models.size > 0) {
+      console.warn(
+        "jschardet langnorm.bin is missing or does not match models.bin; deriving language norms from the models (slower startup)"
+      );
+    }
+    const idf = getIdfWeights();
+    languageNormsCache = new Map([...models].map(([key, table]) => [key, langnormFromTable(table, idf)]));
+    return languageNormsCache;
+  }
+  var LANGUAGE_SCALE_FACTOR = 16;
+  var languageScaleCache = null;
+  function getLanguageScale() {
+    if (languageScaleCache) return languageScaleCache;
+    const idf = getIdfWeights();
+    const roots = new Uint8Array(256);
+    for (let v = 0; v < 256; v++) roots[v] = Math.round(LANGUAGE_SCALE_FACTOR * Math.sqrt(v));
+    languageScaleCache = idf.map((v) => roots[v]);
+    return languageScaleCache;
   }
   var ASCII_WHITESPACE_TABLE = new Uint8Array(256);
   for (const b of [32, 9, 10, 11, 12, 13, 160]) {
     ASCII_WHITESPACE_TABLE[b] = 1;
   }
   var BigramProfile = class _BigramProfile {
-    constructor(data4) {
+    constructor(data5) {
       // Exactly one of freq and values carries the weights, never both. The
       // streaming constructor keeps the dense freq table it had to build and
       // leaves values empty; fromWeightedFreq fills values parallel to nonzero
@@ -2046,7 +2354,7 @@ var jschardet = (() => {
       __publicField(this, "values");
       __publicField(this, "weightSum");
       __publicField(this, "inputNorm");
-      const totalBigrams = data4.length - 1;
+      const totalBigrams = data5.length - 1;
       if (totalBigrams <= 0) {
         this.freq = [];
         this.nonzero = [];
@@ -2060,8 +2368,8 @@ var jschardet = (() => {
       const nonzero = [];
       let wSum = 0;
       for (let i = 0; i < totalBigrams; i++) {
-        const b1 = data4[i];
-        const b2 = data4[i + 1];
+        const b1 = data5[i];
+        const b2 = data5[i + 1];
         if (b1 === b2 && ASCII_WHITESPACE_TABLE[b1]) continue;
         const idx = b1 << 8 | b2;
         const w = idf[idx];
@@ -2079,6 +2387,48 @@ var jschardet = (() => {
         normSq += v * v;
       }
       this.inputNorm = Math.sqrt(normSq);
+    }
+    // The profile the language tiers score with. Same bigram walk as the
+    // constructor, but each occurrence carries IDF times getLanguageScale (a
+    // byte-quantized root of IDF) rather than IDF alone. Scored against
+    // getLanguageNorms, this is the cosine between the IDF-weighted input and
+    // models weighted by the square root of IDF. The plain cosine lets one
+    // high-IDF bigram that two languages share, such as the UTF-8 pair for é,
+    // outweigh every bigram that tells them apart: it rates the model by the
+    // share that bigram takes of its unweighted length, so an accent-heavy
+    // language wins French text on the strength of é alone. Weighting the
+    // model side too charges each model for its rare bigrams, and the common
+    // bigrams decide again. For use with languageWeighting.
+    static forLanguage(data5) {
+      const profile = new _BigramProfile(new Uint8Array(0));
+      const totalBigrams = data5.length - 1;
+      if (totalBigrams <= 0) return profile;
+      const idf = getIdfWeights();
+      const freq = new Float64Array(65536);
+      const nonzero = [];
+      for (let i = 0; i < totalBigrams; i++) {
+        const b1 = data5[i];
+        const b2 = data5[i + 1];
+        if (b1 === b2 && ASCII_WHITESPACE_TABLE[b1]) continue;
+        const idx = b1 << 8 | b2;
+        if (freq[idx] === 0) nonzero.push(idx);
+        freq[idx] += idf[idx];
+      }
+      const scale = getLanguageScale();
+      let wSum = 0;
+      let normSq = 0;
+      for (const idx of nonzero) {
+        const v = freq[idx];
+        normSq += v * v;
+        const w = v * scale[idx];
+        freq[idx] = w;
+        wSum += w;
+      }
+      profile.freq = freq;
+      profile.nonzero = nonzero;
+      profile.weightSum = wSum;
+      profile.inputNorm = LANGUAGE_SCALE_FACTOR * Math.sqrt(normSq);
+      return profile;
     }
     static fromWeightedFreq(weightedFreq) {
       const profile = new _BigramProfile(new Uint8Array(0));
@@ -2101,17 +2451,21 @@ var jschardet = (() => {
       return profile;
     }
   };
-  function scoreWithProfile(profile, model, modelKey = "") {
+  function scoreWithProfile(profile, model, modelKey = "", { languageWeighting = false } = {}) {
     if (profile.inputNorm === 0) return 0;
-    const norms = loadModelData().norms;
+    const norms = languageWeighting ? getLanguageNorms() : loadModelData().norms;
     let modelNorm = modelKey ? norms.get(modelKey) : void 0;
     if (modelNorm === void 0) {
-      let sqSum = 0;
-      for (let i = 0; i < 65536; i++) {
-        const v = model[i];
-        if (v) sqSum += v * v;
+      if (languageWeighting) {
+        modelNorm = langnormFromTable(model, getIdfWeights());
+      } else {
+        let sqSum = 0;
+        for (let i = 0; i < 65536; i++) {
+          const v = model[i];
+          if (v) sqSum += v * v;
+        }
+        modelNorm = Math.sqrt(sqSum);
       }
-      modelNorm = Math.sqrt(sqSum);
     }
     if (modelNorm === 0) return 0;
     let dot = 0;
@@ -2132,18 +2486,21 @@ var jschardet = (() => {
   var RARE_LANGUAGES = /* @__PURE__ */ new Set(["gd", "cy", "ga", "br"]);
   var ART_LANGUAGE = "zxx";
   var THIN_RARE_MAX_BYTES = 128;
-  var THIN_RARE_MARGIN = 0.03;
-  function scoreBestLanguage(data4, encoding, profile, { demoteThinRare = false } = {}) {
-    if (data4.length === 0 && profile === void 0) return [0, null];
+  var THIN_RARE_MARGIN = 0.06;
+  function scoreBestLanguage(data5, encoding, profile, {
+    demoteThinRare = false,
+    languageWeighting = false
+  } = {}) {
+    if (data5.length === 0 && profile === void 0) return [0, null];
     const variants = getEncIndex().get(encoding);
     if (variants === void 0) return [0, null];
-    const p = profile ?? new BigramProfile(data4);
+    const p = profile ?? (languageWeighting ? BigramProfile.forLanguage(data5) : new BigramProfile(data5));
     let bestScore = 0;
     let bestLang = null;
     let bestPrevalent = 0;
     let bestPrevalentLang = null;
     for (const [lang, model, modelKey] of variants) {
-      const s = scoreWithProfile(p, model, modelKey);
+      const s = scoreWithProfile(p, model, modelKey, { languageWeighting });
       if (s > bestScore) {
         bestScore = s;
         bestLang = lang;
@@ -2184,11 +2541,11 @@ var jschardet = (() => {
 
   // src/pipeline/ascii.ts
   var _MAX_NULL_FRACTION = 0.05;
-  function detectAscii(data4) {
-    if (data4.length === 0) return null;
+  function detectAscii(data5) {
+    if (data5.length === 0) return null;
     let nonAllowed = 0;
     let nullCount = 0;
-    for (const b of data4) {
+    for (const b of data5) {
       if (!ASCII_TEXT_BYTES.has(b)) {
         nonAllowed++;
         if (b === 0) nullCount++;
@@ -2198,7 +2555,7 @@ var jschardet = (() => {
       return { encoding: "ascii", confidence: 1, language: null, mimeType: null };
     }
     if (nonAllowed !== nullCount) return null;
-    const nullFraction = nullCount / data4.length;
+    const nullFraction = nullCount / data5.length;
     if (nullFraction <= _MAX_NULL_FRACTION) {
       return { encoding: "ascii", confidence: 0.99, language: null, mimeType: null };
     }
@@ -2211,14 +2568,14 @@ var jschardet = (() => {
   var _EBCDIC_MIN_SPACE_FRACTION = 0.02;
   var _EBCDIC_SPACE = 64;
   var _EBCDIC_HT = 5;
-  function isBinary(data4, maxBytes = DEFAULT_MAX_BYTES) {
-    data4 = data4.subarray(0, maxBytes);
-    if (data4.length === 0) return false;
+  function isBinary(data5, maxBytes = DEFAULT_MAX_BYTES) {
+    data5 = data5.subarray(0, maxBytes);
+    if (data5.length === 0) return false;
     let binaryCount = 0;
     let hardCount = 0;
     let spaceCount = 0;
     let highCount = 0;
-    for (const b of data4) {
+    for (const b of data5) {
       if (b <= 8 || b >= 14 && b <= 31) {
         binaryCount++;
         if (b !== 5 && b !== 21) hardCount++;
@@ -2226,195 +2583,12 @@ var jschardet = (() => {
       if (b === _EBCDIC_SPACE || b === _EBCDIC_HT) spaceCount++;
       if (b >= 128) highCount++;
     }
-    if (binaryCount / data4.length <= _BINARY_THRESHOLD) return false;
-    if (hardCount / data4.length > _BINARY_THRESHOLD) return true;
-    const nonSpace = data4.length - spaceCount;
+    if (binaryCount / data5.length <= _BINARY_THRESHOLD) return false;
+    if (hardCount / data5.length > _BINARY_THRESHOLD) return true;
+    const nonSpace = data5.length - spaceCount;
     if (nonSpace === 0) return false;
     if (highCount / nonSpace < _EBCDIC_MIN_HIGH_FRACTION) return true;
-    return spaceCount / data4.length < _EBCDIC_MIN_SPACE_FRACTION;
-  }
-
-  // src/pipeline/to-utf8.ts
-  var _BASE64_TABLE = (() => {
-    const t = new Uint8Array(256).fill(255);
-    const alpha = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-    for (let i = 0; i < alpha.length; i++) t[alpha.charCodeAt(i)] = i;
-    return t;
-  })();
-  function utf7DecodesWithoutError(data4, final = false) {
-    let inShift = false;
-    let shiftStart = false;
-    let bits = 0;
-    let buffer = 0;
-    let surrogatePending = false;
-    for (let i = 0; i < data4.length; i++) {
-      const b = data4[i];
-      if (inShift) {
-        const val = _BASE64_TABLE[b];
-        if (val !== 255) {
-          shiftStart = false;
-          buffer = buffer << 6 | val;
-          bits += 6;
-          if (bits >= 16) {
-            bits -= 16;
-            const unit = buffer >> bits & 65535;
-            buffer &= (1 << bits) - 1;
-            if (surrogatePending) {
-              surrogatePending = unit >= 55296 && unit <= 56319;
-            } else if (unit >= 55296 && unit <= 56319) {
-              surrogatePending = true;
-            }
-          }
-          continue;
-        }
-        if (shiftStart) {
-          if (b !== 45) return false;
-          inShift = false;
-          continue;
-        }
-        if (bits >= 6) return false;
-        if (bits > 0 && buffer !== 0) return false;
-        surrogatePending = false;
-        inShift = false;
-        bits = 0;
-        buffer = 0;
-        if (b === 45) continue;
-        if (b >= 128) return false;
-      } else if (b === 43) {
-        inShift = true;
-        shiftStart = true;
-        bits = 0;
-        buffer = 0;
-      } else if (b >= 128) {
-        return false;
-      }
-    }
-    if (final && inShift) {
-      if (surrogatePending) return false;
-      if (bits >= 6) return false;
-      if (bits > 0 && buffer !== 0) return false;
-    }
-    return true;
-  }
-  function _utf32ToUtf8(data4, encoding) {
-    let littleEndian;
-    let start;
-    if (encoding === "utf-32") {
-      if (data4.length >= 4 && data4[0] === 255 && data4[1] === 254 && data4[2] === 0 && data4[3] === 0) {
-        littleEndian = true;
-        start = 4;
-      } else if (data4.length >= 4 && data4[0] === 0 && data4[1] === 0 && data4[2] === 254 && data4[3] === 255) {
-        littleEndian = false;
-        start = 4;
-      } else {
-        return null;
-      }
-    } else {
-      littleEndian = encoding === "utf-32-le";
-      start = 0;
-    }
-    const aligned = data4.subarray(start);
-    const numCPs = Math.floor(aligned.length / 4);
-    if (numCPs === 0) return null;
-    const view = new DataView(aligned.buffer, aligned.byteOffset, numCPs * 4);
-    let str = "";
-    for (let i = 0; i < numCPs; i++) {
-      const cp = view.getUint32(i * 4, littleEndian);
-      if (cp > 1114111 || cp >= 55296 && cp <= 57343) continue;
-      str += String.fromCodePoint(cp);
-    }
-    return str.length > 0 ? new TextEncoder().encode(str) : null;
-  }
-  function _utf7ToUtf8(data4) {
-    let str = "";
-    let i = 0;
-    while (i < data4.length) {
-      const b = data4[i];
-      if (b === 43) {
-        i++;
-        if (i < data4.length && data4[i] === 45) {
-          str += "+";
-          i++;
-          continue;
-        }
-        const b64Start = i;
-        while (i < data4.length && _BASE64_TABLE[data4[i]] !== 255) i++;
-        const b64Len = i - b64Start;
-        if (i < data4.length && data4[i] === 45) i++;
-        if (b64Len === 0) continue;
-        const rawLen = Math.floor(b64Len * 6 / 8);
-        const raw = new Uint8Array(rawLen);
-        let accum = 0;
-        let bits = 0;
-        let byteIdx = 0;
-        for (let j2 = 0; j2 < b64Len && byteIdx < rawLen; j2++) {
-          accum = accum << 6 | _BASE64_TABLE[data4[b64Start + j2]];
-          bits += 6;
-          if (bits >= 8) {
-            bits -= 8;
-            raw[byteIdx++] = accum >> bits & 255;
-          }
-        }
-        const view = new DataView(raw.buffer, raw.byteOffset, raw.byteLength);
-        const numUnits = Math.floor(raw.length / 2);
-        let j = 0;
-        while (j < numUnits) {
-          const u = view.getUint16(j * 2, false);
-          j++;
-          if (u >= 55296 && u <= 56319 && j < numUnits) {
-            const lo = view.getUint16(j * 2, false);
-            if (lo >= 56320 && lo <= 57343) {
-              const cp = 65536 + (u - 55296 << 10) + (lo - 56320);
-              str += String.fromCodePoint(cp);
-              j++;
-            }
-          } else if (u < 55296 || u > 57343) {
-            str += String.fromCodePoint(u);
-          }
-        }
-      } else if (b < 128) {
-        str += String.fromCharCode(b);
-        i++;
-      } else {
-        i++;
-      }
-    }
-    return str.length > 0 ? new TextEncoder().encode(str) : null;
-  }
-  function toUtf8(data4, encoding) {
-    if (encoding === "utf-8") return data4;
-    if (encoding === "utf-8-sig") {
-      const hasBom = data4.length >= 3 && data4[0] === 239 && data4[1] === 187 && data4[2] === 191;
-      return hasBom ? data4.subarray(3) : data4;
-    }
-    if (encoding === "utf-16") {
-      let label;
-      let start;
-      if (data4.length >= 2 && data4[0] === 255 && data4[1] === 254) {
-        label = "utf-16le";
-        start = 2;
-      } else if (data4.length >= 2 && data4[0] === 254 && data4[1] === 255) {
-        label = "utf-16be";
-        start = 2;
-      } else {
-        return null;
-      }
-      return new TextEncoder().encode(whatwgDecodeText(label, data4.subarray(start)));
-    }
-    if (encoding === "utf-16-le") {
-      return new TextEncoder().encode(whatwgDecodeText("utf-16le", data4));
-    }
-    if (encoding === "utf-16-be") {
-      return new TextEncoder().encode(whatwgDecodeText("utf-16be", data4));
-    }
-    if (encoding === "utf-32" || encoding === "utf-32-be" || encoding === "utf-32-le") {
-      return _utf32ToUtf8(data4, encoding);
-    }
-    if (encoding === "utf-7") {
-      return _utf7ToUtf8(data4);
-    }
-    const text = decodeText(encoding, data4);
-    return text === null ? null : new TextEncoder().encode(text);
+    return spaceCount / data5.length < _EBCDIC_MIN_SPACE_FRACTION;
   }
 
   // src/pipeline/bom.ts
@@ -2428,9 +2602,9 @@ var jschardet = (() => {
     // fourth base64 character varies with what follows the BOM, giving four
     // prefixes (RFC 2152). All four are ASCII bytes, so without these marks
     // a signed UTF-7 file reads as plain ASCII and the signature is returned
-    // to the caller as literal text. Unlike the other marks these bytes
-    // occur in ordinary text ("+/v8/src/api.cc" in a diff), so a UTF-7 match
-    // additionally requires the whole buffer to decode.
+    // to the caller as literal text. These bytes also occur in ordinary text
+    // ("+/v8/src/api.cc" in a diff), which is one more reason every mark is
+    // held to the whole-buffer decode below.
     [new Uint8Array([43, 47, 118, 56]), "utf-7"],
     // "+/v8"
     [new Uint8Array([43, 47, 118, 57]), "utf-7"],
@@ -2442,30 +2616,41 @@ var jschardet = (() => {
   ];
   var _UTF32_BOM_BE = _BOMS[0][0];
   var _UTF32_BOM_LE = _BOMS[1][0];
-  function detectBom(data4) {
+  function _isAscii(data5) {
+    for (let i = 0; i < data5.length; i++) {
+      if (data5[i] >= 128) return false;
+    }
+    return true;
+  }
+  function detectBom(data5, inputTruncated = false) {
     for (const [bomBytes, encoding] of _BOMS) {
-      if (!startsWith(data4, bomBytes)) continue;
-      if (bomBytes === _UTF32_BOM_BE || bomBytes === _UTF32_BOM_LE) {
-        const payloadLen = data4.length - bomBytes.length;
-        if (payloadLen % 4 !== 0) continue;
+      if (!startsWith(data5, bomBytes)) continue;
+      const isUtf32 = bomBytes === _UTF32_BOM_BE || bomBytes === _UTF32_BOM_LE;
+      if (isUtf32) {
+        const payloadLen = data5.length - bomBytes.length;
+        if (payloadLen % 4 !== 0 && !inputTruncated) continue;
       }
-      if (encoding === "utf-7" && !utf7DecodesWithoutError(data4)) continue;
+      const bodyIsAscii = encoding === "utf-8-sig" && _isAscii(data5.subarray(bomBytes.length));
+      if (!bodyIsAscii && !decodesWithoutError(encoding, data5)) {
+        if (inputTruncated && isUtf32 && data5.length % 4 !== 0) continue;
+        return null;
+      }
       return { encoding, confidence: 1, language: null, mimeType: null };
     }
     return null;
   }
 
   // src/pipeline/escape.ts
-  function _hasValidHzRegions(data4, maxStart, maxEnd) {
+  function _hasValidHzRegions(data5, maxStart, maxEnd) {
     const begin_marker = new Uint8Array([126, 123]);
     const end_marker = new Uint8Array([126, 125]);
     let start = 0;
     while (true) {
-      const begin = findBytes(data4, begin_marker, start);
+      const begin = findBytes(data5, begin_marker, start);
       if (begin === -1 || begin >= maxStart) return false;
-      const end = findBytes(data4, end_marker, begin + 2, maxEnd);
+      const end = findBytes(data5, end_marker, begin + 2, maxEnd);
       if (end === -1) return false;
-      const region = data4.subarray(begin + 2, end);
+      const region = data5.subarray(begin + 2, end);
       if (region.length >= 2 && region.length % 2 === 0 && region.every((b) => b >= 33 && b <= 126)) {
         return true;
       }
@@ -2518,11 +2703,11 @@ var jschardet = (() => {
   }
   var _B64_WITH_PAD = /* @__PURE__ */ new Set([..._UTF7_BASE64, 61]);
   var _EMBEDDED_B64_RUN = 4;
-  function _isEmbeddedInBase64(data4, pos) {
+  function _isEmbeddedInBase64(data5, pos) {
     let count = 0;
     let i = pos - 1;
     while (i >= 0) {
-      const b = data4[i];
+      const b = data5[i];
       if (b === 10 || b === 13) {
         i--;
         continue;
@@ -2535,34 +2720,34 @@ var jschardet = (() => {
     }
     return false;
   }
-  function _hasValidUtf7Sequences(data4, maxStart, maxEnd) {
+  function _hasValidUtf7Sequences(data5, maxStart, maxEnd) {
     let start = 0;
-    const limit = Math.min(data4.length, maxEnd);
+    const limit = Math.min(data5.length, maxEnd);
     while (true) {
-      const shiftPos = data4.indexOf(43, start);
+      const shiftPos = data5.indexOf(43, start);
       if (shiftPos === -1 || shiftPos >= maxStart) return false;
       let pos = shiftPos + 1;
-      if (pos < data4.length && data4[pos] === 45) {
+      if (pos < data5.length && data5[pos] === 45) {
         start = pos + 1;
         continue;
       }
-      if (pos < data4.length && data4[pos] === 43) {
-        while (pos < data4.length && data4[pos] === 43) pos++;
+      if (pos < data5.length && data5[pos] === 43) {
+        while (pos < data5.length && data5[pos] === 43) pos++;
         start = pos;
         continue;
       }
-      if (_isEmbeddedInBase64(data4, shiftPos)) {
+      if (_isEmbeddedInBase64(data5, shiftPos)) {
         start = pos;
         continue;
       }
       let i = pos;
-      while (i < limit && _UTF7_BASE64.has(data4[i])) i++;
-      if (i === limit && limit < data4.length && _UTF7_BASE64.has(data4[i])) {
+      while (i < limit && _UTF7_BASE64.has(data5[i])) i++;
+      if (i === limit && limit < data5.length && _UTF7_BASE64.has(data5[i])) {
         start = i;
         continue;
       }
       const b64Len = i - pos;
-      const b64Data = data4.subarray(pos, i);
+      const b64Data = data5.subarray(pos, i);
       if (b64Len >= 3 && !b64Data.some((b) => b >= 65 && b <= 90)) {
         start = i;
         continue;
@@ -2601,41 +2786,46 @@ var jschardet = (() => {
   var _ESC_JP_J = new Uint8Array([27, 40, 74]);
   var _ESC_JP_D = new Uint8Array([27, 36, 40, 68]);
   var _ESC_KR_C = new Uint8Array([27, 36, 41, 67]);
-  function detectEscapeEncoding(data4) {
-    const hasEsc = data4.includes(27);
-    const hasTilde = data4.includes(126);
-    const hasPlus = data4.includes(43);
+  function _iso2022Variant(data5) {
+    if (findBytes(data5, _ESC_JP_2004_O) !== -1 || findBytes(data5, _ESC_JP_2004_P) !== -1 || findBytes(data5, _ESC_JP_2004_Q) !== -1) {
+      return ["iso2022_jp_2004", "ja"];
+    }
+    if (findBytes(data5, _ESC_JP_EXT_I) !== -1) return ["iso2022_jp_ext", "ja"];
+    if (findBytes(data5, _ESC_JP_B) !== -1 || findBytes(data5, _ESC_JP_AT) !== -1 || findBytes(data5, _ESC_JP_J) !== -1 || findBytes(data5, _ESC_JP_D) !== -1) {
+      if (data5.includes(14) && data5.includes(15)) return ["iso2022_jp_ext", "ja"];
+      return ["iso2022_jp_2", "ja"];
+    }
+    if (findBytes(data5, _ESC_KR_C) !== -1) return ["iso2022_kr", "ko"];
+    return null;
+  }
+  function detectEscapeEncoding(data5) {
+    const hasEsc = data5.includes(27);
+    const hasTilde = data5.includes(126);
+    const hasPlus = data5.includes(43);
     if (!hasEsc && !hasTilde && !hasPlus) return null;
     if (hasEsc) {
-      if (findBytes(data4, _ESC_JP_2004_O) !== -1 || findBytes(data4, _ESC_JP_2004_P) !== -1 || findBytes(data4, _ESC_JP_2004_Q) !== -1) {
-        return { encoding: "iso2022_jp_2004", confidence: DETERMINISTIC_CONFIDENCE, language: "ja", mimeType: null };
-      }
-      if (findBytes(data4, _ESC_JP_EXT_I) !== -1) {
-        return { encoding: "iso2022_jp_ext", confidence: DETERMINISTIC_CONFIDENCE, language: "ja", mimeType: null };
-      }
-      if (findBytes(data4, _ESC_JP_B) !== -1 || findBytes(data4, _ESC_JP_AT) !== -1 || findBytes(data4, _ESC_JP_J) !== -1 || findBytes(data4, _ESC_JP_D) !== -1) {
-        if (data4.includes(14) && data4.includes(15)) {
-          return { encoding: "iso2022_jp_ext", confidence: DETERMINISTIC_CONFIDENCE, language: "ja", mimeType: null };
+      const variant = _iso2022Variant(data5);
+      if (variant !== null) {
+        const [encoding, language] = variant;
+        const decodes = encoding === "iso2022_jp_2" ? iso2022Jp2DecodesWithoutError(data5) : decodesWithoutError(encoding, data5);
+        if (decodes) {
+          return { encoding, confidence: DETERMINISTIC_CONFIDENCE, language, mimeType: null };
         }
-        return { encoding: "iso2022_jp_2", confidence: DETERMINISTIC_CONFIDENCE, language: "ja", mimeType: null };
-      }
-      if (findBytes(data4, _ESC_KR_C) !== -1) {
-        return { encoding: "iso2022_kr", confidence: DETERMINISTIC_CONFIDENCE, language: "ko", mimeType: null };
       }
     }
-    const maxStart = Math.min(data4.length, EVIDENCE_CAP_BYTES);
-    const maxEnd = Math.min(data4.length, 2 * EVIDENCE_CAP_BYTES);
+    const maxStart = Math.min(data5.length, EVIDENCE_CAP_BYTES);
+    const maxEnd = Math.min(data5.length, 2 * EVIDENCE_CAP_BYTES);
     const tilde_open = new Uint8Array([126, 123]);
     const tilde_close = new Uint8Array([126, 125]);
-    if (hasTilde && findBytes(data4, tilde_open) !== -1 && findBytes(data4, tilde_close) !== -1 && _hasValidHzRegions(data4, maxStart, maxEnd)) {
+    if (hasTilde && findBytes(data5, tilde_open) !== -1 && findBytes(data5, tilde_close) !== -1 && _hasValidHzRegions(data5, maxStart, maxEnd) && decodesWithoutError("hz", data5)) {
       return { encoding: "hz", confidence: DETERMINISTIC_CONFIDENCE, language: "zh", mimeType: null };
     }
     if (hasPlus) {
       let maxByte = 0;
-      for (const b of data4) {
+      for (const b of data5) {
         if (b > maxByte) maxByte = b;
       }
-      if (maxByte < 128 && _hasValidUtf7Sequences(data4, maxStart, maxEnd) && utf7DecodesWithoutError(data4)) {
+      if (maxByte < 128 && _hasValidUtf7Sequences(data5, maxStart, maxEnd) && decodesWithoutError("utf-7", data5)) {
         return { encoding: "utf-7", confidence: DETERMINISTIC_CONFIDENCE, language: null, mimeType: null };
       }
     }
@@ -2651,9 +2841,9 @@ var jschardet = (() => {
     }
     return true;
   }
-  function fillLanguages(data4, results) {
-    data4 = data4.subarray(0, _LANG_SCORE_MAX_BYTES);
-    const thin = data4.length > 0 && data4.length < THIN_RARE_MAX_BYTES;
+  function fillLanguages(data5, results) {
+    data5 = data5.subarray(0, _LANG_SCORE_MAX_BYTES);
+    const thin = data5.length > 0 && data5.length < THIN_RARE_MAX_BYTES;
     const filled = [];
     let profile = null;
     let utf8Profile = null;
@@ -2666,21 +2856,25 @@ var jschardet = (() => {
       }
       const encoding = result.encoding;
       let lang = recheck ? null : inferLanguage(encoding);
-      if (lang === null && data4.length > 0 && _internal.hasModelVariants(encoding)) {
-        if (profile === null) profile = new BigramProfile(data4);
-        const [, l] = scoreBestLanguage(data4, encoding, profile, { demoteThinRare: thin });
+      if (lang === null && data5.length > 0 && _internal.hasModelVariants(encoding)) {
+        if (profile === null) profile = BigramProfile.forLanguage(data5);
+        const [, l] = scoreBestLanguage(data5, encoding, profile, {
+          demoteThinRare: thin,
+          languageWeighting: true
+        });
         lang = l;
       }
       const escalate = thin && lang !== null && RARE_LANGUAGES.has(lang);
-      if ((lang === null || escalate) && data4.length > 0 && _internal.hasModelVariants("utf-8")) {
-        const utf8Data = toUtf8(data4, encoding);
+      if ((lang === null || escalate) && data5.length > 0 && _internal.hasModelVariants("utf-8")) {
+        const utf8Data = toUtf8(data5, encoding);
         if (utf8Data !== null && utf8Data.length > 0) {
           if (!_bytesEqual(utf8Data, utf8ProfileSrc)) {
-            utf8Profile = new BigramProfile(utf8Data);
+            utf8Profile = BigramProfile.forLanguage(utf8Data);
             utf8ProfileSrc = utf8Data;
           }
           const [, utf8Lang] = scoreBestLanguage(utf8Data, "utf-8", utf8Profile, {
-            demoteThinRare: thin
+            demoteThinRare: thin,
+            languageWeighting: true
           });
           if (lang === null || utf8Lang !== null && !RARE_LANGUAGES.has(utf8Lang)) {
             lang = utf8Lang;
@@ -2797,20 +2991,20 @@ var jschardet = (() => {
   var _FTYP_QT_BRANDS = new Set([[113, 116, 32, 32]].map((b) => b.join(",")));
   var _CAFEBABE = new Uint8Array([202, 254, 186, 190]);
   var _CAFEBABE_MAX_FAT_ARCHES = 20;
-  function _brandKey(data4, offset) {
-    return [data4[offset], data4[offset + 1], data4[offset + 2], data4[offset + 3]].join(",");
+  function _brandKey(data5, offset) {
+    return [data5[offset], data5[offset + 1], data5[offset + 2], data5[offset + 3]].join(",");
   }
-  function _readUint32BE(data4, offset) {
-    return new DataView(data4.buffer, data4.byteOffset).getUint32(offset, false);
+  function _readUint32BE(data5, offset) {
+    return new DataView(data5.buffer, data5.byteOffset).getUint32(offset, false);
   }
-  function _readUint16LE(data4, offset) {
-    return new DataView(data4.buffer, data4.byteOffset).getUint16(offset, true);
+  function _readUint16LE(data5, offset) {
+    return new DataView(data5.buffer, data5.byteOffset).getUint16(offset, true);
   }
-  function _readUint32LE(data4, offset) {
-    return new DataView(data4.buffer, data4.byteOffset).getUint32(offset, true);
+  function _readUint32LE(data5, offset) {
+    return new DataView(data5.buffer, data5.byteOffset).getUint32(offset, true);
   }
-  function _classifyZip(data4) {
-    const scan = data4.subarray(0, _ZIP_SCAN_LIMIT);
+  function _classifyZip(data5) {
+    const scan = data5.subarray(0, _ZIP_SCAN_LIMIT);
     let offset = 0;
     while (true) {
       const idx = findBytes(scan, _ZIP_SIGNATURE, offset);
@@ -2848,12 +3042,12 @@ var jschardet = (() => {
   function _makeResult(mime) {
     return { encoding: null, confidence: 1, language: null, mimeType: mime };
   }
-  function detectMagic(data4) {
-    if (data4.length === 0) return null;
-    if (data4.length >= 12 && startsWith(data4.subarray(_FTYP_OFFSET), _FTYP_MARKER)) {
-      const boxSize = _readUint32BE(data4, 0);
-      if (boxSize >= 8 && boxSize <= data4.length) {
-        const brand = _brandKey(data4, 8);
+  function detectMagic(data5) {
+    if (data5.length === 0) return null;
+    if (data5.length >= 12 && startsWith(data5.subarray(_FTYP_OFFSET), _FTYP_MARKER)) {
+      const boxSize = _readUint32BE(data5, 0);
+      if (boxSize >= 8 && boxSize <= data5.length) {
+        const brand = _brandKey(data5, 8);
         if (_FTYP_AVIF_BRANDS.has(brand)) return _makeResult("image/avif");
         if (_FTYP_HEIC_BRANDS.has(brand)) return _makeResult("image/heic");
         if (_FTYP_HEIF_BRANDS.has(brand)) return _makeResult("image/heif");
@@ -2862,29 +3056,29 @@ var jschardet = (() => {
         return _makeResult("video/mp4");
       }
     }
-    if (data4.length >= 12 && startsWith(data4, new Uint8Array([82, 73, 70, 70]))) {
-      const key = _readUint32BE(data4, 8);
+    if (data5.length >= 12 && startsWith(data5, new Uint8Array([82, 73, 70, 70]))) {
+      const key = _readUint32BE(data5, 8);
       const mime = _RIFF_SUBTYPES.get(key);
       if (mime !== void 0) return _makeResult(mime);
     }
-    if (data4.length >= 12 && startsWith(data4, new Uint8Array([70, 79, 82, 77]))) {
-      const key = _readUint32BE(data4, 8);
+    if (data5.length >= 12 && startsWith(data5, new Uint8Array([70, 79, 82, 77]))) {
+      const key = _readUint32BE(data5, 8);
       const mime = _FORM_SUBTYPES.get(key);
       if (mime !== void 0) return _makeResult(mime);
     }
-    if (startsWith(data4, _ZIP_SIGNATURE)) {
-      return _makeResult(_classifyZip(data4));
+    if (startsWith(data5, _ZIP_SIGNATURE)) {
+      return _makeResult(_classifyZip(data5));
     }
-    if (data4.length >= 8 && startsWith(data4, _CAFEBABE)) {
-      const nfatArch = _readUint32BE(data4, 4);
+    if (data5.length >= 8 && startsWith(data5, _CAFEBABE)) {
+      const nfatArch = _readUint32BE(data5, 4);
       if (nfatArch <= _CAFEBABE_MAX_FAT_ARCHES) return _makeResult("application/x-mach-binary");
       return _makeResult("application/java-vm");
     }
     for (const [prefix, mime] of _MAGIC_NUMBERS) {
-      if (startsWith(data4, prefix)) return _makeResult(mime);
+      if (startsWith(data5, prefix)) return _makeResult(mime);
     }
-    if (data4.length >= _TAR_OFFSET + 6) {
-      const tarSig = data4.subarray(_TAR_OFFSET, _TAR_OFFSET + 6);
+    if (data5.length >= _TAR_OFFSET + 6) {
+      const tarSig = data5.subarray(_TAR_OFFSET, _TAR_OFFSET + 6);
       if (startsWith(tarSig, _TAR_SIG_0) || startsWith(tarSig, _TAR_SIG_1)) {
         return _makeResult("application/x-tar");
       }
@@ -2893,19 +3087,19 @@ var jschardet = (() => {
   }
 
   // src/pipeline/structural.ts
-  function _analyzeShiftJis(data4) {
+  function _analyzeShiftJis(data5) {
     let leadCount = 0;
     let validCount = 0;
     let mb = 0;
     const leads = /* @__PURE__ */ new Set();
-    const length = data4.length;
+    const length = data5.length;
     let i = 0;
     while (i < length) {
-      const b = data4[i];
+      const b = data5[i];
       if (b >= 129 && b <= 159 || b >= 224 && b <= 239) {
         leadCount++;
         if (i + 1 < length) {
-          const trail = data4[i + 1];
+          const trail = data5[i + 1];
           if (trail >= 64 && trail <= 126 || trail >= 128 && trail <= 252) {
             validCount++;
             leads.add(b);
@@ -2923,19 +3117,19 @@ var jschardet = (() => {
     const ratio = leadCount > 0 ? validCount / leadCount : 0;
     return [ratio, mb, leads.size];
   }
-  function _analyzeCp932(data4) {
+  function _analyzeCp932(data5) {
     let leadCount = 0;
     let validCount = 0;
     let mb = 0;
     const leads = /* @__PURE__ */ new Set();
-    const length = data4.length;
+    const length = data5.length;
     let i = 0;
     while (i < length) {
-      const b = data4[i];
+      const b = data5[i];
       if (b >= 129 && b <= 159 || b >= 224 && b <= 252) {
         leadCount++;
         if (i + 1 < length) {
-          const trail = data4[i + 1];
+          const trail = data5[i + 1];
           if (trail >= 64 && trail <= 126 || trail >= 128 && trail <= 252) {
             validCount++;
             leads.add(b);
@@ -2953,18 +3147,18 @@ var jschardet = (() => {
     const ratio = leadCount > 0 ? validCount / leadCount : 0;
     return [ratio, mb, leads.size];
   }
-  function _analyzeEucJp(data4) {
+  function _analyzeEucJp(data5) {
     let leadCount = 0;
     let validCount = 0;
     let mb = 0;
     const leads = /* @__PURE__ */ new Set();
-    const length = data4.length;
+    const length = data5.length;
     let i = 0;
     while (i < length) {
-      const b = data4[i];
+      const b = data5[i];
       if (b === 142) {
         leadCount++;
-        if (i + 1 < length && data4[i + 1] >= 161 && data4[i + 1] <= 223) {
+        if (i + 1 < length && data5[i + 1] >= 161 && data5[i + 1] <= 223) {
           validCount++;
           leads.add(b);
           mb += 2;
@@ -2974,7 +3168,7 @@ var jschardet = (() => {
         i += 1;
       } else if (b === 143) {
         leadCount++;
-        if (i + 2 < length && data4[i + 1] >= 161 && data4[i + 1] <= 254 && data4[i + 2] >= 161 && data4[i + 2] <= 254) {
+        if (i + 2 < length && data5[i + 1] >= 161 && data5[i + 1] <= 254 && data5[i + 2] >= 161 && data5[i + 2] <= 254) {
           validCount++;
           leads.add(b);
           mb += 3;
@@ -2984,7 +3178,7 @@ var jschardet = (() => {
         i += 1;
       } else if (b >= 161 && b <= 254) {
         leadCount++;
-        if (i + 1 < length && data4[i + 1] >= 161 && data4[i + 1] <= 254) {
+        if (i + 1 < length && data5[i + 1] >= 161 && data5[i + 1] <= 254) {
           validCount++;
           leads.add(b);
           mb += 2;
@@ -2999,18 +3193,18 @@ var jschardet = (() => {
     const ratio = leadCount > 0 ? validCount / leadCount : 0;
     return [ratio, mb, leads.size];
   }
-  function _analyzeEucKr(data4) {
+  function _analyzeEucKr(data5) {
     let leadCount = 0;
     let validCount = 0;
     let mb = 0;
     const leads = /* @__PURE__ */ new Set();
-    const length = data4.length;
+    const length = data5.length;
     let i = 0;
     while (i < length) {
-      const b = data4[i];
+      const b = data5[i];
       if (b >= 161 && b <= 254) {
         leadCount++;
-        if (i + 1 < length && data4[i + 1] >= 161 && data4[i + 1] <= 254) {
+        if (i + 1 < length && data5[i + 1] >= 161 && data5[i + 1] <= 254) {
           validCount++;
           leads.add(b);
           mb += 2;
@@ -3025,19 +3219,19 @@ var jschardet = (() => {
     const ratio = leadCount > 0 ? validCount / leadCount : 0;
     return [ratio, mb, leads.size];
   }
-  function _analyzeCp949(data4) {
+  function _analyzeCp949(data5) {
     let leadCount = 0;
     let validCount = 0;
     let mb = 0;
     const leads = /* @__PURE__ */ new Set();
-    const length = data4.length;
+    const length = data5.length;
     let i = 0;
     while (i < length) {
-      const b = data4[i];
+      const b = data5[i];
       if (b >= 129 && b <= 200 || b >= 202 && b <= 253) {
         leadCount++;
         if (i + 1 < length) {
-          const trail = data4[i + 1];
+          const trail = data5[i + 1];
           if (trail >= 65 && trail <= 90 || trail >= 97 && trail <= 122 || trail >= 129 && trail <= 254) {
             validCount++;
             leads.add(b);
@@ -3055,25 +3249,25 @@ var jschardet = (() => {
     const ratio = leadCount > 0 ? validCount / leadCount : 0;
     return [ratio, mb, leads.size];
   }
-  function _analyzeGb18030(data4) {
+  function _analyzeGb18030(data5) {
     let leadCount = 0;
     let validCount = 0;
     let mb = 0;
     const leads = /* @__PURE__ */ new Set();
-    const length = data4.length;
+    const length = data5.length;
     let i = 0;
     while (i < length) {
-      const b = data4[i];
+      const b = data5[i];
       if (b >= 129 && b <= 254) {
         leadCount++;
-        if (i + 3 < length && data4[i + 1] >= 48 && data4[i + 1] <= 57 && data4[i + 2] >= 129 && data4[i + 2] <= 254 && data4[i + 3] >= 48 && data4[i + 3] <= 57) {
+        if (i + 3 < length && data5[i + 1] >= 48 && data5[i + 1] <= 57 && data5[i + 2] >= 129 && data5[i + 2] <= 254 && data5[i + 3] >= 48 && data5[i + 3] <= 57) {
           validCount++;
           leads.add(b);
           mb += 2;
           i += 4;
           continue;
         }
-        if (b >= 161 && b <= 247 && i + 1 < length && data4[i + 1] >= 161 && data4[i + 1] <= 254) {
+        if (b >= 161 && b <= 247 && i + 1 < length && data5[i + 1] >= 161 && data5[i + 1] <= 254) {
           validCount++;
           leads.add(b);
           mb += 2;
@@ -3088,19 +3282,19 @@ var jschardet = (() => {
     const ratio = leadCount > 0 ? validCount / leadCount : 0;
     return [ratio, mb, leads.size];
   }
-  function _analyzeBig5hkscs(data4) {
+  function _analyzeBig5hkscs(data5) {
     let leadCount = 0;
     let validCount = 0;
     let mb = 0;
     const leads = /* @__PURE__ */ new Set();
-    const length = data4.length;
+    const length = data5.length;
     let i = 0;
     while (i < length) {
-      const b = data4[i];
+      const b = data5[i];
       if (b >= 135 && b <= 254) {
         leadCount++;
         if (i + 1 < length) {
-          const trail = data4[i + 1];
+          const trail = data5[i + 1];
           if (trail >= 64 && trail <= 126 || trail >= 161 && trail <= 254) {
             validCount++;
             leads.add(b);
@@ -3118,19 +3312,19 @@ var jschardet = (() => {
     const ratio = leadCount > 0 ? validCount / leadCount : 0;
     return [ratio, mb, leads.size];
   }
-  function _analyzeJohab(data4) {
+  function _analyzeJohab(data5) {
     let leadCount = 0;
     let validCount = 0;
     let mb = 0;
     const leads = /* @__PURE__ */ new Set();
-    const length = data4.length;
+    const length = data5.length;
     let i = 0;
     while (i < length) {
-      const b = data4[i];
+      const b = data5[i];
       if (b >= 132 && b <= 211 || b >= 216 && b <= 222 || b >= 224 && b <= 249) {
         leadCount++;
         if (i + 1 < length) {
-          const trail = data4[i + 1];
+          const trail = data5[i + 1];
           if (trail >= 49 && trail <= 126 || trail >= 145 && trail <= 254) {
             validCount++;
             leads.add(b);
@@ -3158,24 +3352,24 @@ var jschardet = (() => {
     big5hkscs: _analyzeBig5hkscs,
     johab: _analyzeJohab
   };
-  function _getAnalysis(data4, name, ctx) {
-    const cached5 = ctx.analysisCache.get(name);
-    if (cached5 !== void 0) return cached5;
+  function _getAnalysis(data5, name, ctx) {
+    const cached6 = ctx.analysisCache.get(name);
+    if (cached6 !== void 0) return cached6;
     const analyzer = _ANALYZERS[name];
     if (analyzer === void 0) return null;
-    const result = analyzer(data4);
+    const result = analyzer(data5);
     ctx.analysisCache.set(name, result);
     return result;
   }
-  function computeStructuralScore(data4, encodingInfo, ctx) {
-    if (data4.length === 0 || !encodingInfo.isMultibyte) return 0;
-    const result = _getAnalysis(data4, encodingInfo.name, ctx);
+  function computeStructuralScore(data5, encodingInfo, ctx) {
+    if (data5.length === 0 || !encodingInfo.isMultibyteCjk) return 0;
+    const result = _getAnalysis(data5, encodingInfo.name, ctx);
     if (result === null) return 0;
     return result[0];
   }
-  function computeMultibyteByteCoverage(data4, encodingInfo, ctx, nonAsciiCount) {
-    if (data4.length === 0 || !encodingInfo.isMultibyte) return 0;
-    const result = _getAnalysis(data4, encodingInfo.name, ctx);
+  function computeMultibyteByteCoverage(data5, encodingInfo, ctx, nonAsciiCount) {
+    if (data5.length === 0 || !encodingInfo.isMultibyteCjk) return 0;
+    const result = _getAnalysis(data5, encodingInfo.name, ctx);
     if (result === null) return 0;
     const mbBytes = result[1];
     let nonAscii;
@@ -3183,40 +3377,61 @@ var jschardet = (() => {
       nonAscii = nonAsciiCount;
     } else {
       nonAscii = 0;
-      for (let i = 0; i < data4.length; i++) {
-        if (data4[i] >= 128) nonAscii++;
+      for (let i = 0; i < data5.length; i++) {
+        if (data5[i] >= 128) nonAscii++;
       }
     }
     if (nonAscii === 0) return 0;
     return mbBytes / nonAscii;
   }
-  function computeLeadByteDiversity(data4, encodingInfo, ctx) {
-    if (data4.length === 0 || !encodingInfo.isMultibyte) return 0;
-    const result = _getAnalysis(data4, encodingInfo.name, ctx);
+  function computeLeadByteDiversity(data5, encodingInfo, ctx) {
+    if (data5.length === 0 || !encodingInfo.isMultibyteCjk) return 0;
+    const result = _getAnalysis(data5, encodingInfo.name, ctx);
     if (result === null) return 256;
     return result[2];
   }
 
   // src/pipeline/markup.ts
   var _SCAN_LIMIT = 4096;
-  var _XML_ENCODING_RE = /<\?xml[^>]+encoding\s*=\s*['"]([^'"]+)['"]/i;
-  var _HTML5_CHARSET_RE = /<meta[^>]+charset\s*=\s*['"]?\s*([^\s'">;]+)/i;
-  var _HTML4_CONTENT_TYPE_RE = /<meta[^>]+content\s*=\s*['"][^'"]*charset=([^\s'">;]+)/i;
-  var _PEP263_RE = /^[ \t\f]*#.*?coding[:=][ \t]*([-\w.]+)/m;
-  function _isAscii(s) {
+  var _SELF_CONTRADICTING_LABELS = /* @__PURE__ */ new Set([
+    "utf-16",
+    "utf-16-be",
+    "utf-16-le",
+    "utf-32",
+    "utf-32-be",
+    "utf-32-le"
+  ]);
+  var _XML_ENCODING_RE = /<\?xml[\t\n\v\f\r ][^<>]*encoding[\t\n\v\f\r ]*=[\t\n\v\f\r ]*['"]([^'"]+)['"]/i;
+  var _META_TAG_RE = /<meta\b([^<>]*)>/gi;
+  var _ATTR_RE = /([^\t\n\v\f\r =/>]+)(?:[\t\n\v\f\r ]*=[\t\n\v\f\r ]*(?:(["'])([^]*?)\2|([^\t\n\v\f\r >"']+)))?/gi;
+  var _CONTENT_CHARSET_RE = /charset[\t\n\f\r ]*=[\t\n\f\r ]*(?:(["'])([^"']+)\1|([^\t\n\v\f\r ;"']+))/i;
+  var _PEP263_RE = /^[ \t\f]*#[^\n]*?coding[:=][ \t]*([-\w.]+)/;
+  var _PEP263_BLANK_RE = /^[ \t\f]*(?:[#\r]|$)/;
+  function _isAscii2(s) {
     for (let i = 0; i < s.length; i++) {
       if (s.charCodeAt(i) >= 128) return false;
     }
     return true;
   }
-  function _validateBytes(data4, encoding) {
-    return decodesWithoutError(encoding, data4.subarray(0, _SCAN_LIMIT));
+  function _asciiLower(s) {
+    return s.replace(/[A-Z]/g, (c) => String.fromCharCode(c.charCodeAt(0) + 32));
   }
-  var _EBCDIC_TAG_RE = /<(?:meta|\?xml)[^>]*/gi;
-  var _EBCDIC_DECL_RE = /(?:charset|encoding)\s*=\s*[^\sA-Za-z0-9._-]?\s*([A-Za-z][A-Za-z0-9._-]+)/gi;
+  function _asciiStrip(s) {
+    return s.replace(/^[\t\n\v\f\r ]+|[\t\n\v\f\r ]+$/g, "");
+  }
+  function _validateBytes(data5, encoding) {
+    return _internal2.decodesWithoutError(encoding, data5);
+  }
+  function _declaredEncoding(data5, encoding) {
+    if (encoding === null) return null;
+    return _validateBytes(data5, encoding) ? encoding : null;
+  }
+  var _EBCDIC_TAG_RE = /<(?:meta|\?xml)[^<>]*/gi;
+  var _EBCDIC_DECL_RE = /(?:charset|encoding)\s*=\s*(?:[^\sA-Za-z0-9._-]\s*)?([A-Za-z][A-Za-z0-9._-]+)/gi;
   var _EBCDIC_SCAN_MIN_HIGH_FRACTION = 0.25;
   var _CP037 = byteDecodeTable("cp037");
-  function _detectEbcdicDeclaration(head) {
+  function _detectEbcdicDeclaration(data5) {
+    const head = data5.subarray(0, _SCAN_LIMIT);
     let highCount = 0;
     for (let i = 0; i < head.length; i++) {
       if (head[i] >= 128) highCount++;
@@ -3226,29 +3441,40 @@ var jschardet = (() => {
     for (const tag of decoded.matchAll(_EBCDIC_TAG_RE)) {
       for (const m of tag[0].matchAll(_EBCDIC_DECL_RE)) {
         const encoding = lookupEncoding(m[1].trim());
-        if (encoding !== null && (REGISTRY[encoding].era & EncodingEra.MAINFRAME) !== 0 && decodesWithoutError(encoding, head)) {
+        if (encoding !== null && (REGISTRY[encoding].era & EncodingEra.MAINFRAME) !== 0 && _validateBytes(data5, encoding)) {
+          const isXml = tag[0][1] === "?";
           return {
             encoding,
             confidence: DETERMINISTIC_CONFIDENCE,
             language: null,
-            mimeType: "text/html"
+            mimeType: isXml ? "text/xml" : "text/html"
           };
         }
       }
     }
     return null;
   }
-  function _detectPep263(data4) {
-    if (!data4.subarray(0, 200).includes(35)) return null;
-    const text = new TextDecoder("latin1").decode(data4);
-    const lines = text.split("\n");
-    const firstTwo = lines.slice(0, 2).join("\n");
-    const m = _PEP263_RE.exec(firstTwo);
-    if (!m) return null;
+  function _pep263Encoding(rawName) {
+    const name = rawName.slice(0, 12).toLowerCase().replaceAll("_", "-");
+    if (name === "utf-8" || name.startsWith("utf-8-")) return "utf-8";
+    if (name === "latin-1" || name === "iso-8859-1" || name === "iso-latin-1" || name.startsWith("latin-1-") || name.startsWith("iso-8859-1-") || name.startsWith("iso-latin-1-")) {
+      return "iso8859-1";
+    }
+    return lookupEncoding(rawName);
+  }
+  function _detectPep263(data5) {
+    const head = data5.subarray(0, _SCAN_LIMIT);
+    if (!head.includes(35)) return null;
+    const lines = new TextDecoder("latin1").decode(head).split("\n");
+    let m = _PEP263_RE.exec(lines[0]);
+    if (m === null && lines.length > 1 && _PEP263_BLANK_RE.test(lines[0])) {
+      m = _PEP263_RE.exec(lines[1]);
+    }
+    if (m === null) return null;
     const rawName = m[1].trim();
-    if (!_isAscii(rawName)) return null;
-    const encoding = lookupEncoding(rawName);
-    if (encoding === null || !_validateBytes(data4, encoding)) return null;
+    if (!_isAscii2(rawName)) return null;
+    const encoding = _declaredEncoding(data5, _pep263Encoding(rawName));
+    if (encoding === null) return null;
     return {
       encoding,
       confidence: DETERMINISTIC_CONFIDENCE,
@@ -3256,34 +3482,80 @@ var jschardet = (() => {
       mimeType: "text/x-python"
     };
   }
-  function detectMarkupCharset(data4) {
-    if (data4.length === 0) return null;
-    const head = data4.subarray(0, _SCAN_LIMIT);
-    const headStr = new TextDecoder("latin1").decode(head);
-    const patterns = [
-      [_XML_ENCODING_RE, "text/xml"],
-      [_HTML5_CHARSET_RE, "text/html"],
-      [_HTML4_CONTENT_TYPE_RE, "text/html"]
-    ];
-    for (const [re, mimeType] of patterns) {
-      const m = re.exec(headStr);
-      if (!m) continue;
-      const rawName = m[1].trim();
-      if (!_isAscii(rawName)) continue;
-      const encoding = lookupEncoding(rawName);
-      if (encoding === null) continue;
-      if (!_validateBytes(data4, encoding)) continue;
-      return { encoding, confidence: DETERMINISTIC_CONFIDENCE, language: null, mimeType };
+  function _stripComments(head) {
+    let start = head.indexOf("<!--");
+    if (start < 0) return head;
+    const parts = [];
+    let pos = 0;
+    while (start >= 0) {
+      parts.push(head.slice(pos, start));
+      const end = head.indexOf("-->", start + 2);
+      if (end < 0) return parts.join("");
+      pos = end + 3;
+      start = head.indexOf("<!--", pos);
     }
-    const ebcdicResult = _detectEbcdicDeclaration(head);
+    parts.push(head.slice(pos));
+    return parts.join("");
+  }
+  function _markupEncoding(rawName) {
+    if (rawName.toLowerCase() === "x-user-defined") return "cp1252";
+    const encoding = lookupEncoding(rawName);
+    if (encoding !== null && _SELF_CONTRADICTING_LABELS.has(encoding)) return "utf-8";
+    return encoding;
+  }
+  function _metaAttributes(body) {
+    const attrs = /* @__PURE__ */ new Map();
+    for (const m of body.matchAll(_ATTR_RE)) {
+      const name = _asciiLower(m[1]);
+      if (attrs.has(name)) continue;
+      const value = m[3] ?? m[4];
+      if (value !== void 0) attrs.set(name, value);
+    }
+    return attrs;
+  }
+  function* _iterHtmlCharsets(head) {
+    for (const tag of head.matchAll(_META_TAG_RE)) {
+      const attrs = _metaAttributes(tag[1]);
+      const charset = attrs.get("charset");
+      if (charset !== void 0 && _asciiStrip(charset) !== "") {
+        yield charset;
+        continue;
+      }
+      const equiv = attrs.get("http-equiv") ?? attrs.get("name");
+      const content = attrs.get("content");
+      if (equiv !== void 0 && content !== void 0 && _asciiLower(_asciiStrip(equiv)) === "content-type") {
+        const found = _CONTENT_CHARSET_RE.exec(content);
+        if (found !== null) yield found[1] !== void 0 ? found[2] : found[3];
+      }
+    }
+  }
+  function detectMarkupCharset(data5) {
+    if (data5.length === 0) return null;
+    const head = _stripComments(new TextDecoder("latin1").decode(data5.subarray(0, _SCAN_LIMIT)));
+    const xml = _XML_ENCODING_RE.exec(head);
+    if (xml !== null) {
+      const rawName = _isAscii2(xml[1]) ? xml[1].trim() : "";
+      const encoding = _declaredEncoding(data5, rawName ? _markupEncoding(rawName) : null);
+      if (encoding !== null) {
+        return { encoding, confidence: DETERMINISTIC_CONFIDENCE, language: null, mimeType: "text/xml" };
+      }
+    }
+    for (const raw of _iterHtmlCharsets(head)) {
+      if (!_isAscii2(raw)) continue;
+      const encoding = _declaredEncoding(data5, _markupEncoding(raw.trim()));
+      if (encoding !== null) {
+        return { encoding, confidence: DETERMINISTIC_CONFIDENCE, language: null, mimeType: "text/html" };
+      }
+    }
+    const ebcdicResult = _detectEbcdicDeclaration(data5);
     if (ebcdicResult !== null) return ebcdicResult;
-    return _detectPep263(data4);
+    return _detectPep263(data5);
   }
   var _MARKUP_SUPERSET_PROMOTIONS = Object.freeze({
     shift_jis_2004: "cp932",
     euc_kr: "cp949"
   });
-  function promoteMarkupSuperset(data4, markupResult, allowed) {
+  function promoteMarkupSuperset(data5, markupResult, allowed) {
     if (markupResult.encoding === null) {
       return markupResult;
     }
@@ -3292,21 +3564,15 @@ var jschardet = (() => {
       return markupResult;
     }
     const supersetInfo = REGISTRY[supersetName];
-    if (supersetInfo === void 0) {
-      return markupResult;
-    }
-    if (!decodesWithoutError(supersetName, data4)) {
-      return markupResult;
-    }
-    const head = data4.subarray(0, _SCAN_LIMIT);
-    const ctx = new PipelineContext();
     const baseInfo = REGISTRY[markupResult.encoding];
-    if (baseInfo === void 0) {
+    if (supersetInfo === void 0 || baseInfo === void 0) {
       return markupResult;
     }
+    const head = data5.subarray(0, _SCAN_LIMIT);
+    const ctx = new PipelineContext();
     const baseScore = _internal2.computeStructuralScore(head, baseInfo, ctx);
     const supersetScore = _internal2.computeStructuralScore(head, supersetInfo, ctx);
-    if (supersetScore > baseScore) {
+    if (supersetScore > baseScore && _internal2.decodesWithoutError(supersetName, data5)) {
       return {
         encoding: supersetName,
         confidence: markupResult.confidence,
@@ -3316,16 +3582,16 @@ var jschardet = (() => {
     }
     return markupResult;
   }
-  var _internal2 = { computeStructuralScore };
+  var _internal2 = { computeStructuralScore, decodesWithoutError };
 
   // src/models/confusion.bin.js
-  var data3 = "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";
-  var cached3 = null;
-  function readBytes3() {
-    if (cached3) return cached3;
-    const raw = typeof Buffer !== "undefined" ? new Uint8Array(Buffer.from(data3, "base64")) : Uint8Array.from(atob(data3), (c) => c.charCodeAt(0));
-    cached3 = decompress(raw);
-    return cached3;
+  var data4 = "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";
+  var cached4 = null;
+  function readBytes4() {
+    if (cached4) return cached4;
+    const raw = typeof Buffer !== "undefined" ? new Uint8Array(Buffer.from(data4, "base64")) : Uint8Array.from(atob(data4), (c) => c.charCodeAt(0));
+    cached4 = decompress(raw);
+    return cached4;
   }
 
   // src/pipeline/confusion.ts
@@ -3333,20 +3599,20 @@ var jschardet = (() => {
     return `${a}\0${b}`;
   }
   var utf8Decoder2 = new TextDecoder("utf-8", { fatal: true });
-  function _deserializeConfusionDataFromBytes(data4) {
+  function _deserializeConfusionDataFromBytes(data5) {
     const result = /* @__PURE__ */ new Map();
-    const view = new DataView(data4.buffer, data4.byteOffset, data4.byteLength);
+    const view = new DataView(data5.buffer, data5.byteOffset, data5.byteLength);
     let offset = 0;
     const numPairs = view.getUint16(offset, false);
     offset += 2;
     for (let p = 0; p < numPairs; p++) {
       const nameALen = view.getUint8(offset);
       offset += 1;
-      const nameA = utf8Decoder2.decode(data4.subarray(offset, offset + nameALen));
+      const nameA = utf8Decoder2.decode(data5.subarray(offset, offset + nameALen));
       offset += nameALen;
       const nameBLen = view.getUint8(offset);
       offset += 1;
-      const nameB = utf8Decoder2.decode(data4.subarray(offset, offset + nameBLen));
+      const nameB = utf8Decoder2.decode(data5.subarray(offset, offset + nameBLen));
       offset += nameBLen;
       const numDiffs = view.getUint8(offset);
       offset += 1;
@@ -3367,16 +3633,16 @@ var jschardet = (() => {
     }
     return result;
   }
-  var cached4 = null;
+  var cached5 = null;
   function loadConfusionMaps() {
-    if (cached4) return cached4;
-    const raw = readBytes3();
+    if (cached5) return cached5;
+    const raw = readBytes4();
     if (raw.length === 0) {
       console.warn(
         "jschardet confusion.bin is empty \u2014 confusion resolution disabled; reinstall jschardet to fix"
       );
-      cached4 = /* @__PURE__ */ new Map();
-      return cached4;
+      cached5 = /* @__PURE__ */ new Map();
+      return cached5;
     }
     let rawMaps;
     try {
@@ -3393,8 +3659,8 @@ var jschardet = (() => {
       const normB = lookupEncoding(b) ?? b;
       normalized.set(pairKey(normA, normB), value);
     }
-    cached4 = normalized;
-    return cached4;
+    cached5 = normalized;
+    return cached5;
   }
   var _CATEGORY_PREFERENCE = {
     Lu: 10,
@@ -3476,11 +3742,11 @@ var jschardet = (() => {
     }
     return table;
   }
-  function _voteWithMargin(data4, encA, encB, diffBytes, categories) {
+  function _voteWithMargin(data5, encA, encB, diffBytes, categories) {
     const isDiff = _isDiffTable(diffBytes);
     const relevant = /* @__PURE__ */ new Set();
-    for (let i = 0; i < data4.length; i++) {
-      if (isDiff[data4[i]]) relevant.add(data4[i]);
+    for (let i = 0; i < data5.length; i++) {
+      if (isDiff[data5[i]]) relevant.add(data5[i]);
     }
     if (relevant.size === 0) {
       return { winner: null, margin: 0, demotionMargin: 0, demotionEvents: 0 };
@@ -3493,16 +3759,16 @@ var jschardet = (() => {
     let demotionB = 0;
     let eventsA = 0;
     let eventsB = 0;
-    const end = data4.length - 1;
+    const end = data5.length - 1;
     for (const bv of relevant) {
       const cats = categories.get(bv);
       if (cats === void 0) continue;
       const [catA, catB] = cats;
-      let pos = data4.indexOf(bv);
+      let pos = data5.indexOf(bv);
       let examined = 0;
       while (pos >= 0 && examined < _MAX_VOTE_OCCURRENCES) {
-        const left = pos > 0 ? data4[pos - 1] : 0;
-        const right = pos < end ? data4[pos + 1] : 0;
+        const left = pos > 0 ? data5[pos - 1] : 0;
+        const right = pos < end ? data5[pos + 1] : 0;
         const prefA = _contextPreference(catA, left, right, tableA);
         const prefB = _contextPreference(catB, left, right, tableB);
         if (prefA > prefB) {
@@ -3523,7 +3789,7 @@ var jschardet = (() => {
           }
         }
         examined += 1;
-        pos = data4.indexOf(bv, pos + 1);
+        pos = data5.indexOf(bv, pos + 1);
       }
     }
     if (votesA > votesB) {
@@ -3534,17 +3800,17 @@ var jschardet = (() => {
     }
     return { winner: null, margin: 0, demotionMargin: 0, demotionEvents: 0 };
   }
-  function confusionPairWinner(data4, encX, encY, languages = /* @__PURE__ */ new Set()) {
+  function confusionPairWinner(data5, encX, encY, languages = /* @__PURE__ */ new Set()) {
     const maps = loadConfusionMaps();
     const pair = _findPairKey(maps, encX, encY);
     if (pair === null) return null;
     const [encA, encB] = pair;
     const { diffBytes, categories } = maps.get(pairKey(encA, encB));
-    const vote = _voteWithMargin(data4, encA, encB, diffBytes, categories);
+    const vote = _voteWithMargin(data5, encA, encB, diffBytes, categories);
     if (vote.winner !== null && vote.demotionMargin >= _DECISIVE_VOTE_MARGIN && vote.demotionEvents >= _DECISIVE_MIN_EVENTS && diffBytes.size < _CROSS_FAMILY_MIN_DIFFS) {
       return vote.winner;
     }
-    const bigramWinner = resolveByBigramRescore(data4, encA, encB, diffBytes, languages);
+    const bigramWinner = resolveByBigramRescore(data5, encA, encB, diffBytes, languages);
     if (diffBytes.size >= _CROSS_FAMILY_MIN_DIFFS) {
       if (bigramWinner !== null && bigramWinner === vote.winner) return bigramWinner;
       return null;
@@ -3591,8 +3857,8 @@ var jschardet = (() => {
     }
     return best;
   }
-  function resolveByBigramRescore(data4, encA, encB, diffBytes, languages = /* @__PURE__ */ new Set()) {
-    const profile = buildFocusedProfile(data4, diffBytes);
+  function resolveByBigramRescore(data5, encA, encB, diffBytes, languages = /* @__PURE__ */ new Set()) {
+    const profile = buildFocusedProfile(data5, diffBytes);
     if (profile === null) return null;
     const comparable = _comparableLanguages(encA, encB, languages);
     const bestA = _bestVariantScore(profile, encA, comparable);
@@ -3601,13 +3867,13 @@ var jschardet = (() => {
     if (bestB > bestA) return encB;
     return null;
   }
-  function buildFocusedProfile(data4, diffBytes) {
-    if (data4.length < 2) return null;
+  function buildFocusedProfile(data5, diffBytes) {
+    if (data5.length < 2) return null;
     const isDiff = _isDiffTable(diffBytes);
     let hits = 0;
     const present = /* @__PURE__ */ new Set();
-    for (let i = 0; i < data4.length; i++) {
-      const b = data4[i];
+    for (let i = 0; i < data5.length; i++) {
+      const b = data5[i];
       if (isDiff[b]) {
         hits += 1;
         present.add(b);
@@ -3616,25 +3882,25 @@ var jschardet = (() => {
     if (hits === 0) return null;
     const idf = getIdfWeights();
     const freq = /* @__PURE__ */ new Map();
-    const limit = data4.length - 1;
-    if (hits * _testHooks.denseHitDivisor < data4.length) {
+    const limit = data5.length - 1;
+    if (hits * _testHooks.denseHitDivisor < data5.length) {
       const starts = /* @__PURE__ */ new Set();
       for (const bv of present) {
-        let pos = data4.indexOf(bv);
+        let pos = data5.indexOf(bv);
         while (pos >= 0) {
           if (pos > 0) starts.add(pos - 1);
           if (pos < limit) starts.add(pos);
-          pos = data4.indexOf(bv, pos + 1);
+          pos = data5.indexOf(bv, pos + 1);
         }
       }
       for (const i of starts) {
-        const idx = data4[i] << 8 | data4[i + 1];
+        const idx = data5[i] << 8 | data5[i + 1];
         freq.set(idx, (freq.get(idx) ?? 0) + idf[idx]);
       }
     } else {
       for (let i = 0; i < limit; i++) {
-        const b1 = data4[i];
-        const b2 = data4[i + 1];
+        const b1 = data5[i];
+        const b2 = data5[i + 1];
         if (!(isDiff[b1] | isDiff[b2])) continue;
         const idx = b1 << 8 | b2;
         freq.set(idx, (freq.get(idx) ?? 0) + idf[idx]);
@@ -3646,8 +3912,8 @@ var jschardet = (() => {
   var _differingHighBytesCache = /* @__PURE__ */ new Map();
   function differingHighBytes(encA, encB) {
     const key = pairKey(encA, encB);
-    const cached5 = _differingHighBytesCache.get(key);
-    if (cached5 !== void 0) return cached5;
+    const cached6 = _differingHighBytesCache.get(key);
+    if (cached6 !== void 0) return cached6;
     const ta = byteDecodeTable(encA);
     const tb = byteDecodeTable(encB);
     const out = /* @__PURE__ */ new Set();
@@ -3670,8 +3936,8 @@ var jschardet = (() => {
     }
     return table;
   }
-  function arbitrateDistinguishingBytes(data4, encA, encB, diffBytes, languagesA, languagesB) {
-    const profile = buildFocusedProfile(data4, diffBytes);
+  function arbitrateDistinguishingBytes(data5, encA, encB, diffBytes, languagesA, languagesB) {
+    const profile = buildFocusedProfile(data5, diffBytes);
     if (profile !== null) {
       const bestA = _bestVariantScore(profile, encA, languagesA);
       const bestB = _bestVariantScore(profile, encB, languagesB);
@@ -3679,7 +3945,7 @@ var jschardet = (() => {
       if (bestB > bestA) return encB;
     }
     const { winner } = _voteWithMargin(
-      data4,
+      data5,
       encA,
       encB,
       diffBytes,
@@ -3696,7 +3962,7 @@ var jschardet = (() => {
   var CONFUSION_BAND = 5e-3;
   var CONFUSION_FLOOR_RATIO = 0.5;
   var STRICT_TIER_MAX_CONF = 0.2;
-  function resolveConfusionGroups(data4, results) {
+  function resolveConfusionGroups(data5, results) {
     if (results.length < 2) return results;
     const top = results[0];
     if (top.encoding === null) return results;
@@ -3718,7 +3984,7 @@ var jschardet = (() => {
       if (pair === null) continue;
       const [encA, encB] = pair;
       const { diffBytes, categories } = maps.get(pairKey(encA, encB));
-      const vote = _voteWithMargin(data4, encA, encB, diffBytes, categories);
+      const vote = _voteWithMargin(data5, encA, encB, diffBytes, categories);
       let winner;
       if (vote.winner !== null && vote.demotionMargin >= _DECISIVE_VOTE_MARGIN && vote.demotionEvents >= _DECISIVE_MIN_EVENTS && diffBytes.size < _CROSS_FAMILY_MIN_DIFFS) {
         winner = vote.winner;
@@ -3726,7 +3992,7 @@ var jschardet = (() => {
         const langs = /* @__PURE__ */ new Set();
         if (champion.language !== null) langs.add(champion.language);
         if (candidate.language !== null) langs.add(candidate.language);
-        const bigramWinner = resolveByBigramRescore(data4, encA, encB, diffBytes, langs);
+        const bigramWinner = resolveByBigramRescore(data5, encA, encB, diffBytes, langs);
         if (inBand && diffBytes.size < _CROSS_FAMILY_MIN_DIFFS) {
           winner = bigramWinner !== null ? bigramWinner : vote.winner;
         } else if (bigramWinner !== null && bigramWinner === vote.winner) {
@@ -3902,13 +4168,13 @@ var jschardet = (() => {
     181
   ]);
   var _DEAD_HEAT_EPSILON = 1e-4;
-  function _shouldDemote(data4, top, target) {
+  function _shouldDemote(data5, top, target) {
     const encoding = top.encoding ?? "";
     const distinguishing = _DEMOTION_CANDIDATES.get(encoding);
     if (distinguishing === void 0) return false;
     let present = false;
-    for (let i = 0; i < data4.length; i++) {
-      const b = data4[i];
+    for (let i = 0; i < data5.length; i++) {
+      const b = data5[i];
       if (b > 127 && distinguishing.has(b)) {
         present = true;
         break;
@@ -3917,7 +4183,7 @@ var jschardet = (() => {
     if (!present) return true;
     if (top.confidence - target.confidence > CONFUSION_BAND) return false;
     const winner = arbitrateDistinguishingBytes(
-      data4,
+      data5,
       encoding,
       target.encoding ?? "",
       new Set(distinguishing),
@@ -3941,14 +4207,14 @@ var jschardet = (() => {
     }
     return best;
   }
-  function _demoteNicheLatin(data4, results) {
+  function _demoteNicheLatin(data5, results) {
     if (results.length < 2 || !_DEMOTION_CANDIDATES.has(results[0].encoding ?? "")) {
       return results;
     }
     const candidates = results.slice(1).filter((r) => r.encoding !== null && _COMMON_LATIN_ENCODINGS.has(r.encoding));
     if (candidates.length === 0) return results;
     const target = _swapTarget(candidates);
-    if (!_shouldDemote(data4, results[0], target)) return results;
+    if (!_shouldDemote(data5, results[0], target)) return results;
     const demotedEncoding = results[0].encoding;
     const topConf = results[0].confidence;
     const promoted = {
@@ -3967,7 +4233,7 @@ var jschardet = (() => {
     }));
     return [promoted, ...others, ...demotedEntries];
   }
-  function _promoteKoi8t(data4, results) {
+  function _promoteKoi8t(data5, results) {
     if (results.length === 0 || results[0].encoding !== "koi8-r") {
       return results;
     }
@@ -3975,8 +4241,8 @@ var jschardet = (() => {
     if (koi8tIdx === -1) {
       return results;
     }
-    for (let i = 0; i < data4.length; i++) {
-      const b = data4[i];
+    for (let i = 0; i < data5.length; i++) {
+      const b = data5[i];
       if (b > 127 && _KOI8_T_DISTINGUISHING.has(b)) {
         return _promoteToTop(results, koi8tIdx);
       }
@@ -3997,10 +4263,10 @@ var jschardet = (() => {
     const era = info.era;
     return era & -era;
   }
-  function _hasHighByteEvidence(data4, encoding, language) {
+  function _hasHighByteEvidence(data5, encoding, language) {
     const variants = getEncIndex().get(encoding);
     if (variants === void 0 || variants.length === 0) return false;
-    const window = data4.subarray(0, _EVIDENCE_SCAN_MAX_BYTES);
+    const window = data5.subarray(0, _EVIDENCE_SCAN_MAX_BYTES);
     if (window.length === 0) return false;
     const seen = /* @__PURE__ */ new Set();
     let prev = window[0];
@@ -4018,7 +4284,7 @@ var jschardet = (() => {
     }
     return false;
   }
-  function _preferPrevalentOnDeadHeat(data4, results) {
+  function _preferPrevalentOnDeadHeat(data5, results) {
     const top = results.length > 0 ? results[0] : null;
     if (top === null || top.encoding === null || results.length < 2) return results;
     let bestIdx = 0;
@@ -4034,7 +4300,7 @@ var jschardet = (() => {
       }
     }
     if (bestIdx === 0) return results;
-    if (!_hasHighByteEvidence(data4, top.encoding, top.language)) {
+    if (!_hasHighByteEvidence(data5, top.encoding, top.language)) {
       return _promoteToTop(results, bestIdx);
     }
     const rival = results[bestIdx].encoding ?? "";
@@ -4043,7 +4309,7 @@ var jschardet = (() => {
     if (results[bestIdx].language !== null) langs.add(results[bestIdx].language);
     const comparable = _comparableLanguages(top.encoding, rival, langs);
     const winner = arbitrateDistinguishingBytes(
-      data4,
+      data5,
       top.encoding,
       rival,
       differingHighBytes(top.encoding, rival),
@@ -4064,7 +4330,7 @@ var jschardet = (() => {
     const rest = results.filter((_, j) => j !== i);
     return [promoted, ...rest];
   }
-  function _promoteSupersetOnDeadHeat(data4, results) {
+  function _promoteSupersetOnDeadHeat(data5, results) {
     const top = results.length > 0 ? results[0] : null;
     if (top === null || top.encoding === null || results.length < 2) return results;
     const superset = _DEAD_HEAT_SUPERSETS[top.encoding];
@@ -4072,7 +4338,7 @@ var jschardet = (() => {
     for (let i = 1; i < results.length; i++) {
       const r = results[i];
       if (top.confidence - r.confidence > _DEAD_HEAT_EPSILON) break;
-      if (r.encoding === superset && decodesWithoutError(superset, data4)) {
+      if (r.encoding === superset && decodesWithoutError(superset, data5)) {
         return _promoteToTop(results, i);
       }
     }
@@ -4093,15 +4359,15 @@ var jschardet = (() => {
     }
     return results;
   }
-  function _promoteMacOnCrLineEndings(data4, results) {
+  function _promoteMacOnCrLineEndings(data5, results) {
     const top = results.length > 0 ? results[0] : null;
     if (top === null || top.encoding === null || results.length < 2) return results;
     if (_eraRank(top.encoding) === _LEGACY_MAC_ERA) return results;
     if (top.language === ART_LANGUAGE) return results;
-    if (data4.indexOf(10) >= 0) return results;
+    if (data5.indexOf(10) >= 0) return results;
     let crCount = 0;
-    for (let i = 0; i < data4.length && crCount < _CR_MAC_MIN_LINES; i++) {
-      if (data4[i] === 13) crCount++;
+    for (let i = 0; i < data5.length && crCount < _CR_MAC_MIN_LINES; i++) {
+      if (data5[i] === 13) crCount++;
     }
     if (crCount < _CR_MAC_MIN_LINES) return results;
     for (let i = 1; i < results.length; i++) {
@@ -4111,7 +4377,7 @@ var jschardet = (() => {
         const langs = /* @__PURE__ */ new Set();
         if (top.language !== null) langs.add(top.language);
         if (r.language !== null) langs.add(r.language);
-        if (_internal3.confusionPairWinner(data4, top.encoding, r.encoding, langs) === top.encoding) {
+        if (_internal3.confusionPairWinner(data5, top.encoding, r.encoding, langs) === top.encoding) {
           break;
         }
         return _promoteToTop(results, i);
@@ -4119,43 +4385,43 @@ var jschardet = (() => {
     }
     return results;
   }
-  function _decodesUnderPublicNames(data4, encoding) {
-    if (!decodesCompletely(encoding, data4)) return false;
+  function _decodesUnderPublicNames(data5, encoding) {
+    if (!decodesCompletely(encoding, data5)) return false;
     const display = _COMPAT_NAMES[encoding];
     if (display === void 0) return true;
-    return decodesCompletely(lookupEncoding(display) ?? display, data4);
+    return decodesCompletely(lookupEncoding(display) ?? display, data5);
   }
-  function _preferDecodableOnTie(data4, results, inputTruncated) {
+  function _preferDecodableOnTie(data5, results, inputTruncated) {
     const top = results.length > 0 ? results[0] : null;
     if (inputTruncated || top === null || top.encoding === null || results.length < 2) {
       return results;
     }
     let highTail = false;
-    for (let i = Math.max(0, data4.length - 4); i < data4.length; i++) {
-      if (data4[i] >= 128) {
+    for (let i = Math.max(0, data5.length - 4); i < data5.length; i++) {
+      if (data5[i] >= 128) {
         highTail = true;
         break;
       }
     }
     if (!highTail) return results;
-    if (!danglingTailWithAsciiPrefix(top.encoding, data4)) return results;
+    if (!danglingTailWithAsciiPrefix(top.encoding, data5)) return results;
     for (let i = 1; i < results.length; i++) {
       const r = results[i];
-      if (r.encoding === null || !_decodesUnderPublicNames(data4, r.encoding)) continue;
+      if (r.encoding === null || !_decodesUnderPublicNames(data5, r.encoding)) continue;
       return _promoteToTop(results, i);
     }
     return results;
   }
   var _CORRECTION_REACH = _RARE_ARBITRATION_MARGIN + 2 * CONFUSION_BAND;
-  function postprocessResults(data4, results, { inputTruncated = false } = {}) {
-    results = _internal3._promoteSupersetOnDeadHeat(data4, results);
-    results = _internal3._preferPrevalentOnDeadHeat(data4, results);
+  function postprocessResults(data5, results, { inputTruncated = false } = {}) {
+    results = _internal3._promoteSupersetOnDeadHeat(data5, results);
+    results = _internal3._preferPrevalentOnDeadHeat(data5, results);
     results = _internal3._arbitrateRareLanguage(results);
-    results = _internal3.resolveConfusionGroups(data4, results);
-    results = _internal3._demoteNicheLatin(data4, results);
-    results = _internal3._promoteKoi8t(data4, results);
-    results = _internal3._promoteMacOnCrLineEndings(data4, results);
-    return _internal3._preferDecodableOnTie(data4, results, inputTruncated);
+    results = _internal3.resolveConfusionGroups(data5, results);
+    results = _internal3._demoteNicheLatin(data5, results);
+    results = _internal3._promoteKoi8t(data5, results);
+    results = _internal3._promoteMacOnCrLineEndings(data5, results);
+    return _internal3._preferDecodableOnTie(data5, results, inputTruncated);
   }
   var _internal3 = {
     _promoteSupersetOnDeadHeat,
@@ -4170,12 +4436,12 @@ var jschardet = (() => {
   };
 
   // src/pipeline/statistical.ts
-  function scoreCandidates(data4, candidates) {
-    if (data4.length === 0 || candidates.length === 0) return [];
-    const profile = new BigramProfile(data4);
+  function scoreCandidates(data5, candidates) {
+    if (data5.length === 0 || candidates.length === 0) return [];
+    const profile = new BigramProfile(data5);
     const scores = [];
     for (const enc of candidates) {
-      const [s, lang] = scoreBestLanguage(data4, enc.name, profile);
+      const [s, lang] = scoreBestLanguage(data5, enc.name, profile);
       if (s > 0) scores.push({ name: enc.name, confidence: s, language: lang });
     }
     scores.sort((a, b) => b.confidence - a.confidence);
@@ -4191,14 +4457,14 @@ var jschardet = (() => {
   var _BASE_CONFIDENCE = 0.8;
   var _MAX_CONFIDENCE = 0.99;
   var _MB_RATIO_SCALE = 6;
-  function scanUtf8(data4) {
-    if (data4.length === 0) return [true, null];
+  function scanUtf8(data5) {
+    if (data5.length === 0) return [true, null];
     let i = 0;
-    const length = data4.length;
+    const length = data5.length;
     let multibyteSequences = 0;
     let multibyteBytes = 0;
     while (i < length) {
-      const byte = data4[i];
+      const byte = data5[i];
       if (byte < 128) {
         i++;
         continue;
@@ -4215,14 +4481,14 @@ var jschardet = (() => {
       }
       if (i + seqLen > length) break;
       for (let j = 1; j < seqLen; j++) {
-        if (!(128 <= data4[i + j] && data4[i + j] <= 191)) return [false, null];
+        if (!(128 <= data5[i + j] && data5[i + j] <= 191)) return [false, null];
       }
       if (seqLen === 3) {
-        if (byte === 224 && data4[i + 1] < 160) return [false, null];
-        if (byte === 237 && data4[i + 1] > 159) return [false, null];
+        if (byte === 224 && data5[i + 1] < 160) return [false, null];
+        if (byte === 237 && data5[i + 1] > 159) return [false, null];
       } else if (seqLen === 4) {
-        if (byte === 240 && data4[i + 1] < 144) return [false, null];
-        if (byte === 244 && data4[i + 1] > 143) return [false, null];
+        if (byte === 240 && data5[i + 1] < 144) return [false, null];
+        if (byte === 244 && data5[i + 1] > 143) return [false, null];
       }
       multibyteSequences++;
       multibyteBytes += seqLen;
@@ -4246,30 +4512,30 @@ var jschardet = (() => {
   var _MIN_TEXT_QUALITY = 0.5;
   var _QUALITY_TIE_MARGIN = 0.05;
   var _MIN_PRINTABLE_FRACTION = 0.7;
-  var _NULL_SEPARATOR_MAX_FRACTION = 0.15;
+  var _NULL_SEPARATOR_MAX_FRACTION = 0.75;
   var _NULL_SEPARATOR_ALLOWED = /* @__PURE__ */ new Set([0, ...ASCII_TEXT_BYTES]);
   var _RE_LETTER = /^\p{L}$/u;
   var _RE_MARK = /^\p{M}$/u;
   var _RE_SPACE_SEP = /^\p{Zs}$/u;
   var _RE_CONTROL = /^\p{C}$/u;
-  function _isNullSeparatorPattern(data4, nullFrac) {
+  function _isNullSeparatorPattern(data5, nullFrac) {
     if (nullFrac >= _NULL_SEPARATOR_MAX_FRACTION) return false;
-    for (const b of data4) {
+    for (const b of data5) {
       if (!_NULL_SEPARATOR_ALLOWED.has(b)) return false;
     }
     return true;
   }
-  function detectUtf1632Patterns(data4) {
-    const sample = data4.subarray(0, _SAMPLE_SIZE);
+  function detectUtf1632Patterns(data5) {
+    const sample = data5.subarray(0, _SAMPLE_SIZE);
     if (sample.length < _MIN_BYTES_UTF16) return null;
     const result = _checkUtf32(sample);
     if (result !== null) return result;
     return _checkUtf16(sample);
   }
-  function _checkUtf32(data4) {
-    const trimmedLen = data4.length - data4.length % 4;
+  function _checkUtf32(data5) {
+    const trimmedLen = data5.length - data5.length % 4;
     if (trimmedLen < _MIN_BYTES_UTF32) return null;
-    const trimmed = data4.subarray(0, trimmedLen);
+    const trimmed = data5.subarray(0, trimmedLen);
     const numUnits = trimmedLen / 4;
     let beFirstNull = 0;
     let beSecondNull = 0;
@@ -4303,21 +4569,21 @@ var jschardet = (() => {
     }
     return null;
   }
-  function _checkUtf16(data4) {
-    let sampleLen = Math.min(data4.length, _SAMPLE_SIZE);
+  function _checkUtf16(data5) {
+    let sampleLen = Math.min(data5.length, _SAMPLE_SIZE);
     sampleLen -= sampleLen % 2;
     if (sampleLen < _MIN_BYTES_UTF16) return null;
     const numUnits = sampleLen / 2;
     let beNullCount = 0;
     let leNullCount = 0;
     for (let i = 0; i < sampleLen; i += 2) {
-      if (data4[i] === 0) beNullCount++;
-      if (data4[i + 1] === 0) leNullCount++;
+      if (data5[i] === 0) beNullCount++;
+      if (data5[i + 1] === 0) leNullCount++;
     }
     const beFrac = beNullCount / numUnits;
     const leFrac = leNullCount / numUnits;
-    const leQualified = leFrac >= _UTF16_MIN_NULL_FRACTION && !_isNullSeparatorPattern(data4.subarray(0, sampleLen), leFrac);
-    const beQualified = beFrac >= _UTF16_MIN_NULL_FRACTION && !_isNullSeparatorPattern(data4.subarray(0, sampleLen), beFrac);
+    const leQualified = leFrac >= _UTF16_MIN_NULL_FRACTION && !_isNullSeparatorPattern(data5.subarray(0, sampleLen), leFrac);
+    const beQualified = beFrac >= _UTF16_MIN_NULL_FRACTION && !_isNullSeparatorPattern(data5.subarray(0, sampleLen), beFrac);
     if (!leQualified && !beQualified) return null;
     const sides = [
       { name: "utf-16-le", frac: leFrac, qualified: leQualified },
@@ -4330,7 +4596,7 @@ var jschardet = (() => {
     let viable = 0;
     let qualifiedSideDecoded = false;
     for (const { name, qualified } of sides) {
-      const text = decodeStrictText(name, data4.subarray(0, sampleLen));
+      const text = decodeStrictText(name, data5.subarray(0, sampleLen));
       if (text === null) continue;
       if (qualified) qualifiedSideDecoded = true;
       if (!_looksLikeText(text)) continue;
@@ -4399,19 +4665,19 @@ var jschardet = (() => {
     if (n > 20 && spaces > 0) score += 0.1;
     return score;
   }
-  function _decodeUtf32BE(data4) {
+  function _decodeUtf32BE(data5) {
     let result = "";
-    for (let i = 0; i < data4.length; i += 4) {
-      const cp = (data4[i] << 24 | data4[i + 1] << 16 | data4[i + 2] << 8 | data4[i + 3]) >>> 0;
+    for (let i = 0; i < data5.length; i += 4) {
+      const cp = (data5[i] << 24 | data5[i + 1] << 16 | data5[i + 2] << 8 | data5[i + 3]) >>> 0;
       if (cp > 1114111) return null;
       result += String.fromCodePoint(cp);
     }
     return result;
   }
-  function _decodeUtf32LE(data4) {
+  function _decodeUtf32LE(data5) {
     let result = "";
-    for (let i = 0; i < data4.length; i += 4) {
-      const cp = (data4[i] | data4[i + 1] << 8 | data4[i + 2] << 16 | data4[i + 3] << 24) >>> 0;
+    for (let i = 0; i < data5.length; i += 4) {
+      const cp = (data5[i] | data5[i + 1] << 8 | data5[i + 2] << 16 | data5[i + 3] << 24) >>> 0;
       if (cp > 1114111) return null;
       result += String.fromCodePoint(cp);
     }
@@ -4419,11 +4685,11 @@ var jschardet = (() => {
   }
 
   // src/pipeline/validity.ts
-  function filterByValidity(data4, candidates) {
-    if (data4.length === 0) return candidates;
+  function filterByValidity(data5, candidates) {
+    if (data5.length === 0) return candidates;
     const valid = [];
     for (const enc of candidates) {
-      if (decodesWithoutError(enc.name, data4)) {
+      if (decodesWithoutError(enc.name, data5)) {
         valid.push(enc);
       }
     }
@@ -4448,11 +4714,11 @@ var jschardet = (() => {
     }
     return [{ encoding, confidence: 0.1, language: null, mimeType: null }];
   }
-  function _holdValidityPastCap(data4, evidence, results, allowed, noMatchEncoding) {
-    if (data4.length <= evidence.length) return results;
+  function _holdValidityPastCap(data5, evidence, results, allowed, noMatchEncoding) {
+    if (data5.length <= evidence.length) return results;
     for (let i = 0; i < results.length; i++) {
       const enc = results[i].encoding;
-      if (enc !== null && decodesWithoutError(enc, data4)) {
+      if (enc !== null && decodesWithoutError(enc, data5)) {
         return i === 0 ? results : results.slice(i);
       }
     }
@@ -4463,23 +4729,23 @@ var jschardet = (() => {
   var _CJK_MIN_BYTE_COVERAGE = 0.35;
   var _CJK_MIN_LEAD_DIVERSITY = 4;
   var _CJK_DIVERSITY_MIN_NON_ASCII = 16;
-  function _gateCjkCandidates(data4, validCandidates, ctx) {
+  function _gateCjkCandidates(data5, validCandidates, ctx) {
     const gated = [];
     for (const enc of validCandidates) {
-      if (enc.isMultibyte) {
-        const mbScore = computeStructuralScore(data4, enc, ctx);
+      if (enc.isMultibyteCjk) {
+        const mbScore = computeStructuralScore(data5, enc, ctx);
         ctx.mbScores.set(enc.name, mbScore);
         if (mbScore < _CJK_MIN_MB_RATIO) continue;
         if (ctx.nonAsciiCount === null) {
           let n = 0;
-          for (let i = 0; i < data4.length; i++) {
-            if (data4[i] > 127) n++;
+          for (let i = 0; i < data5.length; i++) {
+            if (data5[i] > 127) n++;
           }
           ctx.nonAsciiCount = n;
         }
         if (ctx.nonAsciiCount < _CJK_MIN_NON_ASCII) continue;
         const byteCoverage = computeMultibyteByteCoverage(
-          data4,
+          data5,
           enc,
           ctx,
           ctx.nonAsciiCount
@@ -4487,7 +4753,7 @@ var jschardet = (() => {
         ctx.mbCoverage.set(enc.name, byteCoverage);
         if (byteCoverage < _CJK_MIN_BYTE_COVERAGE) continue;
         if (ctx.nonAsciiCount >= _CJK_DIVERSITY_MIN_NON_ASCII) {
-          const leadDiversity = computeLeadByteDiversity(data4, enc, ctx);
+          const leadDiversity = computeLeadByteDiversity(data5, enc, ctx);
           if (leadDiversity < _CJK_MIN_LEAD_DIVERSITY) continue;
         }
       }
@@ -4495,19 +4761,19 @@ var jschardet = (() => {
     }
     return gated;
   }
-  function _scoreStructuralCandidates(data4, structuralScores, validCandidates, ctx) {
+  function _scoreStructuralCandidates(data5, structuralScores, validCandidates, ctx) {
     const encLookup = /* @__PURE__ */ new Map();
     for (const e of validCandidates) {
-      if (e.isMultibyte) encLookup.set(e.name, e);
+      if (e.isMultibyteCjk) encLookup.set(e.name, e);
     }
     const validMb = [];
     for (const [name] of structuralScores) {
       const e = encLookup.get(name);
       if (e !== void 0) validMb.push(e);
     }
-    const singleByte = validCandidates.filter((e) => !e.isMultibyte);
+    const singleByte = validCandidates.filter((e) => !e.isMultibyteCjk);
     const results = scoreCandidates(
-      data4.subarray(0, _STAT_SCORE_MAX_BYTES),
+      data5.subarray(0, _STAT_SCORE_MAX_BYTES),
       [...validMb, ...singleByte]
     );
     const boosted = [];
@@ -4539,41 +4805,41 @@ var jschardet = (() => {
       mimeType: mime
     };
   }
-  function _runPipelineCore(data4, encodingEra, maxBytes, includeEncodings, excludeEncodings, noMatchEncoding, emptyInputEncoding, inputTruncated) {
+  function _runPipelineCore(data5, encodingEra, maxBytes, includeEncodings, excludeEncodings, noMatchEncoding, emptyInputEncoding, inputTruncated) {
     const ctx = new PipelineContext();
-    inputTruncated = inputTruncated || data4.length > maxBytes;
-    data4 = data4.subarray(0, maxBytes);
+    inputTruncated = inputTruncated || data5.length > maxBytes;
+    data5 = data5.subarray(0, maxBytes);
     const candidates = getCandidates(
       encodingEra,
       includeEncodings ?? void 0,
       excludeEncodings ?? void 0
     );
     const allowed = new Set(candidates.map((enc) => enc.name));
-    if (data4.length === 0) {
+    if (data5.length === 0) {
       return _makeFallbackOrNone(emptyInputEncoding, allowed, "empty_input_encoding");
     }
-    const bomResult = detectBom(data4);
+    const bomResult = detectBom(data5, inputTruncated);
     if (bomResult !== null && bomResult.encoding !== null && allowed.has(bomResult.encoding)) {
       return [bomResult];
     }
-    const utf1632Result = detectUtf1632Patterns(data4);
-    if (utf1632Result !== null && utf1632Result.encoding !== null && allowed.has(utf1632Result.encoding)) {
+    const utf1632Result = detectUtf1632Patterns(data5);
+    if (utf1632Result !== null && utf1632Result.encoding !== null && allowed.has(utf1632Result.encoding) && decodesWithoutError(utf1632Result.encoding, data5)) {
       return [utf1632Result];
     }
-    const escapeResult = detectEscapeEncoding(data4);
+    const escapeResult = detectEscapeEncoding(data5);
     if (escapeResult !== null && escapeResult.encoding !== null && allowed.has(escapeResult.encoding)) {
       return [escapeResult];
     }
-    const magicResult = detectMagic(data4);
+    const magicResult = detectMagic(data5);
     if (magicResult !== null) {
       return [magicResult];
     }
-    const [utf8Valid, utf8Precheck] = scanUtf8(data4);
-    const asciiPrecheck = detectAscii(data4);
-    if (utf8Precheck === null && asciiPrecheck === null && isBinary(data4, maxBytes)) {
+    const [utf8Valid, utf8Precheck] = scanUtf8(data5);
+    const asciiPrecheck = detectAscii(data5);
+    if (utf8Precheck === null && asciiPrecheck === null && isBinary(data5, maxBytes)) {
       return [{ ..._BINARY_RESULT }];
     }
-    let markupResult = detectMarkupCharset(data4);
+    let markupResult = detectMarkupCharset(data5);
     if (markupResult !== null && markupResult.encoding !== null && allowed.has(markupResult.encoding)) {
       if (utf8Precheck !== null && utf8Precheck.encoding !== null && utf8Precheck.encoding !== markupResult.encoding && allowed.has(utf8Precheck.encoding)) {
         return [{
@@ -4583,7 +4849,7 @@ var jschardet = (() => {
           mimeType: markupResult.mimeType
         }];
       }
-      markupResult = _internal4.promoteMarkupSuperset(data4, markupResult, allowed);
+      markupResult = _internal4.promoteMarkupSuperset(data5, markupResult, allowed);
       return [markupResult];
     }
     if (asciiPrecheck !== null && asciiPrecheck.encoding !== null && allowed.has(asciiPrecheck.encoding)) {
@@ -4592,10 +4858,10 @@ var jschardet = (() => {
     if (utf8Precheck !== null && utf8Precheck.encoding !== null && allowed.has(utf8Precheck.encoding)) {
       return [utf8Precheck];
     }
-    const evidence = data4.subarray(0, EVIDENCE_CAP_BYTES);
-    const evidenceTruncated = inputTruncated || data4.length > evidence.length;
+    const evidence = data5.subarray(0, EVIDENCE_CAP_BYTES);
+    const evidenceTruncated = inputTruncated || data5.length > evidence.length;
     let validCandidates = _internal4.filterByValidity(evidence, candidates);
-    if (!utf8Valid && data4.length > evidence.length) {
+    if (!utf8Valid && data5.length > evidence.length) {
       validCandidates = validCandidates.filter((e) => e.name !== "utf-8");
     }
     if (validCandidates.length === 0) {
@@ -4607,7 +4873,7 @@ var jschardet = (() => {
     }
     const structuralScores = [];
     for (const enc of validCandidates) {
-      if (enc.isMultibyte) {
+      if (enc.isMultibyteCjk) {
         let score = ctx.mbScores.get(enc.name);
         if (score === void 0) {
           score = computeStructuralScore(evidence, enc, ctx);
@@ -4631,7 +4897,7 @@ var jschardet = (() => {
           results2 = _internal4.postprocessResults(evidence, results2, {
             inputTruncated: evidenceTruncated
           });
-          return _holdValidityPastCap(data4, evidence, results2, allowed, noMatchEncoding);
+          return _holdValidityPastCap(data5, evidence, results2, allowed, noMatchEncoding);
         }
       }
     }
@@ -4643,16 +4909,16 @@ var jschardet = (() => {
     results = _internal4.postprocessResults(evidence, results, {
       inputTruncated: evidenceTruncated
     });
-    return _holdValidityPastCap(data4, evidence, results, allowed, noMatchEncoding);
+    return _holdValidityPastCap(data5, evidence, results, allowed, noMatchEncoding);
   }
-  function runPipeline(data4, encodingEra, options) {
+  function runPipeline(data5, encodingEra, options) {
     const maxBytes = options?.maxBytes ?? DEFAULT_MAX_BYTES;
     const includeEncodings = options?.includeEncodings ?? null;
     const excludeEncodings = options?.excludeEncodings ?? null;
     const noMatchEncoding = options?.noMatchEncoding ?? "cp1252";
     const emptyInputEncoding = options?.emptyInputEncoding ?? "utf-8";
     let results = _runPipelineCore(
-      data4,
+      data5,
       encodingEra,
       maxBytes,
       includeEncodings,
@@ -4661,7 +4927,7 @@ var jschardet = (() => {
       emptyInputEncoding,
       options?.inputTruncated ?? false
     );
-    results = _internal4.fillLanguages(data4.subarray(0, maxBytes), results);
+    results = _internal4.fillLanguages(data5.subarray(0, maxBytes), results);
     results = results.map(
       (r) => r.language === ART_LANGUAGE ? { encoding: r.encoding, confidence: r.confidence, language: null, mimeType: r.mimeType } : r
     );
@@ -4757,14 +5023,14 @@ var jschardet = (() => {
     close() {
       if (!this._closed) {
         this._closed = true;
-        const data4 = new Uint8Array(this._bufferLength);
+        const data5 = new Uint8Array(this._bufferLength);
         let offset = 0;
         for (const chunk of this._chunks) {
-          data4.set(chunk, offset);
+          data5.set(chunk, offset);
           offset += chunk.length;
         }
-        this._buffer = data4;
-        const results = runPipeline(data4, this._encodingEra, {
+        this._buffer = data5;
+        const results = runPipeline(data5, this._encodingEra, {
           maxBytes: this._maxBytes,
           inputTruncated: this._inputTruncated,
           includeEncodings: this._includeEncodings,
@@ -4794,7 +5060,12 @@ var jschardet = (() => {
         return { ..._NONE_RESULT };
       }
       const d = { ...this._detection };
-      if (this._preferSuperset) applyPreferredSuperset(d, this._buffer ?? void 0);
+      if (this._preferSuperset) {
+        applyPreferredSuperset(d, this._buffer ?? void 0, {
+          includeEncodings: this._includeEncodings,
+          excludeEncodings: this._excludeEncodings
+        });
+      }
       if (this._compatNames) applyCompatNames(d);
       return d;
     }
@@ -4831,7 +5102,12 @@ var jschardet = (() => {
       emptyInputEncoding: empty
     });
     const result = { ...results[0] };
-    if (preferSuperset) applyPreferredSuperset(result, byteStr.subarray(0, maxBytes));
+    if (preferSuperset) {
+      applyPreferredSuperset(result, byteStr.subarray(0, maxBytes), {
+        includeEncodings: include,
+        excludeEncodings: exclude
+      });
+    }
     if (compatNames) applyCompatNames(result);
     return result;
   }
@@ -4868,11 +5144,18 @@ var jschardet = (() => {
     }
     const window = byteStr.subarray(0, maxBytes);
     for (const d of dicts) {
-      if (preferSuperset) applyPreferredSuperset(d, window);
+      if (preferSuperset) {
+        applyPreferredSuperset(d, window, { includeEncodings: include, excludeEncodings: exclude });
+      }
       if (compatNames) applyCompatNames(d);
     }
     dicts.sort((a, b) => b.confidence - a.confidence);
-    return dicts;
+    const seen = /* @__PURE__ */ new Set();
+    return dicts.filter((d) => {
+      if (seen.has(d.encoding)) return false;
+      seen.add(d.encoding);
+      return true;
+    });
   }
 
   // src/version.js

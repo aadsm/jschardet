@@ -3,6 +3,7 @@ import { readFileSync, writeFileSync, unlinkSync } from 'node:fs';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { dirname, join } from 'node:path';
 import { tmpdir } from 'node:os';
+import { createHash } from 'node:crypto';
 import { inflateSync, deflateSync, constants as zlibConstants } from 'node:zlib';
 import { buildSync } from 'esbuild';
 import { chardetVersion } from './chardet-version.js';
@@ -14,6 +15,8 @@ const browserDecoderPath = join(root, 'src', 'runtime', 'decompress.browser.ts')
 
 const SCRIPT_NAME = 'generate-model-bins.js';
 const V2_MAGIC = Buffer.from('CMD2');
+const LANGNORM_MAGIC = Buffer.from('CLN1');
+const LANGNORM_HEADER_SIZE = 4 + 32;
 
 const MODE_COMPRESSED = 'compressed';
 const MODE_RAW = 'raw';
@@ -47,6 +50,27 @@ function rebuildModelsBinRaw() {
     throw new Error(`models.bin: decompressed size ${blob.length} != expected ${expected}`);
   }
   return { bytes: Buffer.concat([header, blob]), numModels };
+}
+
+// chardet's langnorm.bin, checked against the models.bin it was computed
+// from. The file embeds the SHA-256 of chardet's models.bin, which chardet
+// compares at load time; the port's models.bin.js carries a re-packed image
+// with different bytes, so the digest is checked here, once, and the runtime
+// checks only the magic and the size (parseLangnormBin in
+// src/models/_format.ts).
+function readLangnormBin(numModels) {
+  const data = readFileSync(join(chardetModelsDir, 'langnorm.bin'));
+  if (data.subarray(0, 4).compare(LANGNORM_MAGIC) !== 0) {
+    throw new Error('langnorm.bin: missing CLN1 magic');
+  }
+  const modelsDigest = createHash('sha256').update(readFileSync(join(chardetModelsDir, 'models.bin'))).digest();
+  if (data.subarray(4, LANGNORM_HEADER_SIZE).compare(modelsDigest) !== 0) {
+    throw new Error('langnorm.bin: digest does not match models.bin');
+  }
+  if (data.length !== LANGNORM_HEADER_SIZE + numModels * 8) {
+    throw new Error(`langnorm.bin: ${data.length} bytes, expected ${LANGNORM_HEADER_SIZE + numModels * 8} for ${numModels} models`);
+  }
+  return data;
 }
 
 // Compress with the fixed-Huffman strategy. Z_FIXED forces every block to be a
@@ -158,27 +182,39 @@ export async function generate(mode = MODE_COMPRESSED) {
   }
   const version = chardetVersion();
   const maybeCompress = (bytes) => mode === MODE_COMPRESSED ? compress(bytes) : bytes;
+  // A payload that does not shrink (langnorm.bin is packed float64s) ships
+  // raw even in compressed mode: compressing it would cost download bytes
+  // and a decompression for nothing.
+  const emit = (name, raw) => {
+    const compressed = maybeCompress(raw);
+    const fileMode = compressed.length < raw.length ? mode : MODE_RAW;
+    const payload = fileMode === mode ? compressed : raw;
+    emitWrapper(join(outputDir, name), payload, version, fileMode);
+    return { payload, fileMode };
+  };
 
-  console.log(`Generating src/models/models.bin.js (${mode}) ...`);
+  console.log('Generating src/models/models.bin.js ...');
   const { bytes: modelsRaw, numModels } = rebuildModelsBinRaw();
-  const modelsPayload = maybeCompress(modelsRaw);
-  emitWrapper(join(outputDir, 'models.bin.js'), modelsPayload, version, mode);
-  console.log(`  ${numModels} models, ${modelsRaw.length.toLocaleString()} raw → ${modelsPayload.length.toLocaleString()} payload bytes`);
+  const models = emit('models.bin.js', modelsRaw);
+  console.log(`  ${numModels} models, ${modelsRaw.length.toLocaleString()} raw → ${models.payload.length.toLocaleString()} payload bytes (${models.fileMode})`);
 
-  console.log(`Generating src/models/idf.bin.js (${mode}) ...`);
+  console.log('Generating src/models/idf.bin.js ...');
   const idfRaw = readFileSync(join(chardetModelsDir, 'idf.bin'));
   if (idfRaw.length !== 65536) {
     throw new Error(`idf.bin: expected 65536 bytes, got ${idfRaw.length}`);
   }
-  const idfPayload = maybeCompress(idfRaw);
-  emitWrapper(join(outputDir, 'idf.bin.js'), idfPayload, version, mode);
-  console.log(`  ${idfRaw.length.toLocaleString()} raw → ${idfPayload.length.toLocaleString()} payload bytes`);
+  const idf = emit('idf.bin.js', idfRaw);
+  console.log(`  ${idfRaw.length.toLocaleString()} raw → ${idf.payload.length.toLocaleString()} payload bytes (${idf.fileMode})`);
 
-  console.log(`Generating src/models/confusion.bin.js (${mode}) ...`);
+  console.log('Generating src/models/confusion.bin.js ...');
   const confusionRaw = readFileSync(join(chardetModelsDir, 'confusion.bin'));
-  const confusionPayload = maybeCompress(confusionRaw);
-  emitWrapper(join(outputDir, 'confusion.bin.js'), confusionPayload, version, mode);
-  console.log(`  ${confusionRaw.length.toLocaleString()} raw → ${confusionPayload.length.toLocaleString()} payload bytes`);
+  const confusion = emit('confusion.bin.js', confusionRaw);
+  console.log(`  ${confusionRaw.length.toLocaleString()} raw → ${confusion.payload.length.toLocaleString()} payload bytes (${confusion.fileMode})`);
+
+  console.log('Generating src/models/langnorm.bin.js ...');
+  const langnormRaw = readLangnormBin(numModels);
+  const langnorm = emit('langnorm.bin.js', langnormRaw);
+  console.log(`  ${langnormRaw.length.toLocaleString()} raw → ${langnorm.payload.length.toLocaleString()} payload bytes (${langnorm.fileMode})`);
 
   console.log('Verifying parity with chardet source ...');
   return verify();
@@ -191,11 +227,14 @@ export async function generate(mode = MODE_COMPRESSED) {
 // the browser DEFLATE decoder. Catches base64 encode/decode bugs, header
 // reframing bugs, file corruption, and stale wrappers.
 export async function verify() {
+  const models = rebuildModelsBinRaw();
   const expected = {
-    'models.bin.js': rebuildModelsBinRaw().bytes,
+    'models.bin.js': models.bytes,
     'idf.bin.js': readFileSync(join(chardetModelsDir, 'idf.bin')),
     'confusion.bin.js': readFileSync(join(chardetModelsDir, 'confusion.bin')),
+    'langnorm.bin.js': readLangnormBin(models.numModels),
   };
+  const wrapperCount = Object.keys(expected).length;
   const errors = [];
 
   // Per-wrapper Node-path round-trip.
@@ -262,8 +301,8 @@ export async function verify() {
   }
   const browserCount = compressedWrappers.length;
   const summary = browserCount > 0
-    ? `Verified: 3 wrappers via Node + ${browserCount} via browser decoder.`
-    : 'Verified: 3 wrappers match chardet source bytes.';
+    ? `Verified: ${wrapperCount} wrappers via Node + ${browserCount} via browser decoder.`
+    : `Verified: ${wrapperCount} wrappers match chardet source bytes.`;
   console.log(summary);
 }
 
