@@ -134,7 +134,7 @@ function _gateCjkCandidates(
 ): readonly EncodingInfo[] {
   const gated: EncodingInfo[] = [];
   for (const enc of validCandidates) {
-    if (enc.isMultibyte) {
+    if (enc.isMultibyteCjk) {
       const mbScore = computeStructuralScore(data, enc, ctx);
       ctx.mbScores.set(enc.name, mbScore);
       if (mbScore < _CJK_MIN_MB_RATIO) continue; // No multi-byte structure -> eliminate
@@ -175,14 +175,14 @@ function _scoreStructuralCandidates(
 ): DetectionResult[] {
   const encLookup = new Map<string, EncodingInfo>();
   for (const e of validCandidates) {
-    if (e.isMultibyte) encLookup.set(e.name, e);
+    if (e.isMultibyteCjk) encLookup.set(e.name, e);
   }
   const validMb: EncodingInfo[] = [];
   for (const [name] of structuralScores) {
     const e = encLookup.get(name);
     if (e !== undefined) validMb.push(e);
   }
-  const singleByte = validCandidates.filter(e => !e.isMultibyte);
+  const singleByte = validCandidates.filter(e => !e.isMultibyteCjk);
   const results = scoreCandidates(
     data.subarray(0, _STAT_SCORE_MAX_BYTES),
     [...validMb, ...singleByte],
@@ -265,7 +265,7 @@ function _runPipelineCore(
 
   // Stage 1a: BOM detection (runs first — BOMs are definitive and UTF-16/32
   // data looks binary due to null bytes)
-  const bomResult = detectBom(data);
+  const bomResult = detectBom(data, inputTruncated);
   if (bomResult !== null && bomResult.encoding !== null && allowed.has(bomResult.encoding)) {
     return [bomResult];
   }
@@ -274,7 +274,15 @@ function _runPipelineCore(
   // must run before binary detection since these encodings contain many null
   // bytes that would trigger the binary check)
   const utf1632Result = detectUtf1632Patterns(data);
-  if (utf1632Result !== null && utf1632Result.encoding !== null && allowed.has(utf1632Result.encoding)) {
+  // The stage samples and decodes the first few KB only. The answer has to
+  // decode the whole window, so a lone surrogate or out-of-range unit past
+  // the sample sends the input on to the other stages instead.
+  if (
+    utf1632Result !== null
+    && utf1632Result.encoding !== null
+    && allowed.has(utf1632Result.encoding)
+    && decodesWithoutError(utf1632Result.encoding, data)
+  ) {
     return [utf1632Result];
   }
 
@@ -345,6 +353,8 @@ function _runPipelineCore(
         mimeType: markupResult.mimeType,
       }];
     }
+    // The stage already holds every declaration it returns, and the
+    // promotion it may apply, to the whole window.
     markupResult = _internal.promoteMarkupSuperset(data, markupResult, allowed);
     return [markupResult];
   }
@@ -399,7 +409,7 @@ function _runPipelineCore(
   // computed during the CJK gate above.
   const structuralScores: Array<[string, number]> = [];
   for (const enc of validCandidates) {
-    if (enc.isMultibyte) {
+    if (enc.isMultibyteCjk) {
       let score = ctx.mbScores.get(enc.name);
       if (score === undefined) {
         score = computeStructuralScore(evidence, enc, ctx);

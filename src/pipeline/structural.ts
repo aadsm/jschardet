@@ -376,7 +376,7 @@ export function computeStructuralScore(
   encodingInfo: EncodingInfo,
   ctx: PipelineContext,
 ): number {
-  if (data.length === 0 || !encodingInfo.isMultibyte) return 0.0;
+  if (data.length === 0 || !encodingInfo.isMultibyteCjk) return 0.0;
   const result = _getAnalysis(data, encodingInfo.name, ctx);
   if (result === null) return 0.0;
   return result[0];
@@ -388,7 +388,7 @@ export function computeMultibyteByteCoverage(
   ctx: PipelineContext,
   nonAsciiCount?: number,
 ): number {
-  if (data.length === 0 || !encodingInfo.isMultibyte) return 0.0;
+  if (data.length === 0 || !encodingInfo.isMultibyteCjk) return 0.0;
   const result = _getAnalysis(data, encodingInfo.name, ctx);
   if (result === null) return 0.0;
   const mbBytes = result[1];
@@ -411,7 +411,7 @@ export function computeLeadByteDiversity(
   encodingInfo: EncodingInfo,
   ctx: PipelineContext,
 ): number {
-  if (data.length === 0 || !encodingInfo.isMultibyte) return 0;
+  if (data.length === 0 || !encodingInfo.isMultibyteCjk) return 0;
   const result = _getAnalysis(data, encodingInfo.name, ctx);
   if (result === null) return 256; // Unknown encoding -- don't gate.
   return result[2];

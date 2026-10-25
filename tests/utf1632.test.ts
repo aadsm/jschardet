@@ -1,4 +1,6 @@
-import { detectUtf1632Patterns, _looksLikeText, _textQuality } from '../src/pipeline/utf1632.js';
+import { detectUtf1632Patterns, _looksLikeText, _textQuality, _SAMPLE_SIZE } from '../src/pipeline/utf1632.js';
+import { detect } from '../src/chardet.js';
+import { decodesWithoutError } from '../src/decode.js';
 
 const DETERMINISTIC_CONFIDENCE = 0.95;
 
@@ -411,6 +413,66 @@ describe('detectUtf1632Patterns — null-separator guard', () => {
     const result = detectUtf1632Patterns(encodeUtf16LE(text));
     expect(result).not.toBeNull();
     expect(result!.encoding).toBe('utf-16-le');
+  });
+
+  // Short records put a null in up to half the code units; still not UTF-16.
+  // The nulls exceed the ASCII stage's tolerance, so the data lands in the
+  // binary stage instead.
+  test.each([
+    ['five-char', 'file1\x00file2\x00file3\x00'.repeat(40)],
+    ['three-char', 'abc\x00def\x00ghi\x00'.repeat(60)],
+    ['two-char', 'ab\x00cd\x00ef\x00gh\x00'.repeat(60)],
+    ['mixed-length', 'a\x00bb\x00ccc\x00dddd\x00eeeee\x00ffffff\x00'.repeat(30)],
+  ])('short null-separated records are not UTF-16: %s', (_id, text) => {
+    const data = new TextEncoder().encode(text);
+    expect(detectUtf1632Patterns(data)).toBeNull();
+    const result = detect(data);
+    expect(result.encoding).toBeNull();
+    expect(result.mimeType).toBe('application/octet-stream');
+  });
+
+  test('single-character records are UTF-16', () => {
+    // One-character records are byte-identical to UTF-16-LE.
+    const data = new TextEncoder().encode('a\x00b\x00c\x00d\x00e\x00f\x00'.repeat(20));
+    expect(data).toEqual(encodeUtf16LE('abcdef'.repeat(20)));
+    expect(detectUtf1632Patterns(data)?.encoding).toBe('utf-16-le');
+  });
+
+  test('UTF-16 ASCII with an out-of-phase stretch is still UTF-16', () => {
+    // A stray odd byte knocks a stretch out of phase: 61 code units in the
+    // middle show their null on the other parity. The dominant parity still
+    // holds about 87% of the units, well above the guard's cutoff.
+    const head = encodeUtf16BE('The quick brown fox jumps over the lazy dog. '.repeat(5));
+    const tail = encodeUtf16BE('Pack my box with five dozen liquor jugs. '.repeat(5));
+    const middle = encodeUtf16BE('%'.repeat(60));
+    const data = new Uint8Array([...head, 0x20, ...middle, 0x00, ...tail]);
+    expect(new TextDecoder('utf-16be', { fatal: true }).decode(data)).toBeTruthy();
+    expect(detectUtf1632Patterns(data)?.encoding).toBe('utf-16-be');
+    expect(detect(data).encoding).toBe('utf-16-be');
+  });
+});
+
+describe('whole-window validity: the pattern stage samples only _SAMPLE_SIZE bytes', () => {
+  test('UTF-16 undecodable past the sample falls through', () => {
+    // A window whose head looks like clean UTF-16-LE but carries lone
+    // surrogates further on still matches the pattern; detect() must not
+    // report an encoding the caller cannot decode over the window.
+    const head = encodeUtf16LE('The quick brown fox jumps over the lazy dog. '.repeat(100)).subarray(0, _SAMPLE_SIZE);
+    const tail = new Uint8Array(100).map((_, i) => (i % 2 === 0 ? 0x00 : 0xd8)); // lone high surrogates
+    const data = new Uint8Array([...head, ...tail]);
+    expect(detectUtf1632Patterns(data)).not.toBeNull();
+    expect(decodesWithoutError('utf-16-le', data)).toBe(false);
+    // Nothing else decodes a lone surrogate, so the null-heavy bytes land in
+    // the binary stage and the no-match answer comes back.
+    const result = detect(data);
+    expect(result.encoding).toBeNull();
+    expect(result.mimeType).toBe('application/octet-stream');
+  });
+
+  test('a long, fully decodable UTF-16-LE window is still detected', () => {
+    const data = encodeUtf16LE('UTF-16 sample text. '.repeat(400));
+    expect(data.length).toBeGreaterThan(_SAMPLE_SIZE);
+    expect(detect(data).encoding).toBe('utf-16-le');
   });
 });
 

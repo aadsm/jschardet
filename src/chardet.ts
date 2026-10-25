@@ -79,7 +79,12 @@ export function detect(byteStr: Uint8Array, options: DetectOptions = {}): Detect
   // returned objects (including the singleton _NONE_RESULT and _BINARY_RESULT)
   // aren't mutated.
   const result: DetectionResult = { ...results[0] };
-  if (preferSuperset) applyPreferredSuperset(result, byteStr.subarray(0, maxBytes));
+  if (preferSuperset) {
+    applyPreferredSuperset(result, byteStr.subarray(0, maxBytes), {
+      includeEncodings: include,
+      excludeEncodings: exclude,
+    });
+  }
   if (compatNames) applyCompatNames(result);
   return result;
 }
@@ -126,9 +131,20 @@ export function detectAll(
   }
   const window = byteStr.subarray(0, maxBytes);
   for (const d of dicts) {
-    if (preferSuperset) applyPreferredSuperset(d, window);
+    if (preferSuperset) {
+      applyPreferredSuperset(d, window, { includeEncodings: include, excludeEncodings: exclude });
+    }
     if (compatNames) applyCompatNames(d);
   }
   dicts.sort((a, b) => b.confidence - a.confidence);
-  return dicts;
+  // The superset remap can land two candidates on one name (ISO-8859-7 and
+  // Windows-1253 both become Windows-1253). Keep the first, which carries
+  // the higher confidence; the sort is stable, so ties keep the pipeline's
+  // order.
+  const seen = new Set<string | null>();
+  return dicts.filter(d => {
+    if (seen.has(d.encoding)) return false;
+    seen.add(d.encoding);
+    return true;
+  });
 }

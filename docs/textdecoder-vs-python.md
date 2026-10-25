@@ -34,6 +34,10 @@ on that rejection to eliminate candidates, so the port has to reproduce it.
 **3. Codec collapse — WHATWG maps a subset and its superset onto one decoder.**
 Its `shift_jis` *is* cp932, its `euc-kr` *is* cp949. CPython keeps them
 distinct: plain `shift_jis` raises on a CP932-only byte that `cp932` decodes.
+Node's ICU-backed decoders do not all follow the WHATWG indexes: its `euc-kr`
+is plain EUC-KR, rejecting the CP949-only hangul and passing a stray C1 byte
+through, and its `euc-jp` passes 0x80 through (see "Node's EUC decoders" in
+[port-notes.md](port-notes.md)).
 
 **4. Category drift — ICU's UCD is not CPython's UCD.** Even where a character
 decodes, its Unicode general category comes from the JS engine's bundled ICU,
@@ -123,7 +127,18 @@ concatenated, so each per-encoding literal is the size of its high half.
 `TextDecoder` has no UTF-7. `utf7DecodesWithoutError` in
 [`pipeline/to-utf8.ts`](../src/pipeline/to-utf8.ts) reimplements CPython's
 `utf_7` incremental decoder's error behavior, pinned against CPython by the
-oracle cases in `tests/escape.test.ts`.
+oracle cases in `tests/escape.test.ts`; `decodesWithoutError` answers `utf-7`
+through it.
+
+### UTF-32 and the marked UTF forms (gap 1) → a first-party check
+
+`TextDecoder` has no UTF-32, and its `utf-16` label is plain UTF-16LE, which
+does not read a byte order mark. `decodesWithoutError` answers `utf-32`,
+`utf-32-be` and `utf-32-le` itself (every 4-byte unit must be a scalar value),
+and answers `utf-16` and `utf-8-sig` by reading the mark the way CPython does
+(no mark is an error for `utf-16` and `utf-32`) and decoding the rest with
+WHATWG's fixed-endian UTF-16 or UTF-8 decoder. Pinned against CPython in
+`tests/decode.test.ts`.
 
 ### Codec collapse (gap 3) → documented divergence, not bridged
 
@@ -160,7 +175,8 @@ else in the pipeline calls a WHATWG decoder for a chardet decode question.
 
 | `src/decode.ts` | chardet | Asked by | No WHATWG decoder → |
 |---|---|---|---|
-| `decodesWithoutError` | `_utils.decodes_without_error` | validity filtering, the past-cap hold, prefer_superset, declared charsets and superset promotion in markup, the dead-heat superset | kept as valid (as `filter_by_validity` keeps it) |
+| `decodesWithoutError` | `_utils.decodes_without_error` | validity filtering, the past-cap hold, prefer_superset, declared charsets and superset promotion in markup, the dead-heat superset, the BOM, UTF-16/32 and escape stages' whole-window checks | kept as valid (as `filter_by_validity` keeps it); the UTF forms and UTF-7 are checked first-party |
+| `iso2022Jp2DecodesWithoutError` | `_utils.decodes_without_error(data, "iso2022_jp_2")` | the escape stage | kept as valid when the data uses an escape sequence WHATWG's iso-2022-jp lacks |
 | `decodesCompletely` | `_utils.decodes_completely` | the decode-safety flip | false |
 | `danglingTailWithAsciiPrefix` | `_utils.dangling_tail_with_ascii_prefix` | the decode-safety flip | false |
 | `decodeText` | `bytes.decode(enc, errors="ignore")` | language scoring (`to-utf8.ts`) | null |

@@ -166,7 +166,12 @@ export class UniversalDetector {
     // DetectionResult is a frozen dataclass and to_dict() always allocates a
     // new dict, sidestepping this.
     const d: DetectionResult = { ...this._detection };
-    if (this._preferSuperset) applyPreferredSuperset(d, this._buffer ?? undefined);
+    if (this._preferSuperset) {
+      applyPreferredSuperset(d, this._buffer ?? undefined, {
+        includeEncodings: this._includeEncodings,
+        excludeEncodings: this._excludeEncodings,
+      });
+    }
     if (this._compatNames) applyCompatNames(d);
     return d;
   }

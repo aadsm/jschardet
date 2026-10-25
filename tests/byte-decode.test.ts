@@ -84,7 +84,7 @@ describe('decodesAsSingleByte', () => {
 
   test('flags exactly the registry single-byte codecs, UTF family excluded', () => {
     for (const enc of Object.values(REGISTRY)) {
-      const expected = !enc.isMultibyte && !enc.name.startsWith('utf-') ? true : null;
+      const expected = !enc.isMultibyteCjk && !enc.name.startsWith('utf-') ? true : null;
       expect(decodesAsSingleByte(enc.name, new Uint8Array(0)), enc.name).toBe(expected);
     }
   });

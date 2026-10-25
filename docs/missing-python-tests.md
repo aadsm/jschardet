@@ -108,3 +108,54 @@ warning hook — so the shim's warning, `dir()`, rebinding, and delete-proxying
 tests (14 in total) have no analogue. `tests/equivalences.test.ts` pins the one
 thing that matters to the port: the re-exports are the same functions as
 `output_names`.
+
+### `test_models.py` — the itemgetter scoring path
+
+`test_dense_profile_gather_matches_loop` and
+`test_single_bigram_profile_scores_without_gather` pin chardet's
+`operator.itemgetter` fast path for interpreted CPython against its plain
+scoring loop. The fast path is CPython-specific with bit-identical results; the
+port scores with the plain loop only, so there is no second path to pin.
+
+### `test_models.py` — `langnorm.bin` digest and fallback
+
+`test_langnorm_bin_header_matches_models_bin` compares `langnorm.bin`'s
+embedded SHA-256 with `models.bin`. The port's `models.bin.js` carries a
+re-packed image whose digest differs, so `generate-model-bins.js` checks the
+digest against chardet's source file instead; `tests/models.test.ts` checks the
+magic and the size. `test_langnorm_bad_file_falls_back_with_warning` patches
+the resource loader, which ES module exports do not allow; its two halves (a
+bad file parses to null, the derivation reproduces the shipped norms exactly)
+are checked directly in `tests/models.test.ts`.
+
+### `test_registry.py::test_is_multibyte_is_a_deprecated_alias`
+
+chardet keeps `EncodingInfo.is_multibyte` as a warning alias of
+`is_multibyte_cjk` until 8.0. `EncodingInfo` is not part of the port's public
+API, so the field is renamed outright and there is no alias to test.
+
+### `test_output_names.py` — compat renames that read the data
+
+`test_narrower_display_names_match_codecs`,
+`test_compat_rename_skipped_when_display_codec_cannot_decode`,
+`test_compat_rename_applied_when_display_codec_decodes`,
+`test_compat_rename_unconditional_without_data` and
+`test_compat_rename_ignores_non_narrowing_names` test `apply_compat_names`'s
+`data` argument and `NARROWER_DISPLAY_NAMES`, which are not ported — see
+"Compat names for the narrower display codecs" in [port-notes.md](port-notes.md).
+`test_api.py::test_display_name_never_narrower_than_the_data` is ported as a
+divergence test asserting the port's display name.
+
+### `test_escape.py` / `test_markup.py` — decode checks the port cannot make
+
+These assert a fall-through that needs a decoder the port does not have, and
+are ported as divergence tests asserting the port's answer (see "Escape-stage
+decode check" and "Markup superset decode-safety promotion" in
+[port-notes.md](port-notes.md)):
+
+- `test_escape.py::test_iso2022_kr_with_bad_byte_falls_through`
+- `test_escape.py::test_jis_x0213_2000_designation_falls_through`
+- `test_escape.py::test_hz_with_stray_tilde_falls_through`
+- `test_escape.py::test_hz_close_marker_before_open_marker` (its `is None` assertion)
+- `test_markup.py::test_declared_subset_promotes_when_superset_bytes_sit_past_the_head`
+- `test_markup.py::test_declared_subset_promotes_from_the_stage`

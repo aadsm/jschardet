@@ -1,6 +1,7 @@
 import { EVIDENCE_CAP_BYTES, findBytes } from '../utils.js';
 import { DETERMINISTIC_CONFIDENCE, DetectionResult } from './index.js';
-import { utf7DecodesWithoutError } from './to-utf8.js';
+import { decodesWithoutError, iso2022Jp2DecodesWithoutError } from '../decode.js';
+import type { EncodingName } from '../registry.js';
 
 // Check that at least one ~{...~} region contains valid GB2312 byte pairs.
 //
@@ -9,7 +10,7 @@ import { utf7DecodesWithoutError } from './to-utf8.js';
 // window close beyond it: bounding both at the same offset would cut a
 // straddling region and hide the only escape evidence a document has
 // (ADR-0006).
-function _hasValidHzRegions(data: Uint8Array, maxStart: number, maxEnd: number): boolean {
+export function _hasValidHzRegions(data: Uint8Array, maxStart: number, maxEnd: number): boolean {
   const begin_marker = new Uint8Array([0x7e, 0x7b]); // "~{"
   const end_marker   = new Uint8Array([0x7e, 0x7d]); // "~}"
   let start = 0;
@@ -200,6 +201,58 @@ const _ESC_JP_J      = new Uint8Array([0x1b, 0x28, 0x4a]);
 const _ESC_JP_D      = new Uint8Array([0x1b, 0x24, 0x28, 0x44]);
 const _ESC_KR_C      = new Uint8Array([0x1b, 0x24, 0x29, 0x43]);
 
+// Name the ISO-2022 variant whose designations appear in data, as
+// [encoding, language], or null when no designation is present (chardet's
+// _iso2022_variant).
+function _iso2022Variant(data: Uint8Array): [EncodingName, string] | null {
+  // ISO-2022-JP-2004: JIS X 0213 designations are unique to this variant.
+  // CPython's codec reads the 2004 plane-1 (Q) and plane-2 (P) designations
+  // but not the 2000 plane-1 one (O), so chardet's decode check rejects an O
+  // stream; the port has no decoder for this variant (see
+  // detectEscapeEncoding).
+  if (
+    findBytes(data, _ESC_JP_2004_O) !== -1 ||
+    findBytes(data, _ESC_JP_2004_P) !== -1 ||
+    findBytes(data, _ESC_JP_2004_Q) !== -1
+  ) {
+    return ['iso2022_jp_2004', 'ja'];
+  }
+
+  // ISO-2022-JP-EXT: JIS X 0201 Kana designation is unique to this variant.
+  if (findBytes(data, _ESC_JP_EXT_I) !== -1) return ['iso2022_jp_ext', 'ja'];
+
+  // ISO-2022-JP base: JIS X 0208/0201/0212 designations.
+  if (
+    findBytes(data, _ESC_JP_B)  !== -1 ||
+    findBytes(data, _ESC_JP_AT) !== -1 ||
+    findBytes(data, _ESC_JP_J)  !== -1 ||
+    findBytes(data, _ESC_JP_D)  !== -1
+  ) {
+    // SI/SO shift controls (0x0E / 0x0F) → JP-EXT
+    if (data.includes(0x0e) && data.includes(0x0f)) return ['iso2022_jp_ext', 'ja'];
+    // Default to JP-2: a strict superset of JP and JP-1 that decodes all
+    // base sequences correctly.
+    return ['iso2022_jp_2', 'ja'];
+  }
+
+  // ISO-2022-KR: ESC sequence for KS C 5601
+  if (findBytes(data, _ESC_KR_C) !== -1) return ['iso2022_kr', 'ko'];
+
+  return null;
+}
+
+// Detect ISO-2022, HZ-GB-2312, and UTF-7 from escape/tilde/plus sequences.
+//
+// Every answer this stage returns decodes the whole window: a designation is
+// three bytes that ordinary text can contain ("log: ESC $ B is the escape"),
+// and a genuine ISO-2022 or HZ stream can still carry a bad byte past the
+// header. The check costs one decode per hit only. The port can decode only
+// iso2022_jp_2 and UTF-7 here: HZ, ISO-2022-KR, ISO-2022-JP-EXT and
+// ISO-2022-JP-2004 have no decoder, so decodesWithoutError answers true and
+// those are answered on their designations alone, and iso2022_jp_2 data
+// using an escape sequence WHATWG's iso-2022-jp lacks is answered the same
+// way (see iso2022Jp2DecodesWithoutError). See "Escape-stage decode check"
+// in docs/port-notes.md.
 export function detectEscapeEncoding(data: Uint8Array): DetectionResult | null {
   const hasEsc   = data.includes(0x1b);
   const hasTilde = data.includes(0x7e);
@@ -208,33 +261,15 @@ export function detectEscapeEncoding(data: Uint8Array): DetectionResult | null {
   if (!hasEsc && !hasTilde && !hasPlus) return null;
 
   if (hasEsc) {
-    if (
-      findBytes(data, _ESC_JP_2004_O) !== -1 ||
-      findBytes(data, _ESC_JP_2004_P) !== -1 ||
-      findBytes(data, _ESC_JP_2004_Q) !== -1
-    ) {
-      return { encoding: 'iso2022_jp_2004', confidence: DETERMINISTIC_CONFIDENCE, language: 'ja', mimeType: null };
-    }
-
-    if (findBytes(data, _ESC_JP_EXT_I) !== -1) {
-      return { encoding: 'iso2022_jp_ext', confidence: DETERMINISTIC_CONFIDENCE, language: 'ja', mimeType: null };
-    }
-
-    if (
-      findBytes(data, _ESC_JP_B)  !== -1 ||
-      findBytes(data, _ESC_JP_AT) !== -1 ||
-      findBytes(data, _ESC_JP_J)  !== -1 ||
-      findBytes(data, _ESC_JP_D)  !== -1
-    ) {
-      // SI/SO shift controls (0x0E / 0x0F) → JP-EXT
-      if (data.includes(0x0e) && data.includes(0x0f)) {
-        return { encoding: 'iso2022_jp_ext', confidence: DETERMINISTIC_CONFIDENCE, language: 'ja', mimeType: null };
+    const variant = _iso2022Variant(data);
+    if (variant !== null) {
+      const [encoding, language] = variant;
+      const decodes = encoding === 'iso2022_jp_2'
+        ? iso2022Jp2DecodesWithoutError(data)
+        : decodesWithoutError(encoding, data);
+      if (decodes) {
+        return { encoding, confidence: DETERMINISTIC_CONFIDENCE, language, mimeType: null };
       }
-      return { encoding: 'iso2022_jp_2', confidence: DETERMINISTIC_CONFIDENCE, language: 'ja', mimeType: null };
-    }
-
-    if (findBytes(data, _ESC_KR_C) !== -1) {
-      return { encoding: 'iso2022_kr', confidence: DETERMINISTIC_CONFIDENCE, language: 'ko', mimeType: null };
     }
   }
 
@@ -257,7 +292,8 @@ export function detectEscapeEncoding(data: Uint8Array): DetectionResult | null {
     hasTilde &&
     findBytes(data, tilde_open)  !== -1 &&
     findBytes(data, tilde_close) !== -1 &&
-    _hasValidHzRegions(data, maxStart, maxEnd)
+    _hasValidHzRegions(data, maxStart, maxEnd) &&
+    decodesWithoutError('hz', data)
   ) {
     return { encoding: 'hz', confidence: DETERMINISTIC_CONFIDENCE, language: 'zh', mimeType: null };
   }
@@ -285,7 +321,7 @@ export function detectEscapeEncoding(data: Uint8Array): DetectionResult | null {
     if (
       maxByte < 0x80 &&
       _hasValidUtf7Sequences(data, maxStart, maxEnd) &&
-      utf7DecodesWithoutError(data)
+      decodesWithoutError('utf-7', data)
     ) {
       return { encoding: 'utf-7', confidence: DETERMINISTIC_CONFIDENCE, language: null, mimeType: null };
     }

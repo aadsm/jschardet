@@ -443,6 +443,34 @@ describe('compat_names / prefer_superset', () => {
     det.close();
     expect(det.result.encoding).toBe('Windows-1252');
   });
+
+  const supersetFilterCases: Array<[string, { includeEncodings?: string[]; excludeEncodings?: string[] }, string]> = [
+    ['include', { includeEncodings: ['ascii'] }, 'ascii'],
+    ['exclude', { excludeEncodings: ['Windows-1252'] }, 'ascii'],
+    ['both', { includeEncodings: ['ascii', 'Windows-1252'], excludeEncodings: ['Windows-1252'] }, 'ascii'],
+    ['allowed', { includeEncodings: ['ascii', 'Windows-1252'] }, 'cp1252'],
+    ['unfiltered', {}, 'cp1252'],
+  ];
+  describe.each(['detect', 'detect_all', 'stream'])('prefer_superset respects encoding filters (%s)', api => {
+    test.each(supersetFilterCases.flatMap(([id, filters, expected]) =>
+      [false, true].map(compatNames => [id, compatNames, filters, expected] as const),
+    ))('%s, compat_names=%s', (_id, compatNames, filters, expectedRaw) => {
+      const data = HELLO_WORLD;
+      let results;
+      if (api === 'stream') {
+        const detector = new UniversalDetector({ preferSuperset: true, compatNames, ...filters });
+        detector.feed(data);
+        results = [detector.close()];
+      } else if (api === 'detect_all') {
+        results = detectAll(data, { preferSuperset: true, compatNames, ...filters });
+      } else {
+        results = [detect(data, { preferSuperset: true, compatNames, ...filters })];
+      }
+      const expected = compatNames && expectedRaw === 'cp1252' ? 'Windows-1252' : expectedRaw;
+      expect(results.length).toBeGreaterThan(0);
+      for (const result of results) expect(result.encoding).toBe(expected);
+    });
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -1071,4 +1099,71 @@ describe('prefer_superset decode safety (chardet #388)', () => {
     // Without the 0x81 tail the remap applies as before.
     expect(detect(data.subarray(0, data.length - 6), opts).encoding).toBe('Windows-1252');
   });
+});
+
+// ---------------------------------------------------------------------------
+// Compat names for the narrower display codecs
+// ---------------------------------------------------------------------------
+
+describe('compat names for the narrower display codecs', () => {
+  function hex(h: string): Uint8Array {
+    return Uint8Array.from(h.match(/../g)!, b => parseInt(b, 16));
+  }
+  function cat(...parts: Uint8Array[]): Uint8Array {
+    const out = new Uint8Array(parts.reduce((n, p) => n + p.length, 0));
+    let off = 0;
+    for (const p of parts) { out.set(p, off); off += p.length; }
+    return out;
+  }
+  function times(a: Uint8Array, n: number): Uint8Array {
+    return cat(...Array<Uint8Array>(n).fill(a));
+  }
+  // "日本語のテキストです。これはテストです。".encode("euc_jis_2004")
+  const JP_2004 = hex('c6fccbdcb8eca4cea5c6a5ada5b9a5c8a4c7a4b9a1a3a4b3a4eca4cfa5c6a5b9a5c8a4c7a4b9a1a3');
+  // "這是一個測試。中文文字。".encode("big5hkscs")
+  const HK = hex('b36fac4fa440add3b4fab8d5a143a4a4a4e5a4e5a672a143');
+  const CIRCLED_ONE = hex('ada1'); // "①".encode("euc_jis_2004")
+  const HKSCS_CHAR = hex('9dcf'); // "嘢".encode("big5hkscs")
+
+  // Divergence from chardet's test_display_name_never_narrower_than_the_data:
+  // chardet keeps the internal name when the display name's narrower Python
+  // codec cannot decode the window. Each internal name and its display name
+  // share one WHATWG decoder here, so the rename always applies, and the
+  // display name decodes the data for a TextDecoder caller. See "Compat
+  // names for the narrower display codecs" in docs/port-notes.md.
+  test.each([
+    ['euc-jp-statistical', cat(times(JP_2004, 60), CIRCLED_ONE, JP_2004.subarray(0, 40)), 'euc_jis_2004', 'EUC-JP'],
+    ['big5-statistical', cat(times(HK, 60), HKSCS_CHAR, HK.subarray(0, 40)), 'big5hkscs', 'Big5'],
+    ['euc-jp-declared', cat(new TextEncoder().encode('<meta charset="euc-jp">'), times(JP_2004, 60), CIRCLED_ONE), 'euc_jis_2004', 'EUC-JP'],
+  ])('the display name is applied even where chardet keeps the internal one: %s', (_id, data, internal, display) => {
+    expect(detect(data).encoding).toBe(display); // chardet: the internal name
+    expect(detect(data, { compatNames: false }).encoding).toBe(internal);
+    const detector = new UniversalDetector();
+    detector.feed(data);
+    detector.close();
+    expect(detector.result.encoding).toBe(display); // chardet: the internal name
+  });
+
+  test('the display name is kept when it decodes', () => {
+    // "日本語のテキストです。".encode("euc_jp") * 60
+    const data = times(hex('c6fccbdcb8eca4cea5c6a5ada5b9a5c8a4c7a4b9a1a3'), 60);
+    expect(detect(data).encoding).toBe('EUC-JP');
+  });
+});
+
+test('detect_all with prefer_superset lists each name once', () => {
+  // ISO-8859-7 and Windows-1253 both become Windows-1253 under
+  // prefer_superset; the entry kept is the higher-confidence one.
+  // "Καλημέρα κόσμε, αυτό είναι δοκιμή. ".encode("iso8859-7") * 40
+  const greek = new Uint8Array([0xca,0xe1,0xeb,0xe7,0xec,0xdd,0xf1,0xe1,0x20,0xea,0xfc,0xf3,0xec,0xe5,0x2c,0x20,0xe1,0xf5,0xf4,0xfc,0x20,0xe5,0xdf,0xed,0xe1,0xe9,0x20,0xe4,0xef,0xea,0xe9,0xec,0xde,0x2e,0x20]);
+  const data = new Uint8Array(greek.length * 40);
+  for (let i = 0; i < 40; i++) data.set(greek, i * greek.length);
+  const plain = detectAll(data);
+  expect(plain.slice(0, 2).map(d => d.encoding)).toEqual(['ISO-8859-7', 'Windows-1253']);
+  const ranked = detectAll(data, { preferSuperset: true });
+  const names = ranked.map(d => d.encoding);
+  expect(names[0]).toBe('Windows-1253');
+  expect(new Set(names).size).toBe(names.length);
+  expect(ranked[0].confidence).toBe(plain[0].confidence);
+  expect(ranked.length).toBe(plain.length - 1);
 });

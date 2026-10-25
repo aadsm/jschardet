@@ -28,6 +28,14 @@ const _DIVERGENT_FAILURES: readonly string[] = [
   // to CP932, the port keeps SHIFT_JIS (a decode-equivalent name under WHATWG).
   'cp932-ja/y-moto.com.xml',
   'cp932-ja/hardsoft.at.webry.info.xml',
+  // A declared-EUC-KR page whose CP949-only hangul (86 EB, U+B17F) sits past
+  // the first 11 KB. chardet validates the declaration against the whole
+  // window and promotes it to CP949. Node's euc-kr TextDecoder is ICU's plain
+  // EUC-KR rather than the WHATWG index (which is CP949): it rejects the UHC
+  // hangul, so on Node both the declaration and the CP949 candidate fail and
+  // statistics answer. Browsers decode it. See "Node's EUC decoders" in
+  // docs/port-notes.md.
+  'cp949-ko/ricanet.com.xml',
 ];
 
 const _KNOWN_FAILURES: ReadonlySet<string> = new Set([

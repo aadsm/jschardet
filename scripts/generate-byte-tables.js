@@ -127,12 +127,12 @@ for name in sorted(infos) + EXTRA_CODECS:
     # A single-byte codec, for the validity stage's purposes, is a stateless
     # one where every byte decodes to exactly one character or raises: then
     # "data decodes" is exactly "no byte of data is undefined". The UTF
-    # family is flagged is_multibyte=False in the registry but is not that
+    # family is flagged is_multibyte_cjk=False in the registry but is not that
     # (a lone high byte raises only because it is a partial sequence); the
     # deterministic BOM / UTF-1632 / escape / utf8 stages settle it before
     # validity. ascii is a single-byte codec (0x80..0xFF undefined).
     single_byte = name in EXTRA_CODECS or (
-        not infos[name].is_multibyte and not name.startswith("utf-")
+        not infos[name].is_multibyte_cjk and not name.startswith("utf-")
     )
     if single_byte:
         if NON_SINGLE in cps:
