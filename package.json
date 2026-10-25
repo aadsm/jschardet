@@ -44,7 +44,7 @@
         "build:bundles": "node scripts/build-bundles.js",
         "build:types": "dts-bundle-generator --no-check --out-file build/index.d.cts build/index.d.ts && node scripts/mirror-cjs-types.js",
         "test": "vitest run",
-        "pretest:browser": "playwright install chromium",
+        "pretest:browser": "playwright install --only-shell chromium",
         "test:browser": "vitest run --config vitest.browser.config.ts",
         "test:bundles": "vitest run --config vitest.bundles.jschardet.config.ts && vitest run --config vitest.bundles.chardet.config.ts",
         "test:accuracy": "vitest run --config vitest.accuracy.config.ts",
