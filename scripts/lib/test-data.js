@@ -80,10 +80,10 @@ let _cachedRef;
 /**
  * Derives the test-data ref from the chardet submodule, mirroring how
  * upstream keys its corpus on the installed chardet version: the submodule
- * checkout when present (so an update run tests the new corpus before the
- * pin commit exists), the recorded pin otherwise, mapped to the test-data
- * tag of the same name. A commit at no release tag derives to 'main' —
- * upstream's rule for dev builds. Memoized per process.
+ * checkout when present, the recorded pin otherwise (the two must agree; see
+ * _assertCheckoutMatchesPin), mapped to the test-data tag of the same name.
+ * A commit at no release tag derives to 'main' — upstream's rule for dev
+ * builds. Memoized per process.
  *
  * @returns {string}
  */
