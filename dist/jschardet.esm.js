@@ -5134,7 +5134,7 @@ function detectAll(byteStr, options = {}) {
 }
 
 // src/version.js
-var VERSION = "4.0.0";
+var VERSION = "4.1.0";
 
 // src/index.ts
 function toBytes(input) {
